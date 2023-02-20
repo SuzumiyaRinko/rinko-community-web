@@ -1,30 +1,46 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+    <router-view />
+  <!-- <van-config-provider :theme="$store.state.theme" />
+  </van-config-provider> -->
 </template>
 
+<script>
+import { onMounted, reactive } from "vue";
+import { useStore } from "vuex";
+
+export default {
+  setup() {
+    onMounted(() => {
+      // 主题色
+      window.sessionStorage.setItem("theme", "light");
+    });
+    const store = useStore();
+    return { store };
+  },
+};
+</script>
+
 <style lang="less">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+a {
+  color: black;
+}
+.van-theme-dark body {
+  color: #f5f5f5;
+  background-color: black;
+}
+.van-notify {
+  font-size: 0.4rem;
   text-align: center;
-  color: #2c3e50;
+  font-weight: 600;
+  color: #f5f5f5;
 }
-
-nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
-}
+// .icon {
+//   width: 0.5rem;
+//   height: 0.5rem;
+// }
 </style>
