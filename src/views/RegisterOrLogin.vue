@@ -209,6 +209,10 @@ export default {
     // 登录Dialog关闭前的判断
     const onBeforeLoginClose = async (action) => {
       if (action === "confirm") {
+        if(!verifyMail(userLoginDTO.mail) || !verifyPassword(userLoginDTO.password)) {
+          console.log("数据格式不正确")
+          return
+        }
         // var baseResponse = (await register()).data;
         // if (baseResponse.code != 200) {
         //   var exMessage = baseResponse.message;

@@ -1,6 +1,6 @@
 <template>
-  <div class="home">
-    <h2>这是主页</h2>
+  <div class="message">
+    <h2>这是消息页</h2>
     <BottomNav class="BottomNav" />
   </div>
 </template>
@@ -22,7 +22,7 @@ export default {
 </script>
 
 <style lang="less">
-.home {
+.message {
   width: 100%;
   height: 100%;
   .BottomNav {
