@@ -1,10 +1,11 @@
 <template>
   <div class="me">
     <h2 style="text-align: center">这是个人页</h2>
+    <hr />
     <div class="info">
       <img
         class="avatar item"
-        src="../../public/resources/default_avatar.png"
+        :src="`${$store.state.SystemConst.resourcesPrefix}${info.avatarUrl}`"
         alt="个人头像"
         @click="avatarUploadShow = true"
       />
@@ -21,6 +22,7 @@
         <van-icon class="icon" name="arrow" size="0.7rem" />
       </div>
     </div>
+    <hr />
 
     <BottomNav class="BottomNav" />
 
@@ -33,23 +35,36 @@
       :style="{ height: '30%' }"
     >
       <h2>更换头像</h2>
-      <van-uploader :after-read="updateAvatar" v-model="showAvatar" />
+      <van-uploader :after-read="updateAvatar" v-model="avatarList" />
     </van-popup>
   </div>
 </template>
 
 <script>
 import { onMounted, reactive, ref } from "vue";
-import { showDialog, showNotify } from "vant";
-import { uploadAvatar } from "@/api/me.js";
+import { showToast, showDialog } from "vant";
+import { getUserInfo, uploadAvatar } from "@/api/me.js";
 import BottomNav from "@/components/home/BottomNav.vue";
 
 export default {
   setup() {
-    onMounted(() => {});
+    onMounted(async () => {
+      var userInfo = (await getUserInfo()).data.data;
+      info.id = userInfo.id;
+      info.nickname = userInfo.nickname;
+      info.gender = userInfo.gender;
+      info.isFamous = userInfo.isFamous;
+      info.avatarUrl = userInfo.avatar;
+      info.followingsCount = userInfo.followingsCount;
+      info.followersCount = userInfo.followersCount;
+    });
     // 用户数据
     const info = reactive({
+      id: "",
       nickname: "田所浩二",
+      gender: "",
+      isFamous: "",
+      avatarUrl: "/default_avatar.png",
       followingsCount: 114,
       followersCount: 514,
     });
@@ -57,19 +72,30 @@ export default {
     const avatarUploadShow = ref(false);
     // 上传头像
     const updateAvatar = async (file) => {
-      console.log("正在上传头像");
-      // await uploadAvatar(file)
-      // 刷新页面
+      var data = new FormData();
+      data.append("file", file.file);
+      var baseResponse = (await uploadAvatar(data)).data;
+      console.log(baseResponse);
+      if (baseResponse.code != 200) {
+        showToast({
+          message: "头像上传失败",
+          icon: "cross",
+        });
+        avatarList.value = [];
+        return;
+      }
       showDialog({
         title: "头像更换成功",
-        message: "确认后将刷新页面",
         theme: "round-button",
       }).then(() => {
-        window.location.reload()
+        avatarUploadShow.value = false;
+        avatarList.value = [];
       });
+      info.avatarUrl = baseResponse.data;
+      console.log("newAvatarUrl", baseResponse.data);
     };
-    const showAvatar = ref([]);
-    return { info, avatarUploadShow, updateAvatar, showAvatar };
+    const avatarList = ref([]);
+    return { info, avatarUploadShow, updateAvatar, avatarList };
   },
   components: {
     BottomNav,
@@ -84,10 +110,10 @@ export default {
   .info {
     display: flex;
     align-items: center;
-    margin: 1rem 0.2rem;
+    margin: 0 0.2rem;
     padding: 0.2rem 0;
-    border-top: solid 2px black;
-    border-bottom: solid 2px black;
+    // border-top: solid 2px black;
+    // border-bottom: solid 2px black;
     .avatar {
       display: inline-block;
       width: 1.6rem;
@@ -105,8 +131,9 @@ export default {
         font-weight: 700;
       }
       .icon {
-        display: absolute;
-        right: -2.3rem;
+        // display: absolute;
+        // right: -2.3rem;
+        margin-left: 1rem;
       }
       .follower,
       .following {

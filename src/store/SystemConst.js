@@ -1,9 +1,9 @@
 import { createStore } from 'vuex'
 
-import SystemConst from './SystemConst'
-
 export default createStore({
   state: {
+    resourcesPrefix: "http://192.168.66.150/resources",
+    theme: window.sessionStorage.getItem("theme"),
   },
   getters: {
   },
@@ -12,6 +12,5 @@ export default createStore({
   actions: {
   },
   modules: {
-    SystemConst
   }
 })

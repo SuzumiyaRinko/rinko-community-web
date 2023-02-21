@@ -12,7 +12,7 @@ export function getVerifyCode() {
 export function register(userRegisterDTO) {
     return service({
         method: "POST",
-        url: "/user/resgiter",
+        url: "/user/register",
         data: userRegisterDTO,
     })
 }

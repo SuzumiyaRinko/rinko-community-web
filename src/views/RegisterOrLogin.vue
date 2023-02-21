@@ -2,7 +2,11 @@
   <div class="registerOrLogin">
     <!-- 主页面 -->
     <div class="top">
-      <img class="logo" src="../../public/resources/logo.png" alt="logo" />
+      <img
+        class="logo"
+        :src="`${$store.state.SystemConst.resourcesPrefix}${logo}`"
+        alt="logo"
+      />
       <div class="title">
         <span>Rinko-Community</span>
       </div>
@@ -30,7 +34,7 @@
         <van-cell-group inset>
           <!-- 账号 -->
           <van-field
-            v-model.trim="userRegisterDTO.mail"
+            v-model.trim="userRegisterDTO.username"
             required
             clearable
             label="邮箱"
@@ -57,7 +61,7 @@
           />
           <!-- 确认密码 -->
           <van-field
-            v-model.trim="userRegisterDTO.comfirmPassword"
+            v-model.trim="userRegisterDTO.confirmPassword"
             type="password"
             required
             clearable
@@ -96,7 +100,7 @@
         <van-cell-group inset>
           <!-- 账号 -->
           <van-field
-            v-model.trim="userLoginDTO.mail"
+            v-model.trim="userLoginDTO.username"
             required
             clearable
             label="邮箱"
@@ -130,13 +134,20 @@
 <script>
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 import { showDialog, showNotify } from "vant";
-import { getVerifyCode, register } from "@/api/registerOrLogin.js";
+import { getVerifyCode, register, login } from "@/api/registerOrLogin.js";
+import { showToast } from "vant";
 
 export default {
   setup() {
     // router
-    const router = useRouter()
+    const router = useRouter();
+    // vuex
+    const store = useStore();
+
+    // logo
+    const logo = ref("/logo.png");
 
     // Dialog开关
     const registerShow = ref(false);
@@ -157,22 +168,22 @@ export default {
     const reflushCode = async () => {
       var baseResponse = (await getVerifyCode()).data;
       var verifyCodeVO = baseResponse.data;
-      registerData.correctCode = verifyCodeVO.code;
+      userRegisterDTO.correctCode = verifyCodeVO.code;
       base64Code.value = verifyCodeVO.base64Img;
     };
 
     // 注册数据
     const userRegisterDTO = reactive({
-      mail: "",
+      username: "",
       password: "",
-      comfirmPassword: "",
+      confirmPassword: "",
       code: "", // 用户输入的验证码
       correctCode: "", // 正确的验证码
     });
 
     // 登录数据
     const userLoginDTO = reactive({
-      mail: "",
+      username: "",
       password: "",
     });
 
@@ -191,11 +202,35 @@ export default {
     // 注册Dialog关闭前的判断
     const onBeforeRegisterClose = async (action) => {
       if (action === "confirm") {
-        // var baseResponse = (await register()).data;
-        // if (baseResponse.code != 200) {
-        //   var exMessage = baseResponse.message;
-        //   return;
-        // }
+        // 数据格式
+        if (
+          !verifyMail(userRegisterDTO.username) ||
+          !verifyPassword(userRegisterDTO.password) ||
+          !verifyPassword(userRegisterDTO.confirmPassword)
+        ) {
+          showToast({
+            message: "请填写好注册信息",
+            icon: "cross",
+          });
+          return;
+        }
+        // password和confirmPassword
+        if (userRegisterDTO.password != userRegisterDTO.confirmPassword) {
+          showToast({
+            message: "两次密码不一致",
+            icon: "cross",
+          });
+          return;
+        }
+        var baseResponse = (await register(userRegisterDTO)).data;
+        if (baseResponse.code != 200) {
+          var exMessage = baseResponse.message;
+          showToast({
+            message: exMessage,
+            icon: "cross",
+          });
+          return;
+        }
         // 提醒用户激活账号
         showDialog({
           title: "注册成功",
@@ -209,22 +244,34 @@ export default {
     // 登录Dialog关闭前的判断
     const onBeforeLoginClose = async (action) => {
       if (action === "confirm") {
-        if(!verifyMail(userLoginDTO.mail) || !verifyPassword(userLoginDTO.password)) {
-          console.log("数据格式不正确")
-          return
+        if (
+          !verifyMail(userLoginDTO.username) ||
+          !verifyPassword(userLoginDTO.password)
+        ) {
+          showToast({
+            message: "请填写好登录信息",
+            icon: "cross",
+          });
+          return;
         }
-        // var baseResponse = (await register()).data;
-        // if (baseResponse.code != 200) {
-        //   var exMessage = baseResponse.message;
-        //   return;
-        // }
+        var baseResponse = (await login(userLoginDTO)).data;
+        if (baseResponse.code != 200) {
+          var exMessage = baseResponse.message;
+          showToast({
+            message: exMessage,
+            icon: "cross",
+          });
+          return;
+        }
+        // 保存Token到SessionStorage
+        window.sessionStorage.setItem("token", baseResponse.data);
         // 跳转到主页
         showDialog({
           title: "登录成功",
           message: "确认后将跳转到主页",
           theme: "round-button",
         }).then(() => {
-          router.push("/home")
+          router.push("/home");
         });
       }
       loginShow.value = false;
@@ -236,13 +283,13 @@ export default {
         title: "欢迎使用",
         message: "🥰",
         theme: "round-button",
-      }).then(() => {
-        // on close
       });
     });
 
     return {
       router,
+      store,
+      logo,
       registerShow,
       loginShow,
       readyToRegister,
@@ -269,12 +316,14 @@ export default {
     .logo {
       margin: 0 auto;
       display: flex;
+      margin-top: 2rem;
     }
     .title {
       text-align: center;
       font-size: 0.8rem;
       font-weight: 700;
       font-family: "Microsoft YaHei";
+      margin-bottom: 7rem;
     }
   }
   .login {
@@ -301,17 +350,17 @@ export default {
       font-family: "Microsoft YaHei";
     }
   }
+  .verifyCode {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 1.2rem;
+  }
   .van-dialog__content {
     width: 100%;
     margin: 0.3rem auto;
   }
   .van-cell__title {
     width: 1.8rem;
-  }
-  .verifyCode {
-    display: flex;
-    justify-content: space-between;
-    margin: 0 0.8rem;
   }
 }
 </style>
