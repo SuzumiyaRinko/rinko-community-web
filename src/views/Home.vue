@@ -1,23 +1,37 @@
 <template>
   <div class="home">
     <h2>这是主页</h2>
-    <BottomNav class="BottomNav" />
+
+    <!-- BottomNav -->
+    <div class="bottomNav">
+      <div class="item currItem" @click="router.push('/home')">
+        <van-icon name="wap-home-o" size="0.8rem" />
+        <span>主页</span>
+      </div>
+      <div class="item" @click="router.push('/message')">
+        <van-icon name="chat-o" size="0.8rem" />
+        <span>消息</span>
+      </div>
+      <div class="item" @click="router.push('/me')">
+        <van-icon name="user-o" size="0.8rem" />
+        <span>个人</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { onMounted, reactive, ref } from "vue";
 import { showDialog, showNotify } from "vant";
-import BottomNav from "@/components/home/BottomNav.vue";
+import { useRouter } from "vue-router";
 
 export default {
   setup() {
+    const router = useRouter();
     onMounted(() => {});
-    return {};
+    return { router };
   },
-  components: {
-    BottomNav,
-  },
+  components: {},
 };
 </script>
 
@@ -25,9 +39,29 @@ export default {
 .home {
   width: 100%;
   height: 100%;
-  .BottomNav {
+
+  // BottomNav
+  .bottomNav {
     position: absolute;
     bottom: 0;
+    border: 3px black solid;
+    border-top-left-radius: 0.2rem;
+    border-top-right-radius: 0.2rem;
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+    font-size: 0.4rem;
+    font-weight: 700;
+    box-shadow: 0 0 15px 10px #bdcee0;
+    .item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0.5rem;
+    }
+    .currItem {
+      color: #1989fa;
+    }
   }
 }
 </style>

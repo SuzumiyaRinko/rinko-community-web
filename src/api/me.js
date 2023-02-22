@@ -22,7 +22,30 @@ export function uploadAvatar(data) {
             "Authorization": window.sessionStorage.getItem("token"),
         },
         method: "POST",
-        url: "/file/upload",
+        url: "/user/uploadAvatar",
         data,
+    })
+}
+
+// 修改用户信息
+export function updateUserInfo(userUpdateDTO) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "POST",
+        url: "/user/updateUserInfo",
+        data: userUpdateDTO,
+    })
+}
+
+// 退出登录
+export function logout() {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "POST",
+        url: "/user/logout",
     })
 }

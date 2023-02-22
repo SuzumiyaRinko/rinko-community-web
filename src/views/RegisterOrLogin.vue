@@ -48,6 +48,8 @@
             type="password"
             required
             clearable
+            maxlength="16"
+            show-word-limit
             label="密码"
             left-icon="user-o"
             placeholder="请输入密码"
@@ -65,6 +67,8 @@
             type="password"
             required
             clearable
+            maxlength="16"
+            show-word-limit
             label="确认密码"
             left-icon="certificate"
             placeholder="请确认密码"
@@ -74,6 +78,8 @@
             v-model.trim="userRegisterDTO.code"
             required
             clearable
+            maxlength="4"
+            show-word-limit
             label="验证码"
             left-icon="shield-o"
             placeholder="请输入验证码"
@@ -114,6 +120,8 @@
             type="password"
             required
             clearable
+            maxlength="16"
+            show-word-limit
             label="密码"
             left-icon="user-o"
             placeholder="请输入密码"
