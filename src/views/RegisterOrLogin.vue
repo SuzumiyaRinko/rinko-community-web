@@ -348,7 +348,7 @@ export default {
   }
   .bottom {
     height: 100%;
-    margin-top: 2.8rem;
+    margin-top: 3.2rem;
     opacity: 0.8;
     span {
       margin: 0 0.1rem;
