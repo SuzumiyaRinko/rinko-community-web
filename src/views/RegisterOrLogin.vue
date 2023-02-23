@@ -18,8 +18,8 @@
       <van-button type="default" @click="readyToRegister()">注册</van-button>
     </div>
     <div class="bottom">
-      <span>SuzumiyaRinko</span><br>
-      <span>CopyRight© 114514</span>
+      <span>SuzumiyaRinko</span>
+      <span>CopyRight @114514</span>
     </div>
 
     <!-- 注册 -->
@@ -348,8 +348,8 @@ export default {
     }
   }
   .bottom {
-    margin-top: 20%;
-    margin-top: 2.8rem;
+    height: 100%;
+    margin-top: 3.2rem;
     opacity: 0.8;
     span {
       margin: 0 0.1rem;
