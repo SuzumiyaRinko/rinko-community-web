@@ -1,5 +1,5 @@
 <template>
-  <div class="me">
+  <div class="me" :style="height=totalHeight">
     <div class="info" @click="userInfoUploadShowFunc()">
       <div class="leftInfo" @click="avatarUploadShowFunc()">
         <img
@@ -138,7 +138,21 @@
         :src="`${$store.state.SystemConst.resourcesPrefix}${noAnyPost}`"
         alt="noAnyPost"
       />
-      <span class="noAnyPostWarning">您暂时还没有发表过POST</span>
+      <span v-if="myPosts.length == 0" class="noAnyPostWarning"
+        >您暂时还没有发表过POST</span
+      >
+      <div class="onePost" v-for="(post, idx) in myPosts" key="idx">
+        <span class="postTitle">{{ post.title }}</span
+        ><br />
+        <span class="postContent">{{ post.content }}</span
+        ><br />
+        <span class="postCreateTime">{{ post.createTime }}</span
+        ><br />
+        <span class="postStatus">点赞：{{ post.likeCount }}</span>
+        <span class="postStatus">评论：{{ post.commentCount }}</span>
+        <span class="postStatus">收藏：{{ post.collectionCount }}</span>
+        <hr />
+      </div>
     </div>
 
     <!-- 退出登录 -->
@@ -406,6 +420,9 @@ export default {
       logoutShow.value = false;
     };
 
+    // 设备高度
+    const totalHeight = `${document.documentElement.clientHeight}px`
+
     return {
       router,
       info,
@@ -424,6 +441,7 @@ export default {
       noAnyPost,
       logoutShow,
       onBeforeLogoutClose,
+      totalHeight,
     };
   },
   components: {},
@@ -433,12 +451,12 @@ export default {
 <style lang="less">
 .me {
   width: 100%;
-  height: 100%;
   .info {
     display: flex;
     align-items: center;
     margin: 0 0.2rem;
     padding: 0.2rem 0;
+    border: solid 3px black;
     box-shadow: 0 0 15px 10px #bdcee0;
     border-radius: 1rem;
     margin-top: 0.5rem;
@@ -511,12 +529,12 @@ export default {
     border: solid 5px black;
     border-radius: 1rem;
     width: 94%;
-    height: 100%;
+    height: 30%;
     margin: 0.3rem auto;
-    text-align: center;
     height: 16rem;
     box-shadow: 0 0 15px 4px #bdcee0;
     .title {
+      text-align: center;
       font-size: 0.6rem;
       font-weight: 700;
       border-bottom: solid 5px black;
@@ -531,6 +549,38 @@ export default {
       font-size: 0.5rem;
       font-weight: 600;
       opacity: 0.5;
+    }
+    .onePost {
+      margin-top: 0.2rem;
+      width: 96%;
+      .postTitle {
+        margin-left: 0.5rem;
+        font-size: 0.5rem;
+        font-weight: 700;
+      }
+      .postContent {
+        margin-left: 0.5rem;
+        font-size: 0.35rem;
+        font-weight: 500;
+        overflow: hidden;
+        // 文本超出时省略（最多2行）
+        display: -webkit-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .postCreateTime {
+        margin-left: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.3rem;
+        font-weight: 700;
+      }
+      .postStatus {
+        margin-left: 0.5rem;
+        font-size: 0.3rem;
+        font-weight: 700;
+      }
     }
   }
   .logout {
@@ -550,10 +600,6 @@ export default {
     text-align: center;
     margin-top: 0.4rem;
     font-size: 0.5rem;
-  }
-  .BottomNav {
-    position: absolute;
-    bottom: 0;
   }
   .van-popup {
     text-align: center;
