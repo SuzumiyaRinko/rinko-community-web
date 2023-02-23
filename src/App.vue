@@ -1,5 +1,5 @@
 <template>
-  <router-view />
+    <router-view />
   <!-- <van-config-provider :theme="$store.state.theme" />
   </van-config-provider> -->
 </template>
@@ -47,4 +47,5 @@ a {
 //   width: 0.5rem;
 //   height: 0.5rem;
 // }
+
 </style>

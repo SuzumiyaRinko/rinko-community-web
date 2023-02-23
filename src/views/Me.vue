@@ -534,8 +534,8 @@ export default {
     }
   }
   .logout {
-    // position: absolute;
-    // bottom: 1rem;
+    position: absolute;
+    bottom: 1rem;
     .van-button {
       box-shadow: 0 0 15px 6px #bdcee0;
       border-radius: 2rem;
@@ -568,8 +568,8 @@ export default {
   }
   // BottomNav
   .bottomNav {
-    // position: absolute;
-    // bottom: 0;
+    position: absolute;
+    bottom: 0;
     border: 3px black solid;
     border-top-left-radius: 0.2rem;
     border-top-right-radius: 0.2rem;
