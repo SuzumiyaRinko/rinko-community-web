@@ -15,9 +15,7 @@ export default {
       window.sessionStorage.setItem("theme", "light");
     });
     const store = useStore();
-    // 设备高度
-    const totalHeight = `${document.documentElement.clientHeight}px`;
-    return { store, totalHeight };
+    return { store };
   },
 };
 </script>
@@ -25,7 +23,7 @@ export default {
 <style lang="less">
 html {
   width: 100%;
-  height: var(--totalHeight);
+  height: 100%;
 }
 * {
   margin: 0;
