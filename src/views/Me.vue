@@ -139,6 +139,18 @@
         alt="noAnyPost"
       />
       <span class="noAnyPostWarning">您暂时还没有发表过POST</span>
+      <div class="onePost" v-for="(post, idx) in myPosts" key="idx">
+        <span class="postTitle">{{ post.title }}</span
+        ><br />
+        <span class="postContent">{{ post.content }}</span
+        ><br />
+        <span class="postCreateTime">{{ post.createTime }}</span
+        ><br />
+        <span class="postStatus">点赞：{{ post.likeCount }}</span>
+        <span class="postStatus">评论：{{ post.commentCount }}</span>
+        <span class="postStatus">收藏：{{ post.collectionCount }}</span>
+        <hr />
+      </div>
     </div>
 
     <!-- 退出登录 -->
@@ -531,6 +543,38 @@ export default {
       font-size: 0.5rem;
       font-weight: 600;
       opacity: 0.5;
+    }
+    .onePost {
+      margin-top: 0.2rem;
+      width: 96%;
+      .postTitle {
+        margin-left: 0.5rem;
+        font-size: 0.5rem;
+        font-weight: 700;
+      }
+      .postContent {
+        margin-left: 0.5rem;
+        font-size: 0.35rem;
+        font-weight: 500;
+        overflow: hidden;
+        // 文本超出时省略（最多2行）
+        display: -webkit-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .postCreateTime {
+        margin-left: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.3rem;
+        font-weight: 700;
+      }
+      .postStatus {
+        margin-left: 0.5rem;
+        font-size: 0.3rem;
+        font-weight: 700;
+      }
     }
   }
   .logout {
