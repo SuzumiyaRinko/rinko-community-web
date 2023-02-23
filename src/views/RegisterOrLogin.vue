@@ -319,7 +319,6 @@ export default {
 .registerOrLogin {
   margin: 0 auto;
   text-align: center;
-  height: 100%;
   .top {
     opacity: 0.8;
     .logo {
@@ -332,24 +331,24 @@ export default {
       font-size: 0.8rem;
       font-weight: 700;
       font-family: "Microsoft YaHei";
-      // margin-bottom: 7rem;
+      margin-bottom: 7rem;
     }
   }
   .login {
-    margin-top: 50%;
+    margin-top: 3rem;
     .van-button {
       width: 75%;
     }
   }
   .register {
-    margin-top: 2%;
+    margin-top: 0.5rem;
     .van-button {
       width: 75%;
     }
   }
   .bottom {
     height: 100%;
-    margin-top: 3.2rem;
+    margin-top: 2.8rem;
     opacity: 0.8;
     span {
       margin: 0 0.1rem;
