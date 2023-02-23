@@ -1,5 +1,5 @@
 <template>
-    <router-view />
+  <router-view />
   <!-- <van-config-provider :theme="$store.state.theme" />
   </van-config-provider> -->
 </template>
@@ -15,7 +15,9 @@ export default {
       window.sessionStorage.setItem("theme", "light");
     });
     const store = useStore();
-    return { store };
+    // 设备高度
+    const totalHeight = `${document.documentElement.clientHeight}px`;
+    return { store, totalHeight };
   },
 };
 </script>
@@ -23,7 +25,7 @@ export default {
 <style lang="less">
 html {
   width: 100%;
-  height: 100%;
+  height: var(--totalHeight);
 }
 * {
   margin: 0;
@@ -47,5 +49,4 @@ a {
 //   width: 0.5rem;
 //   height: 0.5rem;
 // }
-
 </style>
