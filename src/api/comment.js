@@ -1,13 +1,13 @@
 import service from "@/api/index.js"
 
 // 查询帖子
-export function postSearch(postSearchDTO) {
+export function commentSelect(commentSelectDTO) {
     return service({
         headers: {
             "Authorization": window.sessionStorage.getItem("token"),
         },
         method: "GET",
-        url: "/post/search",
-        params: postSearchDTO,
+        url: "/comment",
+        params: commentSelectDTO,
     })
 }

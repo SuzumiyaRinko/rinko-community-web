@@ -22,17 +22,16 @@
 
 <script>
 import { onMounted, reactive, ref } from "vue";
-import { showDialog, showNotify } from "vant";
+import { showDialog, showNotify, showToast  } from "vant";
 import { useRouter } from "vue-router";
 
 export default {
   setup() {
     const router = useRouter();
     onMounted(() => {});
-    return {router};
+    return { router };
   },
-  components: {
-  },
+  components: {},
 };
 </script>
 
