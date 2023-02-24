@@ -4,6 +4,7 @@ import RegisterOrLogin from "@/views/RegisterOrLogin.vue"
 import Home from "@/views/Home.vue"
 import Message from "@/views/Message.vue"
 import Me from "@/views/Me.vue"
+import User from "@/views/User.vue"
 import Post from "@/views/Post.vue"
 
 const routes = [
@@ -26,6 +27,11 @@ const routes = [
     path: '/me',
     name: 'me',
     component: Me
+  },
+  {
+    path: '/user',
+    name: 'user',
+    component: User
   },
   {
     path: '/post',

@@ -5,6 +5,13 @@
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
       <span class="back" @click="router.go(-1)">返回</span>
       <span class="title">POST</span>
+      <van-button
+        v-if="currPost.userId == myUserId"
+        class="deleteButton"
+        type="danger"
+        @click="deletePostShow = true"
+        >删除</van-button
+      >
     </div>
 
     <!-- Content -->
@@ -18,7 +25,7 @@
           min-height: 2.8rem;
         "
       >
-        <div class="onePostSimpleUser" @click="gotoUser()">
+        <div class="onePostSimpleUser" @click="gotoUser(currPost.postUser.id)">
           <img
             class="avatar item"
             :src="`${$store.state.SystemConst.resourcesPrefix}${currPost.postUser.avatar}`"
@@ -167,7 +174,7 @@
           v-for="(comment, idx) in commentPage.data"
           key="idx"
         >
-          <div class="oneCommentSimpleUser" @click="">
+          <div class="oneCommentSimpleUser" @click="gotoUser(comment.userId)">
             <img
               class="avatar item"
               :src="`${$store.state.SystemConst.resourcesPrefix}${comment.commentUser.avatar}`"
@@ -289,7 +296,9 @@
             <div v-for="(recomment, idx) in comment.first3Comments">
               回复： {{ recomment }}
             </div>
-            <div class="seeMoreRecomment">（点击查看更多）</div>
+            <div class="seeMoreRecomment" @click="gotoReComment()">
+              （点击查看更多）
+            </div>
           </div>
         </div>
       </van-list>
@@ -310,6 +319,16 @@
         <span>收藏（{{ currPost.collectionCount }}）</span>
       </div>
     </div>
+
+    <!-- 删除POST -->
+    <van-dialog
+      v-model:show="deletePostShow"
+      title="是否删除该POST"
+      show-cancel-button
+      confirm-button-text="确认"
+      :before-close="onBeforeDeleteClose"
+    >
+    </van-dialog>
   </div>
 </template>
 
@@ -317,19 +336,91 @@
 import { onMounted, reactive, ref } from "vue";
 import { showDialog, showNotify, showToast } from "vant";
 import { useRouter } from "vue-router";
+import {
+  deletePostAPI,
+  likeAPI,
+  collectAPI,
+  hasLikeAPI,
+  hasCollectAPI,
+} from "@/api/post.js";
 import { commentSelect } from "@/api/comment.js";
 import { checkAuthority } from "@/util/utils.js";
 
 export default {
   setup() {
+    onMounted(async () => {
+      // myUserId
+      myUserId.value = window.sessionStorage.getItem("myUserId")
+      // currPost
+      var currPostJson = window.sessionStorage.getItem("currPost");
+      var currPostParse = JSON.parse(currPostJson);
+      currPost.id = currPostParse.id;
+      currPost.userId = currPostParse.userId;
+      currPost.title = currPostParse.title;
+      currPost.content = currPostParse.content;
+      currPost.createTime = currPostParse.createTime;
+      currPost.likeCount = currPostParse.likeCount;
+      currPost.commentCount = currPostParse.commentCount;
+      currPost.collectionCount = currPostParse.collectionCount;
+      currPost.postUser = currPostParse.postUser;
+      // 判断当前用户是否已点赞、收藏
+      var baseResponse = (await hasLikeAPI(currPost.id)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+      hasLike.value = baseResponse.data;
+      if (hasLike.value) {
+        likeColor.value = "red";
+      } else {
+        likeColor.value = "black";
+      }
+      var baseResponse = (await hasCollectAPI(currPost.id)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+      hasCollect.value = baseResponse.data;
+      if (hasCollect.value) {
+        collectionColor.value = "#ffea00";
+      } else {
+        collectionColor.value = "black";
+      }
+      // 第一页comment
+      commentSelectDTO.targetId = currPost.id;
+      console.log("targetId", commentSelectDTO.targetId);
+      var baseResponse = (await commentSelect(commentSelectDTO)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+      commentSelectDTO.pageNum++; // 页数+1
+      var pageInfo = baseResponse.data;
+      commentPage.total = pageInfo.total;
+      commentPage.data = commentPage.data.concat(pageInfo.list);
+      if (commentPage.data.length == 0) {
+        // 不需要加载更多
+        commentLoading.value = false;
+        commentFinished.value = true;
+      }
+    });
+
     // router
     const router = useRouter();
 
+    // myUserId
+    const myUserId = ref("");
+
     // gotoUser
-    const gotoUser = () => {
-      // window.sessionStorage.setItem("gotoUserId", currPost.userId)
-      // router.push("/user")
+    const gotoUser = (userId) => {
+      var myUserId = window.sessionStorage.getItem("myUserId");
+      if (userId == myUserId) {
+        router.push("/me");
+      } else {
+        window.sessionStorage.setItem("gotoUserId", userId);
+        router.push("/user");
+      }
     };
+
+    // gotoRecomment
+    const gotoRecomment = () => {};
 
     // noAnyComment
     const noAnyComment = ref("/logo.png");
@@ -390,63 +481,77 @@ export default {
       }, 1000);
     };
 
+    // 删除post
+    const deletePostShow = ref(false);
+    // "修改用户信息Dialog"关闭前的判断
+    const onBeforeDeleteClose = async (action) => {
+      if (action === "confirm") {
+        var baseResponse = (await deletePostAPI(currPost.id)).data;
+        if (checkAuthority(baseResponse) == false) {
+          router.push("/");
+        }
+        if (baseResponse.code != 200) {
+          var exMessage = baseResponse.message;
+          showToast({
+            message: exMessage,
+            icon: "cross",
+          });
+          deletePostShow.value = false;
+        }
+
+        // 跳转到主页
+        showDialog({
+          title: "POST删除成功",
+          message: "确认后将回到个人页",
+          theme: "round-button",
+        }).then(() => {
+          router.push("/me");
+        });
+      }
+      deletePostShow.value = false;
+    };
+
     // 点赞
     const hasLike = ref(false);
     const likeColor = ref("black");
-    const like = () => {
+    const like = async () => {
+      var baseResponse = (await likeAPI(currPost.id)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
       hasLike.value = !hasLike.value;
       if (hasLike.value) {
         likeColor.value = "red";
+        currPost.likeCount++;
       } else {
         likeColor.value = "black";
+        currPost.likeCount--;
       }
     };
 
     // 收藏
     const hasCollect = ref(false);
     const collectionColor = ref("black");
-    const collect = () => {
-      hasCollect.value = !hasCollect.value;
-      if (hasCollect.value) {
-        collectionColor.value = "#ffea00";
-      } else {
-        collectionColor.value = "black";
-      }
-    };
-
-    onMounted(async () => {
-      // currPost
-      var currPostJson = window.sessionStorage.getItem("currPost");
-      var currPostParse = JSON.parse(currPostJson);
-      currPost.id = currPostParse.id;
-      currPost.userId = currPostParse.userId;
-      currPost.title = currPostParse.title;
-      currPost.content = currPostParse.content;
-      currPost.createTime = currPostParse.createTime;
-      currPost.likeCount = currPostParse.likeCount;
-      currPost.commentCount = currPostParse.commentCount;
-      currPost.collectionCount = currPostParse.collectionCount;
-      currPost.postUser = currPostParse.postUser;
-      // 第一页comment
-      commentSelectDTO.targetId = currPost.id;
-      console.log("targetId", commentSelectDTO.targetId);
-      var baseResponse = (await commentSelect(commentSelectDTO)).data;
+    const collect = async () => {
+      var baseResponse = (await collectAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
-      commentSelectDTO.pageNum++; // 页数+1
-      var pageInfo = baseResponse.data;
-      commentPage.total = pageInfo.total;
-      commentPage.data = commentPage.data.concat(pageInfo.list);
-      if (commentPage.data.length == 0) {
-        // 不需要加载更多
-        commentLoading.value = false;
-        commentFinished.value = true;
+      hasCollect.value = !hasCollect.value;
+      if (hasCollect.value) {
+        collectionColor.value = "#ffea00";
+        currPost.collectionCount++;
+      } else {
+        collectionColor.value = "black";
+        currPost.collectionCount--;
       }
-    });
+    };
+
     return {
       router,
+      myUserId,
       gotoUser,
+      gotoRecomment,
       noAnyComment,
       currPost,
       commentPage,
@@ -454,6 +559,8 @@ export default {
       commentLoading,
       commentFinished,
       onCommentLoad,
+      deletePostShow,
+      onBeforeDeleteClose,
       likeColor,
       like,
       hasCollect,
@@ -474,6 +581,7 @@ export default {
     box-shadow: 0 0 15px 1px #000000;
     border-radius: 1rem;
     margin-top: 0.5rem;
+    vertical-align: top;
     .van-icon {
       margin-left: 0.2rem;
     }
@@ -489,6 +597,14 @@ export default {
       margin-left: 2.1rem;
       font-size: 0.5rem;
       font-weight: 700;
+    }
+    .deleteButton {
+      position: absolute;
+      top: 0.8rem;
+      right: 0.8rem;
+      font-size: 0.5rem;
+      font-weight: 700;
+      height: 0.6rem;
     }
   }
   .content {
@@ -584,13 +700,14 @@ export default {
       margin-top: 0.2rem;
       width: 96%;
       position: relative;
-      min-height: 1.3rem;
+      min-height: 1.8rem;
       border-bottom: solid 2px black;
       .oneCommentSimpleUser {
         position: absolute;
         left: 1.5rem;
         .avatar {
           position: absolute;
+          top: 0.5rem;
           width: 1rem;
           height: 1rem;
           border: solid 5px black;
@@ -600,45 +717,44 @@ export default {
         }
         .gender {
           position: absolute;
+          top: 0.5rem;
+          right: 0;
           border: solid 2px black;
           border-radius: 0.5rem;
           width: 0.5rem;
           height: 0.5rem;
-          right: 0;
           z-index: 2;
         }
         .famous {
           position: absolute;
+          top: 1.1rem;
+          right: 0;
           border: solid 2px black;
           border-radius: 0.5rem;
           width: 0.5rem;
           height: 0.5rem;
-          right: 0;
-          top: 0.6rem;
           z-index: 2;
           background-color: white;
         }
         .nickname {
           position: absolute;
+          min-width: 7.6rem;
           left: 0.3rem;
-          top: -0.1rem;
+          top: 0.4rem;
           font-size: 0.4rem;
           font-weight: 800;
         }
       }
       .commentContent {
-        // position: absolute;
-        // top: 0.45rem;
-        // left: 1.8rem;
         display: inline-block;
-        margin-top: 0.6rem;
+        margin-top: 1rem;
         margin-left: 1.8rem;
         font-size: 0.4rem;
         font-weight: 500;
       }
       .commentCreateTime {
         position: absolute;
-        right: -0.1rem;
+        left: 0.2rem;
         top: 0;
         font-size: 0.3rem;
         font-weight: 800;
@@ -646,6 +762,7 @@ export default {
       .recomment {
         font-size: 0.4rem;
         font-weight: 600;
+        margin-top: 0.2rem;
         margin-left: 20%;
         padding-left: 0.3rem;
         width: 80%;

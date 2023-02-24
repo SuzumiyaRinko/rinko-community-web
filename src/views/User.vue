@@ -1,11 +1,11 @@
 <template>
-  <div class="me">
-    <div class="info" @click="userInfoUploadShowFunc()">
-      <div class="leftInfo" @click="avatarUploadShowFunc()">
+  <div class="user">
+    <div class="info">
+      <div class="leftInfo">
         <img
           class="avatar item"
           :src="`${$store.state.SystemConst.resourcesPrefix}${info.avatarUrl}`"
-          alt="个人头像"
+          alt="头像"
         />
         <svg
           v-if="info.gender == 1"
@@ -125,37 +125,24 @@
         </div>
       </div>
       <div class="item">
-        <van-icon class="icon" name="arrow" size="0.7rem" />
+        <van-button type="primary" size="0.3rem" style="height: 0.6rem; width: 1.5rem; margin-bottom: 0.2rem; font-weight:700;">关注</van-button>
+        <van-button type="default" size="0.3rem" color="pink" style="height: 0.6rem; width: 1.5rem; font-weight:700;">私聊</van-button>
       </div>
     </div>
 
     <!-- 帖子 -->
     <div class="post">
-      <h2 class="myPost" :style="postStyle" @click="clickPostFunc()">POST</h2>
-      <h2
-        class="myCollection"
-        :style="collectionStyle"
-        @click="clickCollectionFunc()"
-      >
-        COLLECTION
-      </h2>
+      <h2 class="title">POST</h2>
       <!-- 无post时的提示 -->
       <div style="text-align: center">
         <img
-          v-if="myPostsPage.data.length == 0"
+          v-if="postsPage.data.length == 0"
           class="noAnyPost"
           :src="`${$store.state.SystemConst.resourcesPrefix}${noAnyPost}`"
           alt="noAnyPost"
         />
-        <span
-          v-if="myPostsPage.data.length == 0 && postStyle != ''"
-          class="noAnyPostWarning"
-          >您暂时还没有发表过POST</span
-        >
-        <span
-          v-if="myPostsPage.data.length == 0 && collectionStyle != ''"
-          class="noAnyPostWarning"
-          >您暂时还没有收藏过POST</span
+        <span v-if="postsPage.data.length == 0" class="noAnyPostWarning"
+          >对方暂时还没有发表过POST</span
         >
       </div>
 
@@ -169,7 +156,7 @@
       >
         <div
           class="onePost"
-          v-for="(post, idx) in myPostsPage.data"
+          v-for="(post, idx) in postsPage.data"
           key="idx"
           @click="gotoPost(post)"
         >
@@ -177,7 +164,7 @@
             <img
               class="avatar item"
               :src="`${$store.state.SystemConst.resourcesPrefix}${post.postUser.avatar}`"
-              alt="个人头像"
+              alt="头像"
             />
             <svg
               v-if="post.postUser.gender == 1"
@@ -290,7 +277,6 @@
             </div>
           </div>
           <span class="postTitle">{{ post.title }}</span>
-          <!-- <span class="postTitle">{{ post.id }}</span><br /> -->
           <span class="postContent">{{ post.content }}</span
           ><br />
           <span class="postCreateTime">{{ post.createTime }}</span
@@ -303,13 +289,6 @@
       </van-list>
     </div>
 
-    <!-- 退出登录 -->
-    <div class="logout">
-      <van-button color="#d2221e" @click="logoutShow = true"
-        >退出登录</van-button
-      >
-    </div>
-
     <!-- BottomNav -->
     <div class="bottomNav">
       <div class="item" @click="router.push('/home')">
@@ -320,83 +299,19 @@
         <van-icon name="chat-o" size="0.8rem" />
         <span>消息</span>
       </div>
-      <div class="item currItem" @click="router.push('/me')">
+      <div class="item" @click="router.push('/me')">
         <van-icon name="user-o" size="0.8rem" />
-        <span>个人</span>
+        <span>返回个人</span>
       </div>
     </div>
-
-    <!-- 更换头像 -->
-    <van-popup
-      v-model:show="avatarUploadShow"
-      round
-      closeable
-      position="bottom"
-      :style="{ height: '30%' }"
-    >
-      <h2>更换头像</h2>
-      <van-uploader :after-read="updateAvatar" v-model="avatarList" />
-    </van-popup>
-
-    <!-- 修改用户信息 -->
-    <van-dialog
-      v-model:show="userInfoUploadShow"
-      title="修改用户信息"
-      show-cancel-button
-      confirm-button-text="提交"
-      :before-close="onBeforeUpdateClose"
-    >
-      <van-form>
-        <van-cell-group inset>
-          <!-- 名称 -->
-          <van-field
-            v-model.trim="userInfoToUpdate.nickname"
-            clearable
-            maxlength="20"
-            show-word-limit
-            label="名称"
-            left-icon="user-o"
-            placeholder="请输入修改后的名称"
-          />
-          <!-- 性别 -->
-          <van-field
-            v-model="userInfoToUpdate.gender"
-            is-link
-            readonly
-            label="性别"
-            placeholder="选择性别"
-            @click="showGenderPicker = true"
-          />
-        </van-cell-group>
-      </van-form>
-    </van-dialog>
-
-    <!-- 修改性别 -->
-    <van-popup v-model:show="showGenderPicker" round position="bottom">
-      <van-picker
-        :columns="genderColumns"
-        @cancel="showGenderPicker = false"
-        @confirm="onGenderConfirm"
-      />
-    </van-popup>
-
-    <!-- 退出登录 -->
-    <van-dialog
-      v-model:show="logoutShow"
-      title="是否退出登录？"
-      show-cancel-button
-      confirm-button-text="确认"
-      :before-close="onBeforeLogoutClose"
-    >
-    </van-dialog>
   </div>
 </template>
 
 <script>
 import { onMounted, reactive, ref } from "vue";
 import { showToast, showDialog } from "vant";
-import { getUserInfo, uploadAvatar, updateUserInfo, logout } from "@/api/me.js";
-import { postSearch, collectionsSearch } from "@/api/post.js";
+import { getUserInfo } from "@/api/user.js";
+import { postSearch } from "@/api/post.js";
 import { checkAuthority } from "@/util/utils.js";
 import { useRouter } from "vue-router";
 
@@ -404,7 +319,8 @@ export default {
   setup() {
     onMounted(async () => {
       // 加载用户信息
-      var baseResponse = (await getUserInfo()).data;
+      var gotoUserId = window.sessionStorage.getItem("gotoUserId")
+      var baseResponse = (await getUserInfo(gotoUserId)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
@@ -417,19 +333,17 @@ export default {
       info.avatarUrl = userInfo.avatar;
       info.followingsCount = userInfo.followingsCount;
       info.followersCount = userInfo.followersCount;
-      // 把userId放到SessionStorage中
-      window.sessionStorage.setItem("myUserId", info.id);
       // 加载用户post
-      postSearchDTO.userId = info.id;
+      postSearchDTO.userId = gotoUserId
       var baseResponse = (await postSearch(postSearchDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
       postSearchDTO.pageNum++; // 页数+1
       var page = baseResponse.data;
-      myPostsPage.total = page.total;
-      myPostsPage.data = myPostsPage.data.concat(page.data);
-      if (myPostsPage.data.length >= myPostsPage.total) {
+      postsPage.total = page.total;
+      postsPage.data = postsPage.data.concat(page.data);
+      if (postsPage.data.length == 0) {
         // 不需要加载更多
         postLoading.value = false;
         postFinished.value = true;
@@ -448,172 +362,8 @@ export default {
       followersCount: "",
     });
 
-    // 更换头像
-    const avatarUploadShow = ref(false);
-    // 打开更换头像Dialog
-    const avatarUploadShowFunc = () => {
-      event.stopPropagation(); // 阻止事件冒泡至外层div
-      avatarUploadShow.value = true;
-    };
-    // 上传头像
-    const updateAvatar = async (file) => {
-      var data = new FormData();
-      data.append("file", file.file);
-      var baseResponse = (await uploadAvatar(data)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
-      }
-      if (baseResponse.code != 200) {
-        showToast({
-          message: "头像上传失败",
-          icon: "cross",
-        });
-        avatarList.value = [];
-        return;
-      }
-      showDialog({
-        title: "头像更换成功",
-        theme: "round-button",
-      }).then(() => {
-        avatarUploadShow.value = false;
-        avatarList.value = [];
-        window.location.reload();
-      });
-    };
-    const avatarList = ref([]);
-
-    // 修改用户信息
-    const userInfoUploadShow = ref(false);
-    // 打开修改用户信息Dialog
-    const userInfoUploadShowFunc = () => {
-      userInfoToUpdate.nickname = info.nickname;
-      if (info.gender == 1) {
-        userInfoToUpdate.gender = "男";
-      } else if (info.gender == 2) {
-        userInfoToUpdate.gender = "女";
-      } else {
-        userInfoToUpdate.gender = "（不显示性别）";
-      }
-      userInfoUploadShow.value = true;
-    };
-    // 准备修改的用户信息
-    const userInfoToUpdate = reactive({
-      nickname: "",
-      gender: "",
-    });
-    // "修改用户信息Dialog"关闭前的判断
-    const onBeforeUpdateClose = async (action) => {
-      if (action === "confirm") {
-        var userUpdateDTO = {
-          nickname: "",
-          gender: "",
-        };
-        userUpdateDTO.nickname = userInfoToUpdate.nickname;
-        if (userInfoToUpdate.gender === "男") {
-          userUpdateDTO.gender = 1;
-        } else if (userInfoToUpdate.gender === "女") {
-          userUpdateDTO.gender = 2;
-        } else {
-          userUpdateDTO.gender = 0;
-        }
-        var baseResponse = (await updateUserInfo(userUpdateDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          router.push("/");
-        }
-        if (baseResponse.code != 200) {
-          var exMessage = baseResponse.message;
-          showToast({
-            message: exMessage,
-            icon: "cross",
-          });
-          return;
-        }
-        // 跳转到主页
-        showDialog({
-          title: "用户信息修改成功",
-          message: "确认后将刷新个人页",
-          theme: "round-button",
-        }).then(() => {
-          window.location.reload();
-        });
-      }
-      userInfoUploadShow.value = false;
-    };
-    // 更改性别Dialog
-    const showGenderPicker = ref(false);
-    // 性别列表
-    const genderColumns = [
-      { text: "（不显示性别）", value: 0 },
-      { text: "男", value: 1 },
-      { text: "女", value: 2 },
-    ];
-    // 改变性别Picker
-    const onGenderConfirm = ({ selectedOptions }) => {
-      userInfoToUpdate.gender = selectedOptions[0].text;
-      showGenderPicker.value = false;
-    };
-
-    // nav额外样式
-    const postStyle = ref(
-      "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;"
-    );
-    const collectionStyle = ref("");
-
-    // collections当前pageNum
-    const collectionsPageNum = ref(1);
-
-    // nav点击事件
-    const clickPostFunc = async () => {
-      postStyle.value =
-        "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;";
-      collectionStyle.value = "";
-      myPostsPage.data = [];
-      collectionsPageNum.value = 1;
-      postSearchDTO.pageNum = 1;
-      postFinished.value = false;
-      // 加载用户post
-      postSearchDTO.userId = info.id;
-      var baseResponse = (await postSearch(postSearchDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
-      }
-      postSearchDTO.pageNum++; // 页数+1
-      var page = baseResponse.data;
-      myPostsPage.total = page.total;
-      myPostsPage.data = myPostsPage.data.concat(page.data);
-      if (myPostsPage.data.length >= myPostsPage.total) {
-        // 不需要加载更多
-        postLoading.value = false;
-        postFinished.value = true;
-      }
-    };
-    const clickCollectionFunc = async () => {
-      collectionsPageNum.value = 1;
-      postSearchDTO.pageNum = 1;
-      collectionStyle.value =
-        "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;";
-      postStyle.value = "";
-      myPostsPage.data = [];
-      postFinished.value = false;
-      // 加载用户collections
-      var baseResponse = (await collectionsSearch(collectionsPageNum.value))
-        .data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
-      }
-      collectionsPageNum.value++; // 页数+1
-      var page = baseResponse.data;
-      myPostsPage.total = page.total;
-      myPostsPage.data = myPostsPage.data.concat(page.data);
-      if (myPostsPage.data.length >= myPostsPage.total) {
-        // 不需要加载更多
-        postLoading.value = false;
-        postFinished.value = true;
-      }
-    };
-
-    // 个人post数据
-    const myPostsPage = reactive({
+    // 对方post数据
+    const postsPage = reactive({
       total: 0,
       data: [],
     });
@@ -621,7 +371,7 @@ export default {
     const noAnyPost = ref("/logo.png");
     // postSearchDTO
     const postSearchDTO = reactive({
-      isSearchMyself: true,
+      isSearchMyself: false,
       userId: "",
       sortType: 3,
       pageNum: 1, // 下次查询的pageNum
@@ -630,44 +380,24 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = () => {
-      if (postStyle.value != "") {
-        setTimeout(async () => {
-          // 加载用户post
-          var baseResponse = (await postSearch(postSearchDTO)).data;
-          if (checkAuthority(baseResponse) == false) {
-            router.push("/");
-          }
-          postSearchDTO.pageNum++; // 页数+1
-          var page = baseResponse.data;
-          myPostsPage.total = page.total;
-          myPostsPage.data = myPostsPage.data.concat(page.data);
+      setTimeout(async () => {
+        // 加载用户post
+        var baseResponse = (await postSearch(postSearchDTO)).data;
+        if (checkAuthority(baseResponse) == false) {
+          router.push("/");
+        }
+        postSearchDTO.pageNum++; // 页数+1
+        var page = baseResponse.data;
+        postsPage.total = page.total;
+        postsPage.data = postsPage.data.concat(page.data);
 
-          postLoading.value = false;
-          // 已经没有更多数据了
-          if (myPostsPage.data.length >= myPostsPage.total) {
-            postFinished.value = true;
-          }
-        }, 1000);
-      } else {
-        setTimeout(async () => {
-          // 加载用户collections
-          var baseResponse = (await collectionsSearch(collectionsPageNum.value))
-            .data;
-          if (checkAuthority(baseResponse) == false) {
-            router.push("/");
-          }
-          collectionsPageNum.value++; // 页数+1
-          var page = baseResponse.data;
-          myPostsPage.total = page.total;
-          myPostsPage.data = myPostsPage.data.concat(page.data);
+        postLoading.value = false;
 
-          postLoading.value = false;
-          // 已经没有更多数据了
-          if (myPostsPage.data.length >= myPostsPage.total) {
-            postFinished.value = true;
-          }
-        }, 1000);
-      }
+        // 已经没有更多数据了
+        if (postsPage.data.length >= postsPage.total) {
+          postFinished.value = true;
+        }
+      }, 1000);
     };
 
     // 退出登录Dialog
@@ -700,30 +430,12 @@ export default {
     return {
       router,
       info,
-      avatarUploadShow,
-      avatarUploadShowFunc,
-      updateAvatar,
-      avatarList,
-      userInfoUploadShow,
-      userInfoUploadShowFunc,
-      userInfoToUpdate,
-      onBeforeUpdateClose,
-      showGenderPicker,
-      genderColumns,
-      onGenderConfirm,
-      postStyle,
-      collectionStyle,
-      collectionsPageNum,
-      clickPostFunc,
-      clickCollectionFunc,
-      myPostsPage,
+      postsPage,
       noAnyPost,
       postSearchDTO,
       postLoading,
       postFinished,
       onPostLoad,
-      logoutShow,
-      onBeforeLogoutClose,
       gotoPost,
       stopGotoPost,
     };
@@ -733,7 +445,7 @@ export default {
 </script>
 
 <style lang="less">
-.me {
+.user {
   width: 100%;
   height: 100%;
   .info {
@@ -816,23 +528,12 @@ export default {
     width: 94%;
     height: 100%;
     margin: 0.3rem auto;
-    height: 16rem;
+    height: 17rem;
     box-shadow: 0 0 15px 1px #000000;
     overflow: auto; // 防止文本溢出盒子
-    .myPost {
-      display: inline-block;
-      width: 50%;
+    .title {
       text-align: center;
-      font-size: 0.5rem;
-      font-weight: 700;
-      border-bottom: solid 5px black;
-      border-right: solid 5px black;
-    }
-    .myCollection {
-      display: inline-block;
-      width: 50%;
-      text-align: center;
-      font-size: 0.5rem;
+      font-size: 0.6rem;
       font-weight: 700;
       border-bottom: solid 5px black;
     }
