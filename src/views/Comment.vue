@@ -1,12 +1,12 @@
 <template>
-  <div class="post">
+  <div class="comment">
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
       <span class="back" @click="router.go(-1)">返回</span>
-      <span class="title">POST</span>
+      <span class="title">COMMENT</span>
       <van-button
-        v-if="currPost.userId == myUserId"
+        v-if="currComment.userId == myUserId"
         class="deleteButton"
         type="danger"
         @click="deletePostShow = true"
@@ -16,24 +16,24 @@
 
     <!-- Content -->
     <div class="content">
-      <!-- User, Title -->
+      <!-- User, CommentTitle -->
       <div
         style="
           border-top: solid 3px black;
           border-bottom: solid 3px black;
           box-shadow: 0 0 15px 1px #000000;
-          min-height: 2.8rem;
+          min-height: 2.3rem;
         "
       >
-        <div class="onePostSimpleUser">
+        <div class="oneCommentSimpleUser">
           <img
             class="avatar item"
-            :src="`${$store.state.SystemConst.resourcesPrefix}${currPost.postUser.avatar}`"
+            :src="`${$store.state.SystemConst.resourcesPrefix}${currComment.commentUser.avatar}`"
             alt="头像"
-            @click="gotoUser(currPost.postUser.id)"
+            @click="gotoUser(currComment.commentUser.id)"
           />
           <svg
-            v-if="currPost.postUser.gender == 1"
+            v-if="currComment.commentUser.gender == 1"
             t="1677032158928"
             class="gender"
             viewBox="0 0 1024 1024"
@@ -75,7 +75,7 @@
             ></path>
           </svg>
           <svg
-            v-if="currPost.postUser.gender == 2"
+            v-if="currComment.commentUser.gender == 2"
             t="1677032186969"
             class="gender"
             viewBox="0 0 1024 1024"
@@ -107,7 +107,7 @@
             ></path>
           </svg>
           <svg
-            v-if="currPost.postUser.isFamous == 1"
+            v-if="currComment.commentUser.isFamous == 1"
             t="1677033137631"
             class="famous"
             viewBox="0 0 1024 1024"
@@ -139,52 +139,53 @@
             ></path>
           </svg>
           <div class="nickname">
-            <span>{{ currPost.postUser.nickname }}</span>
+            <span>{{ currComment.commentUser.nickname }}</span>
           </div>
         </div>
-        <span class="postCreateTime">{{ currPost.createTime }}</span>
-        <span class="postTitle">{{ currPost.title }}</span>
+        <span class="commentCreateTime">{{ currComment.createTime }}</span>
+        <span class="commentTitle">{{ currComment.title }}</span>
       </div>
-
       <!-- TextContent -->
-      <div class="postContent">{{ currPost.content }}</div>
-      <!-- Comment -->
-      <div class="commentTitle">COMMENT</div>
-      <!-- 无Comment时的提示 -->
+      <div class="commentContent">{{ currComment.content }}</div>
+
+      <!-- Recomment -->
+      <div class="recommentTitle">RECOMMENT</div>
+      <!-- 无Recomment时的提示 -->
       <div style="text-align: center">
         <img
-          v-if="commentPage.data.length == 0"
-          class="noAnyComment"
-          :src="`${$store.state.SystemConst.resourcesPrefix}${noAnyComment}`"
-          alt="noAnyComment"
+          v-if="recommentPage.data.length == 0"
+          class="noAnyRecomment"
+          :src="`${$store.state.SystemConst.resourcesPrefix}${noAnyRecomment}`"
+          alt="noAnyRecomment"
         />
-        <span v-if="commentPage.data.length == 0" class="noAnyCommentWarning"
-          >该POST暂时没有任何COMMENT</span
+        <span
+          v-if="recommentPage.data.length == 0"
+          class="noAnyRecommentWarning"
+          >暂时没有任何RECOMMENT</span
         >
       </div>
-      <!-- 遍历Comment -->
+      <!-- 遍历Recomment -->
       <van-list
-        v-model:loading="commentLoading"
-        :finished="commentFinished"
+        v-model:loading="recommentLoading"
+        :finished="recommentFinished"
         finished-text="没有更多了"
-        @load="onCommentLoad"
+        @load="onRecommentLoad"
         :immediate-check="false"
       >
         <div
-          class="oneComment"
-          v-for="(comment, idx) in commentPage.data"
+          class="oneRecomment"
+          v-for="(recomment, idx) in recommentPage.data"
           key="idx"
-          @click="gotoComment(comment, idx)"
         >
-          <div class="oneCommentSimpleUser">
+          <div class="oneRecommentSimpleUser">
             <img
               class="avatar item"
-              :src="`${$store.state.SystemConst.resourcesPrefix}${comment.commentUser.avatar}`"
+              :src="`${$store.state.SystemConst.resourcesPrefix}${recomment.commentUser.avatar}`"
               alt="头像"
-              @click="gotoUser(comment.userId)"
+              @click="gotoUser(recomment.userId)"
             />
             <svg
-              v-if="comment.commentUser.gender == 1"
+              v-if="recomment.commentUser.gender == 1"
               t="1677032158928"
               class="gender"
               viewBox="0 0 1024 1024"
@@ -226,7 +227,7 @@
               ></path>
             </svg>
             <svg
-              v-if="comment.commentUser.gender == 2"
+              v-if="recomment.commentUser.gender == 2"
               t="1677032186969"
               class="gender"
               viewBox="0 0 1024 1024"
@@ -258,7 +259,7 @@
               ></path>
             </svg>
             <svg
-              v-if="comment.commentUser.isFamous == 1"
+              v-if="recomment.commentUser.isFamous == 1"
               t="1677033137631"
               class="famous"
               viewBox="0 0 1024 1024"
@@ -290,30 +291,11 @@
               ></path>
             </svg>
             <div class="nickname">
-              <span>{{ comment.commentUser.nickname }}</span>
+              <span>{{ recomment.commentUser.nickname }}</span>
             </div>
           </div>
-          <div
-            class="oneCommentStatus"
-            style="display: flex; flex-direction: row"
-          >
-            <div class="item">
-              <van-icon name="like-o" size="0.6rem" />
-              <span>{{ comment.likeCount }}</span>
-            </div>
-            <div class="item">
-              <van-icon name="comment-o" size="0.6rem" />
-              <span>{{ comment.commentCount }}</span>
-            </div>
-          </div>
-          <span class="commentCreateTime">{{ comment.createTime }}</span>
-          <span class="commentContent">{{ comment.content }}</span>
-          <div class="recomment" v-if="comment.first3Comments.length > 0">
-            <div v-for="(recomment, idx) in comment.first3Comments">
-              回复： {{ recomment }}
-            </div>
-            <div class="seeMoreRecomment">（点击查看更多）</div>
-          </div>
+          <span class="recommentCreateTime">{{ recomment.createTime }}</span>
+          <span class="recommentContent">{{ recomment.content }}</span>
         </div>
       </van-list>
     </div>
@@ -322,39 +304,35 @@
     <div class="bottomNav">
       <div class="item" @click="like()">
         <van-icon name="like-o" size="0.8rem" :color="likeColor" />
-        <span>点赞（{{ currPost.likeCount }}）</span>
+        <span>点赞（{{ currComment.likeCount }}）</span>
       </div>
-      <div class="item" @click="commentShow = true">
+      <div class="item" @click="recommentShow = true">
         <van-icon name="comment-o" size="0.8rem" />
-        <span>评论（{{ currPost.commentCount }}）</span>
-      </div>
-      <div class="item" @click="collect()">
-        <van-icon name="star-o" size="0.8rem" :color="collectionColor" />
-        <span>收藏（{{ currPost.collectionCount }}）</span>
+        <span>评论（{{ currComment.commentCount }}）</span>
       </div>
     </div>
 
-    <!-- 删除POST Dialog -->
+    <!-- 删除COMMENT -->
     <van-dialog
-      v-model:show="deletePostShow"
-      title="是否删除该POST"
+      v-model:show="deleteCommentShow"
+      title="是否删除该COMMENT"
       show-cancel-button
       confirm-button-text="确认"
       :before-close="onBeforeDeleteClose"
     >
     </van-dialog>
 
-    <!-- CommentDialog -->
+    <!-- RecommentDialog -->
     <van-dialog
-      class="commentDialog"
-      v-model:show="commentShow"
-      title="评论该POST"
+      class="recommentDialog"
+      v-model:show="recommentShow"
+      title="评论该COMMENT"
       show-cancel-button
       confirm-button-text="发送评论"
-      :before-close="onBeforeCommentClose"
+      :before-close="onBeforeRecommentClose"
     >
       <van-field
-        v-model.trim="commentText"
+        v-model.trim="recommentText"
         rows="2"
         autosize
         type="textarea"
@@ -368,16 +346,14 @@
 
 <script>
 import { onMounted, reactive, ref } from "vue";
-import { showDialog, showNotify, showToast } from "vant";
-import { onBeforeRouteLeave, useRouter } from "vue-router";
+import { showDialog, showToast } from "vant";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 import {
-  deletePostAPI,
+  commentSelect,
   likeAPI,
-  collectAPI,
+  commentAPI,
   hasLikeAPI,
-  hasCollectAPI,
-} from "@/api/post.js";
-import { commentSelect, commentAPI } from "@/api/comment.js";
+} from "@/api/comment.js";
 import { checkAuthority } from "@/util/utils.js";
 import moment from "moment";
 
@@ -386,20 +362,20 @@ export default {
     onMounted(async () => {
       // myUserId
       myUserId.value = window.sessionStorage.getItem("myUserId");
-      // currPost
-      var currPostJson = window.sessionStorage.getItem("currPost");
-      var currPostParse = JSON.parse(currPostJson);
-      currPost.id = currPostParse.id;
-      currPost.userId = currPostParse.userId;
-      currPost.title = currPostParse.title;
-      currPost.content = currPostParse.content;
-      currPost.createTime = currPostParse.createTime;
-      currPost.likeCount = currPostParse.likeCount;
-      currPost.commentCount = currPostParse.commentCount;
-      currPost.collectionCount = currPostParse.collectionCount;
-      currPost.postUser = currPostParse.postUser;
-      // 判断当前用户是否已点赞、收藏
-      var baseResponse = (await hasLikeAPI(currPost.id)).data;
+      // currComment
+      var currCommentParse = JSON.parse(
+        window.sessionStorage.getItem("currComment")
+      );
+      currComment.id = currCommentParse.id;
+      currComment.userId = currCommentParse.userId;
+      currComment.title = currCommentParse.title;
+      currComment.content = currCommentParse.content;
+      currComment.createTime = currCommentParse.createTime;
+      currComment.likeCount = currCommentParse.likeCount;
+      currComment.commentCount = currCommentParse.commentCount;
+      currComment.commentUser = currCommentParse.commentUser;
+      // 判断当前用户是否已点赞
+      var baseResponse = (await hasLikeAPI(currComment.id)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
@@ -409,18 +385,22 @@ export default {
       } else {
         likeColor.value = "black";
       }
-      var baseResponse = (await hasCollectAPI(currPost.id)).data;
+      // 第一页recomment
+      commentSelectDTO.targetId = currComment.id;
+      console.log("targetId", commentSelectDTO.targetId);
+      var baseResponse = (await commentSelect(commentSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
-      hasCollect.value = baseResponse.data;
-      if (hasCollect.value) {
-        collectionColor.value = "#ffea00";
-      } else {
-        collectionColor.value = "black";
+      commentSelectDTO.pageNum++; // 页数+1
+      var pageInfo = baseResponse.data;
+      recommentPage.total = pageInfo.total;
+      recommentPage.data = recommentPage.data.concat(pageInfo.list);
+      if (recommentPage.data.length == 0) {
+        // 不需要加载更多
+        recommentLoading.value = false;
+        recommentFinished.value = true;
       }
-      // 第一页comment
-      onCommentLoad();
     });
 
     // router
@@ -441,21 +421,11 @@ export default {
       }
     };
 
-    // gotoComment
-    const gotoComment = (comment, idx) => {
-      var commemtJson = JSON.stringify(comment);
-      console.log("commemtJson", commemtJson);
-      console.log("currCommentIdx", idx);
-      window.sessionStorage.setItem("currComment", commemtJson);
-      window.sessionStorage.setItem("currCommentIdx", idx);
-      router.push("/comment");
-    };
+    // noAnyRecomment
+    const noAnyRecomment = ref("/logo.png");
 
-    // noAnyComment
-    const noAnyComment = ref("/logo.png");
-
-    // 当前post
-    const currPost = reactive({
+    // currComment
+    const currComment = reactive({
       id: "",
       userId: "",
       title: "",
@@ -463,55 +433,58 @@ export default {
       createTime: "",
       likeCount: "",
       commentCount: "",
-      collectionCount: "",
-      postUser: {},
+      commentUser: {},
     });
 
-    // commentPage
-    const commentPage = reactive({
+    // recommentPage
+    const recommentPage = reactive({
       total: 0,
       data: [],
     });
 
     // commentSelectDTO
     const commentSelectDTO = reactive({
-      targetType: 1,
-      targetId: currPost.id,
+      targetType: 2,
+      targetId: currComment.id,
       sortType: 1,
       pageNum: 1, // 下次查询的pageNum
     });
 
-    // comment下拉刷新
-    const commentLoading = ref(false);
-    const commentFinished = ref(false);
-    const onCommentLoad = async () => {
-      // 加载comment
-      commentSelectDTO.targetId = currPost.id;
-      console.log("commentSelectDTO.targetId", commentSelectDTO.targetId);
-      var baseResponse = (await commentSelect(commentSelectDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
-      }
-      commentSelectDTO.pageNum++; // 页数+1
-      var pageInfo = baseResponse.data;
-      console.log("pageInfo", pageInfo);
-      commentPage.total = pageInfo.total;
-      commentPage.data = commentPage.data.concat(pageInfo.list);
+    // recomment下拉刷新
+    const recommentLoading = ref(false);
+    const recommentFinished = ref(false);
+    const onRecommentLoad = () => {
+      setTimeout(async () => {
+        console.log("onRecommentLoad");
 
-      commentLoading.value = false;
+        // 加载recomment
+        commentSelectDTO.targetId = currComment.id;
+        console.log("commentSelectDTO.targetId", commentSelectDTO.targetId);
+        var baseResponse = (await commentSelect(commentSelectDTO)).data;
+        if (checkAuthority(baseResponse) == false) {
+          router.push("/");
+        }
+        commentSelectDTO.pageNum++; // 页数+1
+        var pageInfo = baseResponse.data;
+        console.log("pageInfo", pageInfo);
+        recommentPage.total = pageInfo.total;
+        recommentPage.data = recommentPage.data.concat(pageInfo.list);
 
-      // 已经没有更多数据了
-      if (commentPage.data.length >= commentPage.total) {
-        commentFinished.value = true;
-      }
+        recommentLoading.value = false;
+
+        // 已经没有更多数据了
+        if (recommentPage.data.length >= recommentPage.total) {
+          recommentFinished.value = true;
+        }
+      }, 1000);
     };
 
-    // 删除post
-    const deletePostShow = ref(false);
-    // "删除post Dialog"关闭前的判断
+    // 删除comment
+    const deleteCommentShow = ref(false);
+    // "删除comment Dialog"关闭前的判断
     const onBeforeDeleteClose = async (action) => {
       if (action === "confirm") {
-        var baseResponse = (await deletePostAPI(currPost.id)).data;
+        var baseResponse = (await deletePostAPI(currComment.id)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
         }
@@ -521,47 +494,47 @@ export default {
             message: exMessage,
             icon: "cross",
           });
-          deletePostShow.value = false;
+          deleteCommentShow.value = false;
         }
 
         // 跳转到主页
         showDialog({
-          title: "POST删除成功",
-          message: "确认后将回到个人页",
+          title: "COMMENT删除成功",
+          message: "确认后将回到POST页",
           theme: "round-button",
         }).then(() => {
-          router.push("/me");
+          router.go(-1);
         });
       }
-      deletePostShow.value = false;
+      deleteCommentShow.value = false;
     };
 
     // 点赞
     const hasLike = ref(false);
     const likeColor = ref("black");
     const like = async () => {
-      var baseResponse = (await likeAPI(currPost.id)).data;
+      var baseResponse = (await likeAPI(currComment.id)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
       hasLike.value = !hasLike.value;
       if (hasLike.value) {
         likeColor.value = "red";
-        currPost.likeCount++;
+        currComment.likeCount++;
       } else {
         likeColor.value = "black";
-        currPost.likeCount--;
+        currComment.likeCount--;
       }
     };
 
     // 评论
-    const commentShow = ref(false);
-    const commentText = ref("");
-    // CommentDialog关闭前的判断
-    const onBeforeCommentClose = async (action) => {
+    const recommentShow = ref(false);
+    const recommentText = ref("");
+    // recommentDialog关闭前的判断
+    const onBeforeRecommentClose = async (action) => {
       if (action === "confirm") {
         // 判空
-        if (commentText.value == "") {
+        if (recommentText.value == "") {
           showToast({
             message: "评论内容不能为空",
             icon: "cross",
@@ -570,86 +543,58 @@ export default {
         }
 
         // 评论
-        console.log("commentText", commentText.value);
+        console.log("recommentText", recommentText.value);
         var myUserInfo = JSON.parse(
           window.sessionStorage.getItem("myUserInfo")
         );
         // 立刻显示
         var now = moment().format("YYYY-MM-DD HH:mm:ss");
         var newComment = {
-          id: 0,
-          commentUser: myUserInfo,
           createTime: now,
-          content: commentText.value,
-          likeCount: 0,
-          commentCount: 0,
-          first3Comments: [],
+          content: recommentText.value,
+          commentUser: myUserInfo,
         };
+        recommentPage.total++;
+        recommentPage.data.push(newComment);
+        currComment.commentCount++;
         // 发送ajax
         var commentInsertDTO = {
-          type: 1,
-          targetId: currPost.id,
-          content: commentText.value,
+          type: 2,
+          targetId: currComment.id,
+          content: recommentText.value,
         };
         var baseResponse = (await commentAPI(commentInsertDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
         }
-        newComment.id = baseResponse.data;
-        commentPage.total++;
-        commentPage.data.push(newComment);
-        currPost.commentCount++;
-        commentText.value = "";
+        recommentText.value = "";
         // 成功提示
         showToast({
           message: "发送评论成功",
           icon: "success",
         });
       }
-      commentShow.value = false;
-    };
-
-    // 收藏
-    const hasCollect = ref(false);
-    const collectionColor = ref("black");
-    const collect = async () => {
-      var baseResponse = (await collectAPI(currPost.id)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
-      }
-      hasCollect.value = !hasCollect.value;
-      if (hasCollect.value) {
-        collectionColor.value = "#ffea00";
-        currPost.collectionCount++;
-      } else {
-        collectionColor.value = "black";
-        currPost.collectionCount--;
-      }
+      recommentShow.value = false;
     };
 
     return {
       router,
       myUserId,
       gotoUser,
-      gotoComment,
-      noAnyComment,
-      currPost,
-      commentPage,
+      noAnyRecomment,
+      currComment,
+      recommentPage,
       commentSelectDTO,
-      commentLoading,
-      commentFinished,
-      onCommentLoad,
-      deletePostShow,
+      recommentLoading,
+      recommentFinished,
+      onRecommentLoad,
+      deleteCommentShow,
       onBeforeDeleteClose,
-      hasLike,
       likeColor,
       like,
-      commentShow,
-      commentText,
-      onBeforeCommentClose,
-      hasCollect,
-      collectionColor,
-      collect,
+      recommentShow,
+      recommentText,
+      onBeforeRecommentClose,
     };
   },
   components: {},
@@ -657,7 +602,7 @@ export default {
 </script>
 
 <style lang="less">
-.post {
+.comment {
   .top {
     margin: 0 0.2rem;
     padding: 0.2rem 0;
@@ -678,7 +623,7 @@ export default {
     }
     .title {
       display: inline-block;
-      margin-left: 2.1rem;
+      margin-left: 1.4rem;
       font-size: 0.5rem;
       font-weight: 700;
     }
@@ -698,10 +643,9 @@ export default {
     box-shadow: 0 0 15px 1px #000000;
     margin: 0.25rem auto;
     overflow: auto; // 防止文本溢出盒子
-    .onePostSimpleUser {
+    .oneCommentSimpleUser {
       position: relative;
       top: 0.3rem;
-      // right: 0.2rem;
       .avatar {
         position: absolute;
         left: 0.2rem;
@@ -732,22 +676,19 @@ export default {
         background-color: white;
       }
       .nickname {
-        // position: absolute;
-        // left: 0.2rem;
-        // top: 1.8rem;
         margin-left: 2.5rem;
         font-size: 0.4rem;
         font-weight: 800;
       }
     }
-    .postCreateTime {
+    .commentCreateTime {
       display: block;
       margin-top: 0.5rem;
       margin-left: 2.5rem;
       font-size: 0.4rem;
       font-weight: 700;
     }
-    .postTitle {
+    .commentTitle {
       display: block;
       max-width: 78%;
       margin-top: 0.1rem;
@@ -755,7 +696,7 @@ export default {
       font-size: 0.5rem;
       font-weight: 700;
     }
-    .postContent {
+    .commentContent {
       border-bottom: solid 3px black;
       max-width: 100%;
       margin-top: 0.2rem;
@@ -764,30 +705,30 @@ export default {
       font-size: 0.5rem;
       font-weight: 500;
     }
-    .commentTitle {
+    .recommentTitle {
       text-align: center;
       font-weight: 700;
       font-size: 0.5rem;
       margin-top: 0.1rem;
     }
-    .noAnyComment {
+    .noAnyRecomment {
       margin: 0 auto;
       margin-top: 0.2rem;
       opacity: 0.5;
     }
-    .noAnyCommentWarning {
+    .noAnyRecommentWarning {
       display: block;
       font-size: 0.5rem;
       font-weight: 600;
       opacity: 0.5;
     }
-    .oneComment {
+    .oneRecomment {
       margin-top: 0.2rem;
       width: 96%;
       position: relative;
       min-height: 1.8rem;
       border-bottom: solid 2px black;
-      .oneCommentSimpleUser {
+      .oneRecommentSimpleUser {
         position: absolute;
         left: 1.5rem;
         .avatar {
@@ -830,47 +771,22 @@ export default {
           font-weight: 800;
         }
       }
-      .oneCommentStatus {
-        position: absolute;
-        top: -0.2rem;
-        right: 0;
-        font-size: 0.5rem;
-        font-weight: 700;
-        .item {
-          padding-left: 0.2rem;
-        }
-      }
-      .commentContent {
+      .recommentContent {
         display: inline-block;
         margin-top: 1rem;
         margin-left: 1.8rem;
         font-size: 0.4rem;
         font-weight: 500;
       }
-      .commentCreateTime {
+      .recommentCreateTime {
         position: absolute;
         left: 0.2rem;
         top: 0;
         font-size: 0.3rem;
         font-weight: 800;
       }
-      .recomment {
-        font-size: 0.4rem;
-        font-weight: 600;
-        margin-top: 0.2rem;
-        margin-left: 20%;
-        padding-left: 0.3rem;
-        width: 80%;
-        background-color: rgb(212, 212, 212);
-        border: solid 1px black;
-        box-shadow: 0 0 15px 1px #000000;
-        .seeMoreRecomment {
-          text-align: right;
-          color: rgb(49, 50, 51);
-        }
-      }
     }
-    .postStatus {
+    .commentStatus {
       margin-left: 0.5rem;
       font-size: 0.3rem;
       font-weight: 700;
@@ -895,11 +811,6 @@ export default {
       align-items: center;
       padding: 0 0.5rem;
     }
-  }
-  // commentDialog
-  .commentDialog .van-field__control {
-    border: solid 1px black;
-    max-height: 16rem;
   }
 }
 </style>

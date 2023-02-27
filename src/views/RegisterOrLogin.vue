@@ -141,10 +141,12 @@
 
 <script>
 import { onMounted, reactive, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { useStore } from "vuex";
 import { showDialog, showNotify } from "vant";
 import { getVerifyCode, register, login } from "@/api/registerOrLogin.js";
+import { getUserInfo } from "@/api/me.js";
+import { checkAuthority } from "@/util/utils.js";
 import { showToast } from "vant";
 
 export default {
@@ -262,6 +264,7 @@ export default {
           });
           return;
         }
+        // 登录
         var baseResponse = (await login(userLoginDTO)).data;
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
@@ -273,6 +276,18 @@ export default {
         }
         // 保存Token到SessionStorage
         window.sessionStorage.setItem("token", baseResponse.data);
+
+        // 加载用户信息
+        var baseResponse = (await getUserInfo()).data;
+        if (checkAuthority(baseResponse) == false) {
+          router.push("/");
+        }
+        var userInfo = baseResponse.data;
+        console.log("userInfo", userInfo);
+        // 把user信息放到SessionStorage中
+        window.sessionStorage.setItem("myUserId", userInfo.id);
+        window.sessionStorage.setItem("myUserInfo", JSON.stringify(userInfo));
+
         // 跳转到主页
         showDialog({
           title: "登录成功",

@@ -6,37 +6,52 @@ import Message from "@/views/Message.vue"
 import Me from "@/views/Me.vue"
 import User from "@/views/User.vue"
 import Post from "@/views/Post.vue"
+import Comment from "@/views/Comment.vue"
 
 const routes = [
   {
     path: '/',
     name: 'registerOrLogin',
-    component: RegisterOrLogin
+    component: RegisterOrLogin,
   },
   {
     path: '/home',
     name: 'home',
-    component: Home
+    component: Home,
+    beforeEnter: (to, from) => {
+      // if (!(from.name == "post" || to.name == "user" || to.name == "me")) {
+      //   window.sessionStorage.setItem("homeScroll", 0);
+      //   window.sessionStorage.setItem("homePage", 1);
+      // }
+    },
   },
   {
     path: '/message',
     name: 'message',
-    component: Message
+    component: Message,
   },
   {
     path: '/me',
     name: 'me',
-    component: Me
+    component: Me,
+    meta: {
+      keepAlive: false,
+    },
   },
   {
     path: '/user',
     name: 'user',
-    component: User
+    component: User,
   },
   {
     path: '/post',
     name: 'post',
-    component: Post
+    component: Post,
+  },
+  {
+    path: '/comment',
+    name: 'comment',
+    component: Comment,
   },
 ]
 

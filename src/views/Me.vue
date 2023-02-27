@@ -142,18 +142,18 @@
       <!-- 无post时的提示 -->
       <div style="text-align: center">
         <img
-          v-if="myPostsPage.data.length == 0"
+          v-if="postsPage.data.length == 0"
           class="noAnyPost"
           :src="`${$store.state.SystemConst.resourcesPrefix}${noAnyPost}`"
           alt="noAnyPost"
         />
         <span
-          v-if="myPostsPage.data.length == 0 && postStyle != ''"
+          v-if="postsPage.data.length == 0 && postStyle != ''"
           class="noAnyPostWarning"
           >您暂时还没有发表过POST</span
         >
         <span
-          v-if="myPostsPage.data.length == 0 && collectionStyle != ''"
+          v-if="postsPage.data.length == 0 && collectionStyle != ''"
           class="noAnyPostWarning"
           >您暂时还没有收藏过POST</span
         >
@@ -169,15 +169,16 @@
       >
         <div
           class="onePost"
-          v-for="(post, idx) in myPostsPage.data"
+          v-for="(post, idx) in postsPage.data"
           key="idx"
           @click="gotoPost(post)"
         >
-          <div class="onePostSimpleUser" @click="stopGotoPost()">
+          <div class="onePostSimpleUser">
             <img
               class="avatar item"
               :src="`${$store.state.SystemConst.resourcesPrefix}${post.postUser.avatar}`"
-              alt="个人头像"
+              alt="头像"
+              @click="stopGotoPost()"
             />
             <svg
               v-if="post.postUser.gender == 1"
@@ -286,7 +287,7 @@
               ></path>
             </svg>
             <div class="nickname">
-              <span>{{ info.nickname }}</span>
+              <span>{{ post.postUser.nickname }}</span>
             </div>
           </div>
           <span class="postTitle">{{ post.title }}</span>
@@ -352,7 +353,7 @@
           <van-field
             v-model.trim="userInfoToUpdate.nickname"
             clearable
-            maxlength="20"
+            maxlength="19"
             show-word-limit
             label="名称"
             left-icon="user-o"
@@ -398,7 +399,7 @@ import { showToast, showDialog } from "vant";
 import { getUserInfo, uploadAvatar, updateUserInfo, logout } from "@/api/me.js";
 import { postSearch, collectionsSearch } from "@/api/post.js";
 import { checkAuthority } from "@/util/utils.js";
-import { useRouter } from "vue-router";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 
 export default {
   setup() {
@@ -417,8 +418,6 @@ export default {
       info.avatarUrl = userInfo.avatar;
       info.followingsCount = userInfo.followingsCount;
       info.followersCount = userInfo.followersCount;
-      // 把userId放到SessionStorage中
-      window.sessionStorage.setItem("myUserId", info.id);
       // 加载用户post
       postSearchDTO.userId = info.id;
       var baseResponse = (await postSearch(postSearchDTO)).data;
@@ -427,14 +426,17 @@ export default {
       }
       postSearchDTO.pageNum++; // 页数+1
       var page = baseResponse.data;
-      myPostsPage.total = page.total;
-      myPostsPage.data = myPostsPage.data.concat(page.data);
-      if (myPostsPage.data.length >= myPostsPage.total) {
+      postsPage.total = page.total;
+      postsPage.data = postsPage.data.concat(page.data);
+      console.log("postsPage.total", postsPage.total);
+      console.log("postsPage.data.length", postsPage.data.length);
+      if (postsPage.data.length >= postsPage.total) {
         // 不需要加载更多
         postLoading.value = false;
         postFinished.value = true;
       }
     });
+
     // router
     const router = useRouter();
     // 用户数据
@@ -475,6 +477,12 @@ export default {
         title: "头像更换成功",
         theme: "round-button",
       }).then(() => {
+        // 更新sessionStorage上的用户信息
+        var myUserInfoJson = window.sessionStorage.getItem("myUserInfo");
+        var myUserInfo = JSON.parse(myUserInfoJson);
+        myUserInfo.avatar = baseResponse.data;
+        window.sessionStorage.setItem("myUserInfo", JSON.stringify(myUserInfo));
+        // 刷新页面
         avatarUploadShow.value = false;
         avatarList.value = [];
         window.location.reload();
@@ -534,6 +542,15 @@ export default {
           message: "确认后将刷新个人页",
           theme: "round-button",
         }).then(() => {
+          // 更新sessionStorage上的用户信息
+          var myUserInfoJson = window.sessionStorage.getItem("myUserInfo");
+          var myUserInfo = JSON.parse(myUserInfoJson);
+          myUserInfo.nickname = userUpdateDTO.nickname;
+          myUserInfo.gender = userUpdateDTO.gender;
+          window.sessionStorage.setItem(
+            "myUserInfo",
+            JSON.stringify(myUserInfo)
+          );
           window.location.reload();
         });
       }
@@ -562,12 +579,28 @@ export default {
     // collections当前pageNum
     const collectionsPageNum = ref(1);
 
+    // 防止用户频繁点击
+    const clickSearchLock = ref(false);
     // nav点击事件
     const clickPostFunc = async () => {
+      // 加锁
+      if (clickSearchLock.value == true) {
+        showToast({
+          message: "请勿频繁点击",
+          icon: "cross",
+        });
+        return;
+      }
+      clickSearchLock.value = true;
+      setTimeout(() => {
+        // 0.6s后释放锁
+        clickSearchLock.value = false;
+      }, 600);
+
       postStyle.value =
         "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;";
       collectionStyle.value = "";
-      myPostsPage.data = [];
+      postsPage.data = [];
       collectionsPageNum.value = 1;
       postSearchDTO.pageNum = 1;
       postFinished.value = false;
@@ -579,21 +612,35 @@ export default {
       }
       postSearchDTO.pageNum++; // 页数+1
       var page = baseResponse.data;
-      myPostsPage.total = page.total;
-      myPostsPage.data = myPostsPage.data.concat(page.data);
-      if (myPostsPage.data.length >= myPostsPage.total) {
+      postsPage.total = page.total;
+      postsPage.data = postsPage.data.concat(page.data);
+      if (postsPage.data.length >= postsPage.total) {
         // 不需要加载更多
         postLoading.value = false;
         postFinished.value = true;
       }
     };
     const clickCollectionFunc = async () => {
+      // 加锁
+      if (clickSearchLock.value == true) {
+        showToast({
+          message: "请勿频繁点击",
+          icon: "cross",
+        });
+        return;
+      }
+      clickSearchLock.value = true;
+      setTimeout(() => {
+        // 0.6s后释放锁
+        clickSearchLock.value = false;
+      }, 600);
+
       collectionsPageNum.value = 1;
       postSearchDTO.pageNum = 1;
       collectionStyle.value =
         "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;";
       postStyle.value = "";
-      myPostsPage.data = [];
+      postsPage.data = [];
       postFinished.value = false;
       // 加载用户collections
       var baseResponse = (await collectionsSearch(collectionsPageNum.value))
@@ -603,9 +650,9 @@ export default {
       }
       collectionsPageNum.value++; // 页数+1
       var page = baseResponse.data;
-      myPostsPage.total = page.total;
-      myPostsPage.data = myPostsPage.data.concat(page.data);
-      if (myPostsPage.data.length >= myPostsPage.total) {
+      postsPage.total = page.total;
+      postsPage.data = postsPage.data.concat(page.data);
+      if (postsPage.data.length >= postsPage.total) {
         // 不需要加载更多
         postLoading.value = false;
         postFinished.value = true;
@@ -613,7 +660,7 @@ export default {
     };
 
     // 个人post数据
-    const myPostsPage = reactive({
+    const postsPage = reactive({
       total: 0,
       data: [],
     });
@@ -639,12 +686,12 @@ export default {
           }
           postSearchDTO.pageNum++; // 页数+1
           var page = baseResponse.data;
-          myPostsPage.total = page.total;
-          myPostsPage.data = myPostsPage.data.concat(page.data);
+          postsPage.total = page.total;
+          postsPage.data = postsPage.data.concat(page.data);
 
           postLoading.value = false;
           // 已经没有更多数据了
-          if (myPostsPage.data.length >= myPostsPage.total) {
+          if (postsPage.data.length >= postsPage.total) {
             postFinished.value = true;
           }
         }, 1000);
@@ -658,12 +705,12 @@ export default {
           }
           collectionsPageNum.value++; // 页数+1
           var page = baseResponse.data;
-          myPostsPage.total = page.total;
-          myPostsPage.data = myPostsPage.data.concat(page.data);
+          postsPage.total = page.total;
+          postsPage.data = postsPage.data.concat(page.data);
 
           postLoading.value = false;
           // 已经没有更多数据了
-          if (myPostsPage.data.length >= myPostsPage.total) {
+          if (postsPage.data.length >= postsPage.total) {
             postFinished.value = true;
           }
         }, 1000);
@@ -680,6 +727,12 @@ export default {
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
         }
+
+        // 移除sessionStorage中的用户相关信息
+        window.sessionStorage.removeItem("myUserId");
+        window.sessionStorage.removeItem("gotoUserId");
+        window.sessionStorage.removeItem("currPost");
+
         // 跳转到登录页面
         router.push("/");
       }
@@ -714,9 +767,10 @@ export default {
       postStyle,
       collectionStyle,
       collectionsPageNum,
+      clickSearchLock,
       clickPostFunc,
       clickCollectionFunc,
-      myPostsPage,
+      postsPage,
       noAnyPost,
       postSearchDTO,
       postLoading,
@@ -798,9 +852,12 @@ export default {
         font-size: 0.4rem;
         font-weight: 700;
         margin-bottom: 0.2rem;
+        max-width: 5.5rem;
       }
       .icon {
-        margin-left: 1rem;
+        position: absolute;
+        top: 1.2rem;
+        right: 0.6rem;
       }
       .follower,
       .following {
@@ -851,6 +908,7 @@ export default {
       margin-top: 0.2rem;
       width: 96%;
       position: relative;
+      // min-height: 3rem;
       .onePostSimpleUser {
         position: absolute;
         right: 0rem;
@@ -885,6 +943,8 @@ export default {
         }
         .nickname {
           position: absolute;
+          text-align: right;
+          width: 5rem;
           right: 0;
           top: 1rem;
           font-size: 0.4rem;

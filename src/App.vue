@@ -1,24 +1,46 @@
 <template>
-    <router-view />
-  <!-- <van-config-provider :theme="$store.state.theme" />
-  </van-config-provider> -->
+  <!-- <router-view v-slot="{ Component }">
+    <transition>
+      <keep-alive :include="includeList">
+        <component :is="Component" :includeList="includeList" />
+      </keep-alive>
+    </transition>
+  </router-view> -->
+  <router-view />
 </template>
 
 <script>
-import { onMounted, reactive } from "vue";
-import { useStore } from "vuex";
-
+import { reactive, watch, toRefs } from "@vue/runtime-core";
+import { useRoute, useRouter } from "vue-router";
 export default {
   setup() {
-    onMounted(() => {
-      // 主题色
-      window.sessionStorage.setItem("theme", "light");
-    });
-    const store = useStore();
-    return { store };
+    const router = useRouter();
+    // const state = reactive({
+    //   includeList: ["答辩"],
+    // });
+    // watch(
+    //   () => router,
+    //   (newVal, oldVal) => {
+    //     var from = window.sessionStorage.getItem("oldRouter");
+    //     var to = newVal.currentRoute.value.name;
+    //     console.log("from", from);
+    //     console.log("to", to);
+
+    //     state.includeList = [];
+    //     if (from == "post" && to == "home") {
+    //       state.includeList.push(to);
+    //     }
+    //     console.log("keepAlive", state.includeList);
+    //   },
+    //   { deep: true }
+    // );
+    return {
+      // ...toRefs(state),
+    };
   },
 };
 </script>
+
 
 <style lang="less">
 html {
@@ -47,5 +69,4 @@ a {
 //   width: 0.5rem;
 //   height: 0.5rem;
 // }
-
 </style>

@@ -22,13 +22,13 @@
 
 <script>
 import { onMounted, reactive, ref } from "vue";
-import { showDialog, showNotify, showToast  } from "vant";
-import { useRouter } from "vue-router";
+import { showDialog, showNotify, showToast } from "vant";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 
 export default {
   setup() {
-    const router = useRouter();
     onMounted(() => {});
+    const router = useRouter();
     return { router };
   },
   components: {},
@@ -52,7 +52,7 @@ export default {
     width: 100%;
     font-size: 0.4rem;
     font-weight: 700;
-    box-shadow: 0 0 15px 10px #bdcee0;
+    box-shadow: 0 0 15px 1px #000000;
     .item {
       display: flex;
       flex-direction: column;

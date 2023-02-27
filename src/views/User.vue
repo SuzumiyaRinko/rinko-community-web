@@ -125,8 +125,34 @@
         </div>
       </div>
       <div class="item">
-        <van-button type="primary" size="0.3rem" style="height: 0.6rem; width: 1.5rem; margin-bottom: 0.2rem; font-weight:700;">关注</van-button>
-        <van-button type="default" size="0.3rem" color="pink" style="height: 0.6rem; width: 1.5rem; font-weight:700;">私聊</van-button>
+        <van-button
+          type="primary"
+          size="0.3rem"
+          style="
+            position: absolute;
+            top: 0.9rem;
+            right: 0.8rem;
+            height: 0.6rem;
+            width: 1.5rem;
+            margin-bottom: 0.2rem;
+            font-weight: 700;
+          "
+          >关注</van-button
+        >
+        <van-button
+          type="default"
+          size="0.3rem"
+          color="pink"
+          style="
+            position: absolute;
+            top: 1.6rem;
+            right: 0.8rem;
+            height: 0.6rem;
+            width: 1.5rem;
+            font-weight: 700;
+          "
+          >私聊</van-button
+        >
       </div>
     </div>
 
@@ -160,11 +186,12 @@
           key="idx"
           @click="gotoPost(post)"
         >
-          <div class="onePostSimpleUser" @click="stopGotoPost()">
+          <div class="onePostSimpleUser">
             <img
               class="avatar item"
               :src="`${$store.state.SystemConst.resourcesPrefix}${post.postUser.avatar}`"
               alt="头像"
+              @click="stopGotoPost()"
             />
             <svg
               v-if="post.postUser.gender == 1"
@@ -313,13 +340,13 @@ import { showToast, showDialog } from "vant";
 import { getUserInfo } from "@/api/user.js";
 import { postSearch } from "@/api/post.js";
 import { checkAuthority } from "@/util/utils.js";
-import { useRouter } from "vue-router";
+import { useRouter, onBeforeRouteLeave } from "vue-router";
 
 export default {
   setup() {
     onMounted(async () => {
       // 加载用户信息
-      var gotoUserId = window.sessionStorage.getItem("gotoUserId")
+      var gotoUserId = window.sessionStorage.getItem("gotoUserId");
       var baseResponse = (await getUserInfo(gotoUserId)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
@@ -334,7 +361,7 @@ export default {
       info.followingsCount = userInfo.followingsCount;
       info.followersCount = userInfo.followersCount;
       // 加载用户post
-      postSearchDTO.userId = gotoUserId
+      postSearchDTO.userId = gotoUserId;
       var baseResponse = (await postSearch(postSearchDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
@@ -349,6 +376,7 @@ export default {
         postFinished.value = true;
       }
     });
+
     // router
     const router = useRouter();
     // 用户数据
@@ -418,6 +446,7 @@ export default {
 
     // gotoPost
     const gotoPost = (post) => {
+      console.log("gotoPost()");
       var postJson = JSON.stringify(post);
       window.sessionStorage.setItem("currPost", postJson);
       router.push("/post");
@@ -510,6 +539,7 @@ export default {
         font-size: 0.4rem;
         font-weight: 700;
         margin-bottom: 0.2rem;
+        max-width: 5rem;
       }
       .icon {
         margin-left: 1rem;
@@ -587,6 +617,8 @@ export default {
         .nickname {
           position: absolute;
           right: 0;
+          width: 5rem;
+          text-align: right;
           top: 1rem;
           font-size: 0.4rem;
           font-weight: 700;

@@ -11,3 +11,9 @@ export function checkAuthority(baseResponse) {
     }
     return true
 }
+
+// 睡眠
+export function sleep(time){
+    return new Promise((resolve) => setTimeout(resolve, time));
+   }
+   

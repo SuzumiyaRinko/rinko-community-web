@@ -12,6 +12,20 @@ export function postSearch(postSearchDTO) {
     })
 }
 
+// 联想查询
+export function suggestionsSearch(searchKey) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "GET",
+        url: "/post/search/suggestions",
+        params: {
+            searchKey
+        },
+    })
+}
+
 // 查询收藏列表
 export function collectionsSearch(pageNum) {
     return service({
