@@ -130,15 +130,15 @@
     </div>
 
     <!-- 帖子 -->
-    <div class="post">
-      <h2 class="myPost" :style="postStyle" @click="clickPostFunc()">POST</h2>
-      <h2
-        class="myCollection"
-        :style="collectionStyle"
-        @click="clickCollectionFunc()"
-      >
-        COLLECTION
-      </h2>
+    <h2 class="myPost" :style="postStyle" @click="clickPostFunc()">POST</h2>
+    <h2
+      class="myCollection"
+      :style="collectionStyle"
+      @click="clickCollectionFunc()"
+    >
+      COLLECTION
+    </h2>
+    <div class="post" id="scrollingPost">
       <!-- 无post时的提示 -->
       <div style="text-align: center">
         <img
@@ -299,6 +299,21 @@
           <span class="postStatus">点赞：{{ post.likeCount }}</span>
           <span class="postStatus">评论：{{ post.commentCount }}</span>
           <span class="postStatus">收藏：{{ post.collectionCount }}</span>
+          <div
+            class="postLastView"
+            v-if="postStyle != '' && mePostHistory.postLastView == post.id"
+          >
+            **上次浏览**
+          </div>
+          <div
+            class="postLastView"
+            v-if="
+              collectionStyle != '' &&
+              meCollectionHistory.postLastView == post.id
+            "
+          >
+            **上次浏览**
+          </div>
           <hr style="margin-left: 0.3rem" />
         </div>
       </van-list>
@@ -398,7 +413,7 @@ import { onMounted, reactive, ref } from "vue";
 import { showToast, showDialog } from "vant";
 import { getUserInfo, uploadAvatar, updateUserInfo, logout } from "@/api/me.js";
 import { postSearch, collectionsSearch } from "@/api/post.js";
-import { checkAuthority } from "@/util/utils.js";
+import { checkAuthority, sleep } from "@/util/utils.js";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
 
 export default {
@@ -418,23 +433,77 @@ export default {
       info.avatarUrl = userInfo.avatar;
       info.followingsCount = userInfo.followingsCount;
       info.followersCount = userInfo.followersCount;
-      // 加载用户post
-      postSearchDTO.userId = info.id;
-      var baseResponse = (await postSearch(postSearchDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+
+      // mePostHistory
+      var tmpMePostHistory = JSON.parse(
+        window.sessionStorage.getItem("mePostHistory")
+      );
+      if (tmpMePostHistory != null) {
+        mePostHistory.postLastView = tmpMePostHistory.postLastView;
+        mePostHistory.pageNum = tmpMePostHistory.pageNum;
+        mePostHistory.scrollTop = tmpMePostHistory.scrollTop;
       }
-      postSearchDTO.pageNum++; // 页数+1
-      var page = baseResponse.data;
-      postsPage.total = page.total;
-      postsPage.data = postsPage.data.concat(page.data);
-      console.log("postsPage.total", postsPage.total);
-      console.log("postsPage.data.length", postsPage.data.length);
-      if (postsPage.data.length >= postsPage.total) {
-        // 不需要加载更多
-        postLoading.value = false;
-        postFinished.value = true;
+      window.sessionStorage.setItem(
+        "mePostHistory",
+        JSON.stringify(mePostHistory)
+      );
+      // 本次应该到达的页数
+      while (postSearchDTO.pageNum <= mePostHistory.pageNum) {
+        onPostLoad();
+        await sleep(80);
       }
+      // 移动scrollingPost的滚动条
+      document.getElementById("scrollingPost").scrollTop =
+        mePostHistory.scrollTop;
+    });
+
+    onBeforeRouteLeave((to, from, next) => {
+      if (to.name == "registerOrLogin") {
+        window.sessionStorage.clear();
+      }
+
+      // oldRouter
+      window.sessionStorage.setItem("oldRouter", "me");
+      // mePostHistory / meCollectionHistory
+      if (postStyle.value != "") {
+        var tmpMePostHistory = JSON.parse(
+          window.sessionStorage.getItem("mePostHistory")
+        );
+        tmpMePostHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpMePostHistory.scrollTop =
+          document.getElementById("scrollingPost").scrollTop;
+        window.sessionStorage.setItem(
+          "mePostHistory",
+          JSON.stringify(tmpMePostHistory)
+        );
+      } else {
+        var tmpMeCollectionHistory = JSON.parse(
+          window.sessionStorage.getItem("meCollectionHistory")
+        );
+        tmpMeCollectionHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpMeCollectionHistory.scrollTop =
+          document.getElementById("scrollingPost").scrollTop;
+        window.sessionStorage.setItem(
+          "meCollectionHistory",
+          JSON.stringify(tmpMeCollectionHistory)
+        );
+      }
+
+      next();
+    });
+
+    // mePostHistory
+    const mePostHistory = reactive({
+      postLastView: -1,
+      pageNum: 1,
+      scrollTop: 0,
+    });
+
+    // meCollectionHistory
+    const meCollectionHistory = reactive({
+      postLastView: -1,
+      pageNum: 1,
+      scrollTop: 0,
     });
 
     // router
@@ -576,13 +645,14 @@ export default {
     );
     const collectionStyle = ref("");
 
-    // collections当前pageNum
-    const collectionsPageNum = ref(1);
-
     // 防止用户频繁点击
     const clickSearchLock = ref(false);
     // nav点击事件
     const clickPostFunc = async () => {
+      if (postStyle.value != "") {
+        return;
+      }
+
       // 加锁
       if (clickSearchLock.value == true) {
         showToast({
@@ -597,30 +667,49 @@ export default {
         clickSearchLock.value = false;
       }, 600);
 
+      // 记录meCollectionHistory
+      var tmpMeCollectionHistory = JSON.parse(
+        window.sessionStorage.getItem("meCollectionHistory")
+      );
+      tmpMeCollectionHistory.pageNum = postSearchDTO.pageNum - 1;
+      tmpMeCollectionHistory.scrollTop =
+        document.getElementById("scrollingPost").scrollTop;
+      window.sessionStorage.setItem(
+        "meCollectionHistory",
+        JSON.stringify(tmpMeCollectionHistory)
+      );
+
+      // init
       postStyle.value =
         "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;";
       collectionStyle.value = "";
       postsPage.data = [];
-      collectionsPageNum.value = 1;
       postSearchDTO.pageNum = 1;
       postFinished.value = false;
-      // 加载用户post
-      postSearchDTO.userId = info.id;
-      var baseResponse = (await postSearch(postSearchDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+
+      // mePostHistory
+      var tmpMePostHistory = JSON.parse(
+        window.sessionStorage.getItem("mePostHistory")
+      );
+      if (tmpMePostHistory != null) {
+        mePostHistory.postLastView = tmpMePostHistory.postLastView;
+        mePostHistory.pageNum = tmpMePostHistory.pageNum;
+        mePostHistory.scrollTop = tmpMePostHistory.scrollTop;
       }
-      postSearchDTO.pageNum++; // 页数+1
-      var page = baseResponse.data;
-      postsPage.total = page.total;
-      postsPage.data = postsPage.data.concat(page.data);
-      if (postsPage.data.length >= postsPage.total) {
-        // 不需要加载更多
-        postLoading.value = false;
-        postFinished.value = true;
+      // 本次应该到达的页数
+      while (postSearchDTO.pageNum <= mePostHistory.pageNum) {
+        onPostLoad();
+        await sleep(80);
       }
+      // 移动scrollingPost的滚动条
+      document.getElementById("scrollingPost").scrollTop =
+        mePostHistory.scrollTop;
     };
     const clickCollectionFunc = async () => {
+      if (collectionStyle.value != "") {
+        return;
+      }
+
       // 加锁
       if (clickSearchLock.value == true) {
         showToast({
@@ -635,28 +724,47 @@ export default {
         clickSearchLock.value = false;
       }, 600);
 
-      collectionsPageNum.value = 1;
+      // 记录mePostHistory
+      var tmpMePostHistory = JSON.parse(
+        window.sessionStorage.getItem("mePostHistory")
+      );
+      tmpMePostHistory.pageNum = postSearchDTO.pageNum - 1;
+      tmpMePostHistory.scrollTop =
+        document.getElementById("scrollingPost").scrollTop;
+      window.sessionStorage.setItem(
+        "mePostHistory",
+        JSON.stringify(tmpMePostHistory)
+      );
+
+      // init
       postSearchDTO.pageNum = 1;
       collectionStyle.value =
         "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;";
       postStyle.value = "";
       postsPage.data = [];
       postFinished.value = false;
-      // 加载用户collections
-      var baseResponse = (await collectionsSearch(collectionsPageNum.value))
-        .data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+
+      // meCollectionHistory
+      var tmpMeCollectionHistory = JSON.parse(
+        window.sessionStorage.getItem("meCollectionHistory")
+      );
+      if (tmpMeCollectionHistory != null) {
+        meCollectionHistory.postLastView = tmpMeCollectionHistory.postLastView;
+        meCollectionHistory.pageNum = tmpMeCollectionHistory.pageNum;
+        meCollectionHistory.scrollTop = tmpMeCollectionHistory.scrollTop;
       }
-      collectionsPageNum.value++; // 页数+1
-      var page = baseResponse.data;
-      postsPage.total = page.total;
-      postsPage.data = postsPage.data.concat(page.data);
-      if (postsPage.data.length >= postsPage.total) {
-        // 不需要加载更多
-        postLoading.value = false;
-        postFinished.value = true;
+      window.sessionStorage.setItem(
+        "meCollectionHistory",
+        JSON.stringify(meCollectionHistory)
+      );
+      // 本次应该到达的页数
+      while (postSearchDTO.pageNum <= meCollectionHistory.pageNum) {
+        onPostLoad();
+        await sleep(80);
       }
+      // 移动scrollingPost的滚动条
+      document.getElementById("scrollingPost").scrollTop =
+        meCollectionHistory.scrollTop;
     };
 
     // 个人post数据
@@ -676,44 +784,29 @@ export default {
     // post往下滚动
     const postLoading = ref(false);
     const postFinished = ref(false);
-    const onPostLoad = () => {
+    const onPostLoad = async () => {
       if (postStyle.value != "") {
-        setTimeout(async () => {
-          // 加载用户post
-          var baseResponse = (await postSearch(postSearchDTO)).data;
-          if (checkAuthority(baseResponse) == false) {
-            router.push("/");
-          }
-          postSearchDTO.pageNum++; // 页数+1
-          var page = baseResponse.data;
-          postsPage.total = page.total;
-          postsPage.data = postsPage.data.concat(page.data);
-
-          postLoading.value = false;
-          // 已经没有更多数据了
-          if (postsPage.data.length >= postsPage.total) {
-            postFinished.value = true;
-          }
-        }, 1000);
+        // 加载用户post
+        postSearchDTO.isSearchMyself = true;
+        var baseResponse = (await postSearch(postSearchDTO)).data;
       } else {
-        setTimeout(async () => {
-          // 加载用户collections
-          var baseResponse = (await collectionsSearch(collectionsPageNum.value))
-            .data;
-          if (checkAuthority(baseResponse) == false) {
-            router.push("/");
-          }
-          collectionsPageNum.value++; // 页数+1
-          var page = baseResponse.data;
-          postsPage.total = page.total;
-          postsPage.data = postsPage.data.concat(page.data);
+        // 加载用户collections
+        postSearchDTO.isSearchMyself = false;
+        var baseResponse = (await collectionsSearch(postSearchDTO.pageNum))
+          .data;
+      }
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+      postSearchDTO.pageNum++; // 页数+1
+      var page = baseResponse.data;
+      postsPage.total = page.total;
+      postsPage.data = postsPage.data.concat(page.data);
 
-          postLoading.value = false;
-          // 已经没有更多数据了
-          if (postsPage.data.length >= postsPage.total) {
-            postFinished.value = true;
-          }
-        }, 1000);
+      postLoading.value = false;
+      // 已经没有更多数据了
+      if (postsPage.data.length >= postsPage.total) {
+        postFinished.value = true;
       }
     };
 
@@ -722,18 +815,8 @@ export default {
     // "退出登录Dialog"关闭前的判断
     const onBeforeLogoutClose = async (action) => {
       if (action === "confirm") {
-        var baseResponse = (await logout()).data;
-        window.sessionStorage.removeItem("token");
-        if (checkAuthority(baseResponse) == false) {
-          router.push("/");
-        }
-
-        // 移除sessionStorage中的用户相关信息
-        window.sessionStorage.removeItem("myUserId");
-        window.sessionStorage.removeItem("gotoUserId");
-        window.sessionStorage.removeItem("currPost");
-
         // 跳转到登录页面
+        await logout();
         router.push("/");
       }
       logoutShow.value = false;
@@ -741,8 +824,36 @@ export default {
 
     // gotoPost
     const gotoPost = (post) => {
+      // currPost
       var postJson = JSON.stringify(post);
       window.sessionStorage.setItem("currPost", postJson);
+      // postLastView
+      if (postStyle.value != "") {
+        var tmpMePostHistory = JSON.parse(
+          window.sessionStorage.getItem("mePostHistory")
+        );
+        tmpMePostHistory.postLastView = post.id;
+        tmpMePostHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpMePostHistory.scrollTop =
+          document.getElementById("scrollingPost").scrollTop;
+        window.sessionStorage.setItem(
+          "mePostHistory",
+          JSON.stringify(tmpMePostHistory)
+        );
+      } else {
+        var tmpMeCollectionHistory = JSON.parse(
+          window.sessionStorage.getItem("meCollectionHistory")
+        );
+        tmpMeCollectionHistory.postLastView = post.id;
+        tmpMeCollectionHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpMeCollectionHistory.scrollTop =
+          document.getElementById("scrollingPost").scrollTop;
+        window.sessionStorage.setItem(
+          "meCollectionHistory",
+          JSON.stringify(tmpMeCollectionHistory)
+        );
+      }
+
       router.push("/post");
     };
     // stopGotoPost
@@ -751,6 +862,8 @@ export default {
     };
 
     return {
+      mePostHistory,
+      meCollectionHistory,
       router,
       info,
       avatarUploadShow,
@@ -766,7 +879,6 @@ export default {
       onGenderConfirm,
       postStyle,
       collectionStyle,
-      collectionsPageNum,
       clickSearchLock,
       clickPostFunc,
       clickCollectionFunc,
@@ -867,32 +979,39 @@ export default {
       }
     }
   }
+  .myPost {
+    display: inline-block;
+    margin-left: 3%;
+    margin-top: 0.2rem;
+    width: 47%;
+    text-align: center;
+    font-size: 0.5rem;
+    font-weight: 700;
+    border-top-left-radius: 1rem;
+    border-top: solid 5px black;
+    border-left: solid 5px black;
+    border-right: solid 5px black;
+  }
+  .myCollection {
+    display: inline-block;
+    width: 47%;
+    text-align: center;
+    font-size: 0.5rem;
+    font-weight: 700;
+    border-top-right-radius: 1rem;
+    border-top: solid 5px black;
+    border-right: solid 5px black;
+  }
   .post {
     border: solid 5px black;
-    border-radius: 1rem;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
     width: 94%;
     height: 100%;
-    margin: 0.3rem auto;
-    height: 16rem;
+    margin: 0 auto;
+    height: 15.5rem;
     box-shadow: 0 0 15px 1px #000000;
     overflow: auto; // 防止文本溢出盒子
-    .myPost {
-      display: inline-block;
-      width: 50%;
-      text-align: center;
-      font-size: 0.5rem;
-      font-weight: 700;
-      border-bottom: solid 5px black;
-      border-right: solid 5px black;
-    }
-    .myCollection {
-      display: inline-block;
-      width: 50%;
-      text-align: center;
-      font-size: 0.5rem;
-      font-weight: 700;
-      border-bottom: solid 5px black;
-    }
     .noAnyPost {
       margin: 0 auto;
       margin-top: 3rem;
@@ -985,6 +1104,14 @@ export default {
         margin-left: 0.5rem;
         font-size: 0.3rem;
         font-weight: 700;
+      }
+      .postLastView {
+        position: absolute;
+        top: 0rem;
+        right: 1.1rem;
+        font-size: 0.4rem;
+        font-weight: 700;
+        color: rgb(226, 19, 19);
       }
     }
   }

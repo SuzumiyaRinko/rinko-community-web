@@ -377,6 +377,11 @@ export default {
       }
     });
 
+    onBeforeRouteLeave(() => {
+      // oldRouter
+      window.sessionStorage.setItem("oldRouter", "user");
+    });
+
     // router
     const router = useRouter();
     // 用户数据

@@ -15,7 +15,7 @@
     </div>
 
     <!-- Content -->
-    <div class="content">
+    <div class="content" id="scrollingPost">
       <!-- User, Title -->
       <div
         style="
@@ -314,6 +314,9 @@
             </div>
             <div class="seeMoreRecomment">（点击查看更多）</div>
           </div>
+          <div class="commentLastView" v-if="commentLastView == comment.id">
+            **上次浏览**
+          </div>
         </div>
       </van-list>
     </div>
@@ -378,7 +381,8 @@ import {
   hasCollectAPI,
 } from "@/api/post.js";
 import { commentSelect, commentAPI } from "@/api/comment.js";
-import { checkAuthority } from "@/util/utils.js";
+import { saveHistory, getHistory } from "@/api/history.js";
+import { checkAuthority, sleep } from "@/util/utils.js";
 import moment from "moment";
 
 export default {
@@ -386,6 +390,7 @@ export default {
     onMounted(async () => {
       // myUserId
       myUserId.value = window.sessionStorage.getItem("myUserId");
+
       // currPost
       var currPostJson = window.sessionStorage.getItem("currPost");
       var currPostParse = JSON.parse(currPostJson);
@@ -398,6 +403,7 @@ export default {
       currPost.commentCount = currPostParse.commentCount;
       currPost.collectionCount = currPostParse.collectionCount;
       currPost.postUser = currPostParse.postUser;
+
       // 判断当前用户是否已点赞、收藏
       var baseResponse = (await hasLikeAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
@@ -419,9 +425,55 @@ export default {
       } else {
         collectionColor.value = "black";
       }
-      // 第一页comment
-      onCommentLoad();
+
+      // 获取当前用户该post的历史
+      var historySearchDTO = {
+        targetType: 2,
+        targetId: currPost.id,
+      };
+      var baseResponse = (await getHistory(historySearchDTO)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+      console.log("history", history);
+      var history = baseResponse.data;
+      var postPage = history.pageNum;
+      var postScroll = history.scrollTop;
+      commentLastView.value = history.lastView;
+
+      while (commentSelectDTO.pageNum <= postPage) {
+        onCommentLoad();
+        await sleep(80);
+      }
+
+      // 移动scrollingPost的滚动条
+      document.getElementById("scrollingPost").scrollTop = postScroll;
     });
+
+    onBeforeRouteLeave(async (to, from, next) => {
+      // oldRouter
+      window.sessionStorage.setItem("oldRouter", "post");
+      // 存储历史
+      var targetType = 2;
+      var targetId = currPost.id;
+      var pageNum = commentSelectDTO.pageNum - 1;
+      var scrollTop = document.getElementById("scrollingPost").scrollTop;
+      var history = {
+        targetType,
+        targetId,
+        pageNum,
+        scrollTop,
+        lastView: commentLastView.value,
+      };
+      var baseResponse = (await saveHistory(history)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+
+      next();
+    });
+
+    const commentLastView = ref(-1);
 
     // router
     const router = useRouter();
@@ -443,11 +495,14 @@ export default {
 
     // gotoComment
     const gotoComment = (comment, idx) => {
+      // currComment
       var commemtJson = JSON.stringify(comment);
-      console.log("commemtJson", commemtJson);
-      console.log("currCommentIdx", idx);
       window.sessionStorage.setItem("currComment", commemtJson);
       window.sessionStorage.setItem("currCommentIdx", idx);
+
+      // commentLastView
+      commentLastView.value = comment.id;
+
       router.push("/comment");
     };
 
@@ -628,6 +683,7 @@ export default {
     };
 
     return {
+      commentLastView,
       router,
       myUserId,
       gotoUser,
@@ -868,6 +924,14 @@ export default {
           text-align: right;
           color: rgb(49, 50, 51);
         }
+      }
+      .commentLastView {
+        position: absolute;
+        top: 0.5rem;
+        right: 0;
+        font-size: 0.4rem;
+        font-weight: 700;
+        color: rgb(226, 19, 19);
       }
     }
     .postStatus {

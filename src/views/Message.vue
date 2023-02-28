@@ -28,6 +28,12 @@ import { useRouter, onBeforeRouteLeave } from "vue-router";
 export default {
   setup() {
     onMounted(() => {});
+
+    onBeforeRouteLeave(() => {
+      // oldRouter
+      window.sessionStorage.setItem("oldRouter", "message");
+    });
+
     const router = useRouter();
     return { router };
   },

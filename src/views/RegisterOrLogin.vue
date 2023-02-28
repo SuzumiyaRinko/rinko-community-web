@@ -151,6 +151,11 @@ import { showToast } from "vant";
 
 export default {
   setup() {
+    onBeforeRouteLeave(() => {
+      // oldRouter
+      window.sessionStorage.setItem("oldRouter", "registerOrLogin");
+    });
+
     // router
     const router = useRouter();
     // vuex

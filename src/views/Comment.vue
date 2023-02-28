@@ -15,7 +15,7 @@
     </div>
 
     <!-- Content -->
-    <div class="content">
+    <div class="content" id="scrollingComment">
       <!-- User, CommentTitle -->
       <div
         style="
@@ -354,7 +354,8 @@ import {
   commentAPI,
   hasLikeAPI,
 } from "@/api/comment.js";
-import { checkAuthority } from "@/util/utils.js";
+import { saveHistory, getHistory } from "@/api/history.js";
+import { checkAuthority, sleep } from "@/util/utils.js";
 import moment from "moment";
 
 export default {
@@ -362,6 +363,7 @@ export default {
     onMounted(async () => {
       // myUserId
       myUserId.value = window.sessionStorage.getItem("myUserId");
+
       // currComment
       var currCommentParse = JSON.parse(
         window.sessionStorage.getItem("currComment")
@@ -374,6 +376,7 @@ export default {
       currComment.likeCount = currCommentParse.likeCount;
       currComment.commentCount = currCommentParse.commentCount;
       currComment.commentUser = currCommentParse.commentUser;
+
       // 判断当前用户是否已点赞
       var baseResponse = (await hasLikeAPI(currComment.id)).data;
       if (checkAuthority(baseResponse) == false) {
@@ -385,22 +388,48 @@ export default {
       } else {
         likeColor.value = "black";
       }
-      // 第一页recomment
-      commentSelectDTO.targetId = currComment.id;
-      console.log("targetId", commentSelectDTO.targetId);
-      var baseResponse = (await commentSelect(commentSelectDTO)).data;
+
+      // 获取当前用户该comment的历史
+      var historySearchDTO = {
+        targetType: 3,
+        targetId: currComment.id,
+      };
+      var baseResponse = (await getHistory(historySearchDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
-      commentSelectDTO.pageNum++; // 页数+1
-      var pageInfo = baseResponse.data;
-      recommentPage.total = pageInfo.total;
-      recommentPage.data = recommentPage.data.concat(pageInfo.list);
-      if (recommentPage.data.length == 0) {
-        // 不需要加载更多
-        recommentLoading.value = false;
-        recommentFinished.value = true;
+      var history = baseResponse.data;
+      var commentPage = history.pageNum;
+      var commentScroll = history.scrollTop;
+      while (commentSelectDTO.pageNum <= commentPage) {
+        onRecommentLoad();
+        await sleep(80);
       }
+      
+      // 移动scrollingPost的滚动条
+      document.getElementById("scrollingComment").scrollTop = commentScroll;
+    });
+
+    onBeforeRouteLeave(async (to, from, next) => {
+      // oldRouter
+      window.sessionStorage.setItem("oldRouter", "comment");
+      // 存储历史
+      var targetType = 3;
+      var targetId = currComment.id;
+      var pageNum = commentSelectDTO.pageNum - 1;
+      var scrollTop = document.getElementById("scrollingComment").scrollTop;
+      var history = {
+        targetType,
+        targetId,
+        pageNum,
+        scrollTop,
+      };
+      var baseResponse = (await saveHistory(history)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+
+      next();
     });
 
     // router
@@ -453,30 +482,26 @@ export default {
     // recomment下拉刷新
     const recommentLoading = ref(false);
     const recommentFinished = ref(false);
-    const onRecommentLoad = () => {
-      setTimeout(async () => {
-        console.log("onRecommentLoad");
+    const onRecommentLoad = async () => {
+      // 加载recomment
+      commentSelectDTO.targetId = currComment.id;
+      console.log("commentSelectDTO.targetId", commentSelectDTO.targetId);
+      var baseResponse = (await commentSelect(commentSelectDTO)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+      commentSelectDTO.pageNum++; // 页数+1
+      var pageInfo = baseResponse.data;
+      console.log("pageInfo", pageInfo);
+      recommentPage.total = pageInfo.total;
+      recommentPage.data = recommentPage.data.concat(pageInfo.list);
 
-        // 加载recomment
-        commentSelectDTO.targetId = currComment.id;
-        console.log("commentSelectDTO.targetId", commentSelectDTO.targetId);
-        var baseResponse = (await commentSelect(commentSelectDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          router.push("/");
-        }
-        commentSelectDTO.pageNum++; // 页数+1
-        var pageInfo = baseResponse.data;
-        console.log("pageInfo", pageInfo);
-        recommentPage.total = pageInfo.total;
-        recommentPage.data = recommentPage.data.concat(pageInfo.list);
+      recommentLoading.value = false;
 
-        recommentLoading.value = false;
-
-        // 已经没有更多数据了
-        if (recommentPage.data.length >= recommentPage.total) {
-          recommentFinished.value = true;
-        }
-      }, 1000);
+      // 已经没有更多数据了
+      if (recommentPage.data.length >= recommentPage.total) {
+        recommentFinished.value = true;
+      }
     };
 
     // 删除comment
