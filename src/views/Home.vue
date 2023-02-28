@@ -421,8 +421,12 @@ export default {
 
 
     const pullRefreshLoading = ref(false)
-    const onPullRefresh = () => {
-      
+    const onPullRefresh = async () => {
+      await sleep(500)
+      postSearchDTO.pageNum = 1;
+      postsPage.data = []
+      onPostLoad()
+      pullRefreshLoading.value = false
     }
 
 
@@ -480,6 +484,8 @@ export default {
       postLoading,
       postFinished,
       onPostLoad,
+      pullRefreshLoading,
+      onPullRefresh,
       gotoPost,
       gotoUser,
     };

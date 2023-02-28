@@ -801,7 +801,13 @@ export default {
       postSearchDTO.pageNum++; // 页数+1
       var page = baseResponse.data;
       postsPage.total = page.total;
-      postsPage.data = postsPage.data.concat(page.data);
+      // 防bug
+      if (
+        postsPage.data.length == 0 ||
+        postsPage.data[0].id != page.data[0].id
+      ) {
+        postsPage.data = postsPage.data.concat(page.data);
+      }
 
       postLoading.value = false;
       // 已经没有更多数据了
