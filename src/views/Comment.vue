@@ -6,10 +6,10 @@
       <span class="back" @click="router.go(-1)">返回</span>
       <span class="title">COMMENT</span>
       <van-button
-        v-if="currComment.userId == myUserId"
+        v-if="currComment.commentUser.id == myUserId"
         class="deleteButton"
         type="danger"
-        @click="deletePostShow = true"
+        @click="deleteCommentShow = true"
         >删除</van-button
       >
     </div>
@@ -350,6 +350,7 @@ import { showDialog, showToast } from "vant";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
 import {
   commentSelect,
+  deleteCommentAPI,
   likeAPI,
   commentAPI,
   hasLikeAPI,
@@ -405,7 +406,7 @@ export default {
         onRecommentLoad();
         await sleep(80);
       }
-      
+
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingComment").scrollTop = commentScroll;
     });
@@ -509,7 +510,7 @@ export default {
     // "删除comment Dialog"关闭前的判断
     const onBeforeDeleteClose = async (action) => {
       if (action === "confirm") {
-        var baseResponse = (await deletePostAPI(currComment.id)).data;
+        var baseResponse = (await deleteCommentAPI(currComment.id)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
         }

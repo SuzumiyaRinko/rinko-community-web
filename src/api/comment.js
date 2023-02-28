@@ -12,6 +12,17 @@ export function commentSelect(commentSelectDTO) {
     })
 }
 
+// 删除
+export function deleteCommentAPI(commentId) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "DELETE",
+        url: `/comment/delete/${commentId}`,
+    })
+}
+
 // 点赞
 export function likeAPI(commentId) {
     return service({
