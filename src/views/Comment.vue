@@ -149,32 +149,33 @@
       <div class="commentContent">{{ currComment.content }}</div>
       <!-- CommentPictures -->
       <div class="commentPictures">
+        <!-- 一张图片 -->
         <span
           v-if="
             currComment.picturesSplit != null &&
-            currComment.picturesSplit.length > 0
+            currComment.picturesSplit.length == 1
           "
-          v-for="(pic, idx) in currComment.picturesSplit"
         >
           <img
-            v-if="currComment.picturesSplit.length == 1"
-            style="max-width: 9rem; margin-left: 0.1rem;"
-            :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+            class="onePostPicture"
+            style="max-width: 9rem; margin-left: 0.1rem"
+            :src="`${$store.state.SystemConst.resourcesPrefix}${currComment.picturesSplit[0]}`"
             alt="图片"
             @click="viewPicture(currComment.picturesSplit, idx)"
           />
-          <img
-            v-if="currComment.picturesSplit.length == 2"
-            style="max-width: 4.3rem; margin-left: 0.15rem;"
+        </span>
+        <!-- 多张图片 -->
+        <span
+          v-if="currComment.picturesSplit.length > 1"
+          v-for="(pic, idx) in currComment.picturesSplit"
+          key="idx"
+        >
+          <van-image
+            style="margin-left: 0.06rem"
+            width="2.9rem"
+            height="2.9rem"
+            fit="cover"
             :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-            alt="图片"
-            @click="viewPicture(currComment.picturesSplit, idx)"
-          />
-          <img
-            v-if="currComment.picturesSplit.length >= 3"
-            style="height: 2.9rem; width: 2.9rem; margin-left: 0.06rem"
-            :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-            alt="图片"
             @click="viewPicture(currComment.picturesSplit, idx)"
           />
         </span>
@@ -329,33 +330,34 @@
           <span class="recommentCreateTime">{{ recomment.createTime }}</span>
           <span class="recommentContent">{{ recomment.content }}</span>
           <!-- RecommentPictures -->
-          <div
-            v-if="
-              recomment.picturesSplit != null &&
-              recomment.picturesSplit.length > 0
-            "
-            class="commentPictures"
-          >
-            <span v-for="(pic, idx) in recomment.picturesSplit">
+          <div class="commentPictures">
+            <!-- 一张图片 -->
+            <span
+              v-if="
+                recomment.picturesSplit != null &&
+                recomment.picturesSplit.length == 1
+              "
+            >
               <img
-                v-if="recomment.picturesSplit.length == 1"
-                style="max-width: 9rem; margin-left: 0.1rem;"
-                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                class="onePostPicture"
+                style="max-width: 9rem; margin-left: 0.1rem"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${recomment.picturesSplit[0]}`"
                 alt="图片"
                 @click="viewPicture(recomment.picturesSplit, idx)"
               />
-              <img
-                v-if="recomment.picturesSplit.length == 2"
-                style="max-width: 4.3rem; margin-left: 0.15rem;"
+            </span>
+            <!-- 多张图片 -->
+            <span
+              v-if="recomment.picturesSplit.length > 1"
+              v-for="(pic, idx) in recomment.picturesSplit"
+              key="idx"
+            >
+              <van-image
+                style="margin-left: 0.06rem"
+                width="2.9rem"
+                height="2.9rem"
+                fit="cover"
                 :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                alt="图片"
-                @click="viewPicture(recomment.picturesSplit, idx)"
-              />
-              <img
-                v-if="recomment.picturesSplit.length >= 3"
-                style="height: 2.9rem; width: 2.9rem; margin-left: 0.06rem"
-                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                alt="图片"
                 @click="viewPicture(recomment.picturesSplit, idx)"
               />
             </span>
@@ -408,6 +410,7 @@
       <!-- CommentPictures -->
       <van-uploader
         class="commentPictures"
+        :before-read="beforeRead"
         :after-read="uploadPicture"
         :before-delete="deletePicture"
         preview-size="2.6rem"
@@ -456,8 +459,8 @@ export default {
       currComment.commentCount = currCommentParse.commentCount;
       currComment.commentUser = currCommentParse.commentUser;
       currComment.picturesSplit = currCommentParse.picturesSplit;
-    })
-    
+    });
+
     onMounted(async () => {
       // 判断当前用户是否已点赞
       var baseResponse = (await hasLikeAPI(currComment.id)).data;
@@ -757,6 +760,37 @@ export default {
     };
     const commentPictures = ref([]);
 
+    const beforeRead = (file) => {
+      // 类型
+      var validType = [
+        "image/gif",
+        "image/png",
+        "image/jpeg",
+        "image/bmp",
+        "image/webp",
+        "image/x-icon",
+        "image/vnd.microsoft.icon",
+      ];
+      if (validType.indexOf(file.type) == -1) {
+        showToast({
+          message: "只能上传图片或Gif动图",
+          icon: "cross",
+        });
+        return false;
+      }
+      // 大小
+      if (file.size > 10 * 1024 * 1024) {
+        showToast({
+          message: "文件大小不能超过10MB",
+          icon: "cross",
+        });
+        return false;
+      }
+
+      return true;
+    };
+
+
     // 取消上传
     const deletePicture = async (file, detail) => {
       commentPictures.value.splice(detail.index, 1);
@@ -791,6 +825,7 @@ export default {
       onBeforeRecommentClose,
       uploadPicture,
       commentPictures,
+      beforeRead,
       deletePicture,
     };
   },

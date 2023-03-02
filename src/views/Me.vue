@@ -119,7 +119,15 @@
           <span>{{ info.nickname }}</span>
         </div>
         <div>
-          <div v-if="info.isFamous == 1" class="famousDiv">知名用户</div>
+          <div v-if="info.roles.indexOf(3) != -1" class="rolesDiv red">
+            开发者
+          </div>
+          <div v-if="info.roles.indexOf(1) != -1" class="rolesDiv blue">
+            知名用户
+          </div>
+          <div v-if="info.roles.indexOf(2) != -1" class="rolesDiv green">
+            内测人员
+          </div>
           <span class="following">关注: {{ info.followingsCount }}</span>
           <span class="follower">粉丝: {{ info.followersCount }}</span>
         </div>
@@ -183,7 +191,7 @@
                 class="avatar item"
                 :src="`${$store.state.SystemConst.resourcesPrefix}${post.postUser.avatar}`"
                 alt="头像"
-                @click="stopGotoPost()"
+                @click="gotoUser(post.postUser.id)"
               />
               <svg
                 v-if="post.postUser.gender == 1"
@@ -300,32 +308,32 @@
             ><br />
             <!-- First3Pictures -->
             <div class="first3Pictures">
+              <!-- 一张图片 -->
               <span
                 v-if="
                   post.first3PicturesSplit != null &&
-                  post.first3PicturesSplit.length > 0
+                  post.first3PicturesSplit.length == 1
                 "
-                v-for="(pic, idx) in post.first3PicturesSplit"
               >
                 <img
-                  v-if="post.first3PicturesSplit.length == 1"
-                  style="max-width: 9rem; margin-left: 0.1rem;"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                  style="max-width: 9rem; margin-left: 0.1rem"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${post.first3PicturesSplit[0]}`"
                   alt="图片"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
                 />
-                <img
-                  v-if="post.first3PicturesSplit.length == 2"
-                  style="max-width: 4.3rem; margin-left: 0.15rem;"
+              </span>
+              <!-- 多张图片 -->
+              <span
+                v-if="post.first3PicturesSplit.length > 1"
+                v-for="(pic, idx) in post.first3PicturesSplit"
+                key="idx"
+              >
+                <van-image
+                  style="margin-left: 0.06rem"
+                  width="2.9rem"
+                  height="2.9rem"
+                  fit="cover"
                   :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                  alt="图片"
-                  @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
-                <img
-                  v-if="post.first3PicturesSplit.length >= 3"
-                  style="height: 2.9rem; width: 2.9rem; margin-left: 0.06rem"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                  alt="图片"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
                 />
               </span>
@@ -477,7 +485,7 @@ export default {
       info.followingsCount = userInfo.followingsCount;
       info.followersCount = userInfo.followersCount;
       info.roles = userInfo.roles;
-      console.log("info.roles", info.roles)
+      console.log("info.roles", info.roles);
 
       // mePostHistory
       var tmpMePostHistory = JSON.parse(
@@ -598,8 +606,6 @@ export default {
         title: "头像更换成功",
         theme: "round-button",
       }).then(() => {
-        // 删除原图片
-        deleteFile(oldAvatar);
         // 更新sessionStorage上的用户信息
         var myUserInfoJson = window.sessionStorage.getItem("myUserInfo");
         var myUserInfo = JSON.parse(myUserInfoJson);
@@ -701,7 +707,7 @@ export default {
 
     // 防止用户频繁点击
     const clickSearchLock = ref(false);
-    
+
     // nav点击事件
     const clickPostFunc = async () => {
       if (postStyle.value != "") {
@@ -760,6 +766,7 @@ export default {
       document.getElementById("scrollingPost").scrollTop =
         mePostHistory.scrollTop;
     };
+
     const clickCollectionFunc = async () => {
       if (collectionStyle.value != "") {
         return;
@@ -840,7 +847,7 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      var baseResponse
+      var baseResponse;
       if (postStyle.value != "") {
         // 加载用户post
         postSearchDTO.isSearchMyself = true;
@@ -947,12 +954,19 @@ export default {
       }
 
       window.sessionStorage.setItem("lastRouter2Post", "me");
-
       router.push("/post");
     };
-    // stopGotoPost
-    const stopGotoPost = () => {
+
+    // gotoUser
+    const gotoUser = (userId) => {
       event.stopPropagation(); // 阻止事件冒泡至外层div
+      var myUserId = window.sessionStorage.getItem("myUserId");
+      if (userId == myUserId) {
+        router.push("/me");
+      } else {
+        window.sessionStorage.setItem("gotoUserId", userId);
+        router.push("/user");
+      }
     };
 
     return {
@@ -989,7 +1003,7 @@ export default {
       logoutShow,
       onBeforeLogoutClose,
       gotoPost,
-      stopGotoPost,
+      gotoUser,
     };
   },
   components: {},
@@ -1042,39 +1056,49 @@ export default {
         background-color: white;
       }
     }
-    .famousDiv {
+  }
+  .item {
+    display: inline-block;
+    .name {
       display: inline-block;
-      border: solid 3px rgb(41, 137, 192);
+      font-size: 0.4rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+      max-width: 5.5rem;
+    }
+    .icon {
+      position: absolute;
+      top: 1.2rem;
+      right: 0.6rem;
+    }
+    .rolesDiv {
+      display: inline-block;
       border-radius: 0.5rem;
-      background-color: rgb(0, 238, 255);
       width: 1.5rem;
       height: 0.5rem;
       font-size: 0.3rem;
       font-weight: 700;
       text-align: center;
-      margin-right: 0.2rem;
+      margin-right: 0.1rem;
       box-shadow: 0 0 15px 2px #bdcee0;
     }
-    .item {
-      display: inline-block;
-      .name {
-        display: inline-block;
-        font-size: 0.4rem;
-        font-weight: 700;
-        margin-bottom: 0.2rem;
-        max-width: 5.5rem;
-      }
-      .icon {
-        position: absolute;
-        top: 1.2rem;
-        right: 0.6rem;
-      }
-      .follower,
-      .following {
-        font-size: 0.3rem;
-        font-weight: 600;
-        margin-right: 0.3rem;
-      }
+    .red {
+      background-color: rgb(255, 0, 0);
+      border: solid 3px rgb(136, 39, 39);
+    }
+    .blue {
+      background-color: rgb(0, 217, 255);
+      border: solid 3px rgb(41, 137, 192);
+    }
+    .green {
+      background-color: rgb(0, 255, 115);
+      border: solid 3px rgb(53, 158, 88);
+    }
+    .follower,
+    .following {
+      font-size: 0.3rem;
+      font-weight: 600;
+      margin-right: 0.3rem;
     }
   }
   .myPost {

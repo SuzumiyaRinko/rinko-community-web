@@ -126,6 +126,7 @@
       </div>
       <div class="item">
         <van-button
+          v-if="!hasFollow"
           type="primary"
           size="0.3rem"
           style="
@@ -133,11 +134,30 @@
             top: 0.9rem;
             right: 0.8rem;
             height: 0.6rem;
-            width: 1.5rem;
+            width: 1.7rem;
             margin-bottom: 0.2rem;
             font-weight: 700;
+            font-size: 0.4rem;
           "
+          @click="follow(info.id)"
           >关注</van-button
+        >
+        <van-button
+          v-if="hasFollow"
+          type="default"
+          size="0.3rem"
+          style="
+            position: absolute;
+            top: 0.9rem;
+            right: 0.8rem;
+            height: 0.6rem;
+            width: 1.7rem;
+            margin-bottom: 0.2rem;
+            font-weight: 700;
+            font-size: 0.4rem;
+          "
+          @click="follow(info.id)"
+          >取消关注</van-button
         >
         <van-button
           type="default"
@@ -148,8 +168,9 @@
             top: 1.6rem;
             right: 0.8rem;
             height: 0.6rem;
-            width: 1.5rem;
+            width: 1.7rem;
             font-weight: 700;
+            font-size: 0.4rem;
           "
           >私聊</van-button
         >
@@ -313,35 +334,33 @@
             ><br />
             <!-- First3Pictures -->
             <div class="first3Pictures">
+              <!-- 一张图片 -->
               <span
                 v-if="
                   post.first3PicturesSplit != null &&
-                  post.first3PicturesSplit.length > 0
+                  post.first3PicturesSplit.length == 1
                 "
-                v-for="(pic, idx) in post.first3PicturesSplit"
               >
                 <img
                   class="onePostPicture"
-                  v-if="post.first3PicturesSplit.length == 1"
-                  style="max-width: 9rem; margin-left: 0.1rem;"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                  style="max-width: 9rem; margin-left: 0.1rem"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${post.first3PicturesSplit[0]}`"
                   alt="图片"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
                 />
-                <img
-                  class="onePostPicture"
-                  v-if="post.first3PicturesSplit.length == 2"
-                  style="max-width: 4.3rem; margin-left: 0.15rem;"
+              </span>
+              <!-- 多张图片 -->
+              <span
+                v-if="post.first3PicturesSplit.length > 1"
+                v-for="(pic, idx) in post.first3PicturesSplit"
+                key="idx"
+              >
+                <van-image
+                  style="margin-left: 0.06rem"
+                  width="2.9rem"
+                  height="2.9rem"
+                  fit="cover"
                   :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                  alt="图片"
-                  @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
-                <img
-                  class="onePostPicture"
-                  v-if="post.first3PicturesSplit.length >= 3"
-                  style="height: 2.9rem; width: 2.9rem; margin-left: 0.06rem"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                  alt="图片"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
                 />
               </span>
@@ -380,9 +399,9 @@ import { onMounted, reactive, ref } from "vue";
 import { useStore } from "vuex";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { showToast, showDialog, showImagePreview } from "vant";
-import { getUserInfo } from "@/api/user.js";
+import { getUserInfo, followAPI, hasFollowAPI } from "@/api/user.js";
 import { postSearch } from "@/api/post.js";
-import { checkAuthority } from "@/util/utils.js";
+import { checkAuthority, sleep } from "@/util/utils.js";
 
 export default {
   setup() {
@@ -402,6 +421,14 @@ export default {
       info.followingsCount = userInfo.followingsCount;
       info.followersCount = userInfo.followersCount;
       info.roles = userInfo.roles;
+
+      // 判断是否已关注
+      var baseResponse = (await hasFollowAPI(info.id)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+      hasFollow.value = baseResponse.data;
+
       // 加载用户post
       onPostLoad();
     });
@@ -428,6 +455,25 @@ export default {
       followersCount: "",
       roles: [],
     });
+
+    // hasFollow
+    const hasFollow = ref(false);
+
+    // follow
+    const follow = async (targetId) => {
+      var baseResponse = (await followAPI(targetId)).data;
+      if (!checkAuthority(baseResponse)) {
+        router.push("/");
+      }
+      hasFollow.value = !hasFollow.value;
+
+      if (hasFollow.value == true) {
+        showToast({
+          message: "关注成功",
+          icon: "success",
+        });
+      }
+    };
 
     // 对方post数据
     const postsPage = reactive({
@@ -516,6 +562,8 @@ export default {
       router,
       store,
       info,
+      hasFollow,
+      follow,
       postsPage,
       noAnyPost,
       postSearchDTO,

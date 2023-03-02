@@ -28,19 +28,17 @@
     </form>
 
     <!-- Suggestions -->
-    <div
-      :v-show="suggestionsShow"
-      v-if="suggestions.length != 0"
-      class="suggestions"
-    >
+    <div v-show="suggestionsShow" class="suggestions">
       <div class="suggestionsTop">猜您想搜</div>
       <div
+        v-if="suggestions != null && suggestions.length > 0"
         class="oneSuggestion"
         v-for="(suggestion, idx) in suggestions"
         key="idx"
         v-html="suggestion"
         @click="chooseSuggestion(suggestion)"
       />
+      <div v-else class="noSuggestionWarning">好像没有您想要的POST哦</div>
       <div class="suggestionsBottom">
         <van-button type="danger" @click="closeSuggestions()">关闭</van-button>
       </div>
@@ -217,37 +215,35 @@
             <span class="postContent" v-html="post.content"></span><br />
             <!-- First3Pictures -->
             <div class="first3Pictures">
+              <!-- 一张图片 -->
               <span
                 v-if="
                   post.first3PicturesSplit != null &&
-                  post.first3PicturesSplit.length > 0
+                  post.first3PicturesSplit.length == 1
                 "
-                v-for="(pic, idx) in post.first3PicturesSplit"
               >
                 <img
                   class="onePostPicture"
-                  v-if="post.first3PicturesSplit.length == 1"
                   style="max-width: 9rem; margin-left: 0.1rem"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${post.first3PicturesSplit[0]}`"
                   alt="图片"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
                 />
-                <img
-                  class="onePostPicture"
-                  v-if="post.first3PicturesSplit.length == 2"
-                  style="max-width: 4.3rem; margin-left: 0.15rem"
+              </span>
+              <!-- 多张图片 -->
+              <span
+                v-if="post.first3PicturesSplit.length > 1"
+                v-for="(pic, idx) in post.first3PicturesSplit"
+                key="idx"
+              >
+                <van-image
+                  style="margin-left: 0.06rem"
+                  width="2.9rem"
+                  height="2.9rem"
+                  fit="cover"
                   :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                  alt="图片"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
-                <img
-                  class="onePostPicture"
-                  v-if="post.first3PicturesSplit.length >= 3"
-                  style="height: 2.9rem; width: 2.9rem; margin-left: 0.06rem"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                  alt="图片"
-                  @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
+                  />
               </span>
             </div>
             <span class="postCreateTime">{{ post.createTime }}</span
@@ -266,7 +262,11 @@
             </div>
             <div
               class="postLastView"
-              v-if="homeHistory.postLastView == post.id"
+              v-if="
+                (homeStyle != '' && homePostHistory.postLastView == post.id) ||
+                (interestStyle != '' &&
+                  homeInterestHistory.postLastView == post.id)
+              "
             >
               **上次浏览**
             </div>
@@ -308,59 +308,67 @@ import { useStore } from "vuex";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { showDialog, showNotify, showImagePreview, showToast } from "vant";
 import { postSearch, suggestionsSearch, feedsSearch } from "@/api/post.js";
-import { sleep } from "@/util/utils.js";
-import { checkAuthority } from "@/util/utils.js";
+import { checkAuthority, sleep } from "@/util/utils.js";
 
 export default {
   setup() {
     onMounted(async () => {
-      // homeHistory
-      var tmpHomeHistory = JSON.parse(
-        window.sessionStorage.getItem("homeHistory")
+      // homePostHistory
+      var tmpHomePostHistory = JSON.parse(
+        window.sessionStorage.getItem("homePostHistory")
       );
-      if (tmpHomeHistory != null) {
-        homeHistory.postLastView = tmpHomeHistory.postLastView;
-        homeHistory.pageNum = tmpHomeHistory.pageNum;
-        homeHistory.scrollTop = tmpHomeHistory.scrollTop;
+      if (tmpHomePostHistory != null) {
+        homePostHistory.postLastView = tmpHomePostHistory.postLastView;
+        homePostHistory.pageNum = tmpHomePostHistory.pageNum;
+        homePostHistory.scrollTop = tmpHomePostHistory.scrollTop;
       }
-      window.sessionStorage.setItem("homeHistory", JSON.stringify(homeHistory));
+      window.sessionStorage.setItem(
+        "homePostHistory",
+        JSON.stringify(homePostHistory)
+      );
 
       // 本次应该到达的页数
-      while (postSearchDTO.pageNum <= homeHistory.pageNum) {
+      while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
         onPostLoad();
         await sleep(80);
       }
 
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
-        homeHistory.scrollTop;
+        homePostHistory.scrollTop;
     });
 
     onBeforeRouteLeave((to, from, next) => {
       // oldRouter
       window.sessionStorage.setItem("oldRouter", "home");
-      // homeHistory
+      // homePostHistory / homeInterestHistory
       if (!searchFlag.value) {
-        var tmpHomeHistory = JSON.parse(
-          window.sessionStorage.getItem("homeHistory")
-        );
-        tmpHomeHistory.pageNum = postSearchDTO.pageNum - 1;
-        tmpHomeHistory.scrollTop =
-          document.getElementById("scrollingPost").scrollTop;
-        window.sessionStorage.setItem(
-          "homeHistory",
-          JSON.stringify(tmpHomeHistory)
-        );
+        if (homeStyle.value != "") {
+          var tmpHomePostHistory = JSON.parse(
+            window.sessionStorage.getItem("homePostHistory")
+          );
+          tmpHomePostHistory.pageNum = postSearchDTO.pageNum - 1;
+          tmpHomePostHistory.scrollTop =
+            document.getElementById("scrollingPost").scrollTop;
+          window.sessionStorage.setItem(
+            "homePostHistory",
+            JSON.stringify(tmpHomePostHistory)
+          );
+        } else {
+          var tmpHomeInterestHistory = JSON.parse(
+            window.sessionStorage.getItem("homeInterestHistory")
+          );
+          tmpHomeInterestHistory.pageNum = postSearchDTO.pageNum - 1;
+          tmpHomeInterestHistory.scrollTop =
+            document.getElementById("scrollingPost").scrollTop;
+          window.sessionStorage.setItem(
+            "homeInterestHistory",
+            JSON.stringify(tmpHomeInterestHistory)
+          );
+        }
       }
 
       next();
-    });
-
-    // homeHistory
-    const homeHistory = reactive({
-      postLastView: -1,
-      pageNum: 1,
-      scrollTop: 0,
     });
 
     // router
@@ -418,13 +426,13 @@ export default {
       tmpHomeInterestHistory.scrollTop =
         document.getElementById("scrollingPost").scrollTop;
       window.sessionStorage.setItem(
-        "homePostHistory",
+        "homeInterestHistory",
         JSON.stringify(tmpHomeInterestHistory)
       );
 
       // init
-      homeStyle.value = "color: #1688f8;"
-      interestStyle.value = ""
+      homeStyle.value = "color: #1688f8;";
+      interestStyle.value = "";
       postSearchDTO.pageNum = 1;
       postsPage.data = [];
       postFinished.value = false;
@@ -433,12 +441,15 @@ export default {
       var tmpHomePostHistory = JSON.parse(
         window.sessionStorage.getItem("homePostHistory")
       );
-      if (tmpHomeInterestHistory != null) {
+      if (tmpHomePostHistory != null) {
         homePostHistory.postLastView = tmpHomePostHistory.postLastView;
         homePostHistory.pageNum = tmpHomePostHistory.pageNum;
         homePostHistory.scrollTop = tmpHomePostHistory.scrollTop;
       }
-      window.sessionStorage.setItem("homePostHistory", JSON.stringify(homePostHistory));
+      window.sessionStorage.setItem(
+        "homePostHistory",
+        JSON.stringify(homePostHistory)
+      );
 
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
@@ -448,11 +459,11 @@ export default {
 
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
-        homeInterestHistory.scrollTop;
+        homePostHistory.scrollTop;
     };
 
     const gotoInterest = async () => {
-      if (homeStyle.value != "") {
+      if (interestStyle.value != "") {
         return;
       }
 
@@ -483,8 +494,8 @@ export default {
       );
 
       // init
-      interestStyle.value = "color: #1688f8;"
-      homeStyle.value = ""
+      interestStyle.value = "color: #1688f8;";
+      homeStyle.value = "";
       postSearchDTO.pageNum = 1;
       postsPage.data = [];
       postFinished.value = false;
@@ -498,7 +509,10 @@ export default {
         homeInterestHistory.pageNum = tmpHomeInterestHistory.pageNum;
         homeInterestHistory.scrollTop = tmpHomeInterestHistory.scrollTop;
       }
-      window.sessionStorage.setItem("homeInterestHistory", JSON.stringify(homeInterestHistory));
+      window.sessionStorage.setItem(
+        "homeInterestHistory",
+        JSON.stringify(homeInterestHistory)
+      );
 
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= homeInterestHistory.pageNum) {
@@ -515,6 +529,9 @@ export default {
     // 搜索
     const searchFlag = ref(false);
     const onSearch = async () => {
+      homeStyle.value = "color: #1688f8;";
+      interestStyle.value = "";
+
       searchFlag.value = true;
       postsPage.data = [];
       postSearchDTO.pageNum = 1;
@@ -522,21 +539,24 @@ export default {
     };
     // 清除搜索框中的文本
     const onCancel = async () => {
+      homeStyle.value = "color: #1688f8;";
+      interestStyle.value = "";
+
       searchFlag.value = false;
       postSearchDTO.searchKey = "";
       postsPage.data = [];
       postSearchDTO.pageNum = 1;
       // 本次应该到达的页数
-      var tmpHomeHistory = JSON.parse(
-        window.sessionStorage.getItem("homeHistory")
+      var tmpHomePostHistory = JSON.parse(
+        window.sessionStorage.getItem("homePostHistory")
       );
-      while (postSearchDTO.pageNum <= tmpHomeHistory.pageNum) {
+      while (postSearchDTO.pageNum <= tmpHomePostHistory.pageNum) {
         onPostLoad();
         await sleep(80);
       }
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
-        tmpHomeHistory.scrollTop;
+        tmpHomePostHistory.scrollTop;
     };
 
     // 用户停止输入0.6s后做联想查询
@@ -590,7 +610,7 @@ export default {
     const onPostLoad = async () => {
       // 加载post
       var baseResponse;
-      if(homeStyle.value != "") {
+      if (homeStyle.value != "") {
         baseResponse = (await postSearch(postSearchDTO)).data;
       } else {
         baseResponse = (await feedsSearch(postSearchDTO.pageNum)).data;
@@ -654,21 +674,33 @@ export default {
       // currPost
       var postJson = JSON.stringify(post);
       window.sessionStorage.setItem("currPost", postJson);
-      console.log("postJson", postJson);
 
       // postLastView
-      var tmpHomeHistory = JSON.parse(
-        window.sessionStorage.getItem("homeHistory")
-      );
-      tmpHomeHistory.postLastView = post.id;
-      tmpHomeHistory.pageNum = postSearchDTO.pageNum - 1;
-      tmpHomeHistory.scrollTop =
-        document.getElementById("scrollingPost").scrollTop;
-      console.log("tmpHomeHistory", tmpHomeHistory);
-      window.sessionStorage.setItem(
-        "homeHistory",
-        JSON.stringify(tmpHomeHistory)
-      );
+      if (homeStyle.value != "") {
+        var tmpHomePostHistory = JSON.parse(
+          window.sessionStorage.getItem("homePostHistory")
+        );
+        tmpHomePostHistory.postLastView = post.id;
+        tmpHomePostHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpHomePostHistory.scrollTop =
+          document.getElementById("scrollingPost").scrollTop;
+        window.sessionStorage.setItem(
+          "homePostHistory",
+          JSON.stringify(tmpHomePostHistory)
+        );
+      } else {
+        var tmpHomeInterestHistory = JSON.parse(
+          window.sessionStorage.getItem("homeInterestHistory")
+        );
+        tmpHomeInterestHistory.postLastView = post.id;
+        tmpHomeInterestHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpHomeInterestHistory.scrollTop =
+          document.getElementById("scrollingPost").scrollTop;
+        window.sessionStorage.setItem(
+          "homeInterestHistory",
+          JSON.stringify(tmpHomeInterestHistory)
+        );
+      }
 
       window.sessionStorage.setItem("lastRouter2Post", "home");
       router.push("/post");
@@ -687,7 +719,6 @@ export default {
     };
 
     return {
-      homeHistory,
       router,
       store,
       homeStyle,
@@ -787,6 +818,13 @@ export default {
       font-weight: 700;
       text-align: center;
       border-bottom: solid 3px rgb(156, 153, 153);
+    }
+    .noSuggestionWarning {
+      display: block;
+      padding-left: 1.2rem;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: rgb(114, 107, 107);
     }
     .oneSuggestion {
       border-bottom: solid 3px rgb(156, 153, 153);

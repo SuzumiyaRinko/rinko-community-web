@@ -38,6 +38,7 @@
       <!-- PostPictures -->
       <van-uploader
         class="postPictures"
+        :before-read="beforeRead"
         :after-read="uploadPicture"
         :before-delete="deletePicture"
         preview-size="2.7rem"
@@ -105,6 +106,36 @@ export default {
     };
     const postPictures = ref([]);
 
+    const beforeRead = (file) => {
+      // 类型
+      var validType = [
+        "image/gif",
+        "image/png",
+        "image/jpeg",
+        "image/bmp",
+        "image/webp",
+        "image/x-icon",
+        "image/vnd.microsoft.icon",
+      ];
+      if (validType.indexOf(file.type) == -1) {
+        showToast({
+          message: "只能上传图片或Gif动图",
+          icon: "cross",
+        });
+        return false;
+      }
+      // 大小
+      if (file.size > 10 * 1024 * 1024) {
+        showToast({
+          message: "文件大小不能超过10MB",
+          icon: "cross",
+        });
+        return false;
+      }
+
+      return true;
+    };
+
     // 取消上传
     const deletePicture = async (file, detail) => {
       postPictures.value.splice(detail.index, 1);
@@ -158,7 +189,7 @@ export default {
           title: "POST发表成功",
           theme: "round-button",
         }).then(() => {
-          console.log("postPictures", postPictures)
+          console.log("postPictures", postPictures);
           router.push("/me");
         });
       }
@@ -170,6 +201,7 @@ export default {
       postInsertDTO,
       uploadPicture,
       postPictures,
+      beforeRead,
       deletePicture,
       insertPostShow,
       onBeforeInsertPostClose,
