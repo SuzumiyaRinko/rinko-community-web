@@ -1,0 +1,26 @@
+import service from "@/api/index.js"
+
+// 上传文件
+export function uploadFile(data) {
+    return service({
+        headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "POST",
+        url: "/file",
+        data,
+    })
+}
+
+// 删除头像
+export function deleteFile(filePath) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "DELETE",
+        url: "/file",
+        data: filePath,
+    })
+}

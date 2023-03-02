@@ -56,3 +56,14 @@ export function hasLikeAPI(commentId) {
         url: `/comment/hasLike/${commentId}`,
     })
 }
+
+// 根据commentId获取post
+export function getPostByCommentId(commentId) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "GET",
+        url: `/post/getPostByCommentId/${commentId}`,
+    })
+}

@@ -33,7 +33,18 @@ export function collectionsSearch(pageNum) {
             "Authorization": window.sessionStorage.getItem("token"),
         },
         method: "GET",
-        url: `/post/getCollections/${pageNum}`,
+        url: `/post/collections/${pageNum}`,
+    })
+}
+
+// 查询Feeds
+export function feedsSearch(pageNum) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "GET",
+        url: `/post/feeds/${pageNum}`,
     })
 }
 
@@ -89,5 +100,17 @@ export function hasCollectAPI(postId) {
         },
         method: "GET",
         url: `/post/hasCollect/${postId}`,
+    })
+}
+
+// 发布post
+export function insertPostAPI(postInsertDTO) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "POST",
+        url: "/post/insert",
+        data: postInsertDTO,
     })
 }

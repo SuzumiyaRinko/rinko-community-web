@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 import RegisterOrLogin from "@/views/RegisterOrLogin.vue"
 import Home from "@/views/Home.vue"
+import InsertPost from "@/views/InsertPost.vue"
 import Message from "@/views/Message.vue"
 import Me from "@/views/Me.vue"
 import User from "@/views/User.vue"
@@ -24,6 +25,11 @@ const routes = [
       //   window.sessionStorage.setItem("homePage", 1);
       // }
     },
+  },
+  {
+    path: '/insertPost',
+    name: 'insertPost',
+    component: InsertPost,
   },
   {
     path: '/message',

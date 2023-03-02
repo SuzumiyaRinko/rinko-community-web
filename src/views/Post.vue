@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
-      <span class="back" @click="router.go(-1)">返回</span>
+      <span class="back" @click="backToSomeone()">返回</span>
       <span class="title">POST</span>
       <van-button
         v-if="currPost.userId == myUserId"
@@ -107,7 +107,7 @@
             ></path>
           </svg>
           <svg
-            v-if="currPost.postUser.isFamous == 1"
+            v-if="currPost.postUser.roles.indexOf(1) != -1"
             t="1677033137631"
             class="famous"
             viewBox="0 0 1024 1024"
@@ -146,8 +146,42 @@
         <span class="postTitle">{{ currPost.title }}</span>
       </div>
 
-      <!-- TextContent -->
+      <!-- PostContent -->
       <div class="postContent">{{ currPost.content }}</div>
+      <!-- PostPictures -->
+      <div class="postPictures">
+        <span
+          v-if="
+            currPost.picturesSplit != null && currPost.picturesSplit.length > 0
+          "
+          v-for="(pic, idx) in currPost.picturesSplit"
+        >
+          <img
+            v-if="currPost.picturesSplit.length == 1"
+            style="max-width: 9rem; margin-left: 0.1rem;"
+            class="onePostPicture"
+            :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+            alt="图片"
+            @click="viewPicture(currPost.picturesSplit, idx)"
+          />
+          <img
+            v-if="currPost.picturesSplit.length == 2"
+            style="max-width: 4.3rem; margin-left: 0.15rem;"
+            class="onePostPicture"
+            :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+            alt="图片"
+            @click="viewPicture(currPost.picturesSplit, idx)"
+          />
+          <img
+            v-if="currPost.picturesSplit.length >= 3"
+            style="height: 2.9rem; width: 2.9rem; margin-left: 0.06rem"
+            class="onePostPicture"
+            :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+            alt="图片"
+            @click="viewPicture(currPost.picturesSplit, idx)"
+          />
+        </span>
+      </div>
       <!-- Comment -->
       <div class="commentTitle">COMMENT</div>
       <!-- 无Comment时的提示 -->
@@ -258,7 +292,7 @@
               ></path>
             </svg>
             <svg
-              v-if="comment.commentUser.isFamous == 1"
+              v-if="comment.commentUser.roles.indexOf(1) != -1"
               t="1677033137631"
               class="famous"
               viewBox="0 0 1024 1024"
@@ -308,9 +342,41 @@
           </div>
           <span class="commentCreateTime">{{ comment.createTime }}</span>
           <span class="commentContent">{{ comment.content }}</span>
+          <!-- CommentPictures -->
+          <div
+            v-if="
+              comment.picturesSplit != null && comment.picturesSplit.length > 0
+            "
+            class="commentPictures"
+          >
+            <span v-for="(pic, idx) in comment.picturesSplit">
+              <img
+                v-if="comment.picturesSplit.length == 1"
+                style="max-width: 9rem; margin-left: 0.1rem;"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                alt="图片"
+                @click="viewPicture(comment.picturesSplit, idx)"
+              />
+              <img
+                v-if="comment.picturesSplit.length == 2"
+                style="max-width: 4.3rem; margin-left: 0.15rem;"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                alt="图片"
+                @click="viewPicture(comment.picturesSplit, idx)"
+              />
+              <img
+                v-if="comment.picturesSplit.length >= 3"
+                style="height: 2.9rem; width: 2.9rem; margin-left: 0.06rem"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                alt="图片"
+                @click="viewPicture(comment.picturesSplit, idx)"
+              />
+            </span>
+          </div>
           <div class="recomment" v-if="comment.first3Comments.length > 0">
             <div v-for="(recomment, idx) in comment.first3Comments">
-              回复： {{ recomment }}
+              <span v-if="recomment == null || recomment.length == 0">回复：[图片]</span>
+              <span v-if="recomment.length > 0">回复：{{ recomment }}</span>
             </div>
             <div class="seeMoreRecomment">（点击查看更多）</div>
           </div>
@@ -356,8 +422,9 @@
       confirm-button-text="发送评论"
       :before-close="onBeforeCommentClose"
     >
+      <!-- CommentContent -->
       <van-field
-        v-model.trim="commentText"
+        v-model.trim="commentInsertDTO.content"
         rows="2"
         autosize
         type="textarea"
@@ -365,14 +432,25 @@
         show-word-limit
         placeholder="请输入评论内容"
       />
+      <!-- CommentPictures -->
+      <van-uploader
+        class="commentPictures"
+        :after-read="uploadPicture"
+        :before-delete="deletePicture"
+        preview-size="2.6rem"
+        v-model="commentPictures"
+        multiple
+        :max-count="9"
+      />
     </van-dialog>
   </div>
 </template>
 
 <script>
-import { onMounted, reactive, ref } from "vue";
-import { showDialog, showNotify, showToast } from "vant";
+import { onBeforeMount, onMounted, reactive, ref } from "vue";
+import { showDialog, showNotify, showToast, showImagePreview } from "vant";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
+import { useStore } from "vuex";
 import {
   deletePostAPI,
   likeAPI,
@@ -382,18 +460,20 @@ import {
 } from "@/api/post.js";
 import { commentSelect, commentAPI } from "@/api/comment.js";
 import { saveHistory, getHistory } from "@/api/history.js";
+import { uploadFile, deleteFile } from "@/api/file.js";
 import { checkAuthority, sleep } from "@/util/utils.js";
 import moment from "moment";
 
 export default {
   setup() {
-    onMounted(async () => {
+    onBeforeMount(() => {
       // myUserId
       myUserId.value = window.sessionStorage.getItem("myUserId");
 
       // currPost
       var currPostJson = window.sessionStorage.getItem("currPost");
       var currPostParse = JSON.parse(currPostJson);
+      currPost.postUser = currPostParse.postUser;
       currPost.id = currPostParse.id;
       currPost.userId = currPostParse.userId;
       currPost.title = currPostParse.title;
@@ -402,8 +482,10 @@ export default {
       currPost.likeCount = currPostParse.likeCount;
       currPost.commentCount = currPostParse.commentCount;
       currPost.collectionCount = currPostParse.collectionCount;
-      currPost.postUser = currPostParse.postUser;
+      currPost.picturesSplit = currPostParse.picturesSplit;
+    })
 
+    onMounted(async () => {
       // 判断当前用户是否已点赞、收藏
       var baseResponse = (await hasLikeAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
@@ -435,19 +517,17 @@ export default {
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
-      console.log("history", history);
       var history = baseResponse.data;
-      var postPage = history.pageNum;
-      var postScroll = history.scrollTop;
+      console.log("history", history);
       commentLastView.value = history.lastView;
 
-      while (commentSelectDTO.pageNum <= postPage) {
+      while (commentSelectDTO.pageNum <= history.pageNum) {
         onCommentLoad();
         await sleep(80);
       }
 
       // 移动scrollingPost的滚动条
-      document.getElementById("scrollingPost").scrollTop = postScroll;
+      document.getElementById("scrollingPost").scrollTop = history.scrollTop;
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
@@ -478,8 +558,21 @@ export default {
     // router
     const router = useRouter();
 
+    // store
+    const store = useStore();
+
     // myUserId
     const myUserId = ref("");
+
+    // backToSomeone
+    const backToSomeone = () => {
+      var backToSomeone = window.sessionStorage.getItem("lastRouter2Post");
+      if (backToSomeone == "home") {
+        router.push("/home");
+      } else if (backToSomeone == "me") {
+        router.push("/me");
+      }
+    };
 
     // gotoUser
     const gotoUser = (userId) => {
@@ -520,6 +613,7 @@ export default {
       commentCount: "",
       collectionCount: "",
       postUser: {},
+      picturesSplit: [],
     });
 
     // commentPage
@@ -551,14 +645,42 @@ export default {
       var pageInfo = baseResponse.data;
       console.log("pageInfo", pageInfo);
       commentPage.total = pageInfo.total;
-      commentPage.data = commentPage.data.concat(pageInfo.list);
+
+      // 防bug
+      if (
+        commentPage.data.length == 0 ||
+        commentPage.data[0].id != commentPage.data[0].id
+      ) {
+        commentPage.data = commentPage.data.concat(pageInfo.list);
+      }
 
       commentLoading.value = false;
 
       // 已经没有更多数据了
-      if (commentPage.data.length >= commentPage.total) {
+      if (
+        commentPage.data.length >= commentPage.total ||
+        pageInfo.list.length == 0
+      ) {
         commentFinished.value = true;
       }
+    };
+
+    // 查看图片
+    const viewPicture = (picturesSplit, idx) => {
+      // 阻止事件冒泡至外层div
+      event.stopPropagation();
+
+      var images = [];
+      for (var i = 0; i <= picturesSplit.length - 1; i++) {
+        images.push(
+          `${store.state.SystemConst.resourcesPrefix}${picturesSplit[i]}`
+        );
+      }
+      showImagePreview({
+        images,
+        closeable: true,
+        startPosition: idx,
+      });
     };
 
     // 删除post
@@ -582,7 +704,6 @@ export default {
         // 跳转到主页
         showDialog({
           title: "POST删除成功",
-          message: "确认后将回到个人页",
           theme: "round-button",
         }).then(() => {
           router.push("/me");
@@ -611,21 +732,28 @@ export default {
 
     // 评论
     const commentShow = ref(false);
-    const commentText = ref("");
+    const commentInsertDTO = reactive({
+      type: 1,
+      targetId: currPost.id,
+      content: "",
+      picturesSplit: [],
+    });
     // CommentDialog关闭前的判断
     const onBeforeCommentClose = async (action) => {
       if (action === "confirm") {
         // 判空
-        if (commentText.value == "") {
+        if (
+          commentInsertDTO.content.length == 0 &&
+          commentInsertDTO.picturesSplit.length == 0
+        ) {
           showToast({
-            message: "评论内容不能为空",
+            message: "内容不能为空",
             icon: "cross",
           });
           return;
         }
 
         // 评论
-        console.log("commentText", commentText.value);
         var myUserInfo = JSON.parse(
           window.sessionStorage.getItem("myUserInfo")
         );
@@ -635,17 +763,14 @@ export default {
           id: 0,
           commentUser: myUserInfo,
           createTime: now,
-          content: commentText.value,
+          content: commentInsertDTO.content,
           likeCount: 0,
           commentCount: 0,
           first3Comments: [],
+          picturesSplit: commentInsertDTO.picturesSplit,
         };
         // 发送ajax
-        var commentInsertDTO = {
-          type: 1,
-          targetId: currPost.id,
-          content: commentText.value,
-        };
+        commentInsertDTO.targetId = currPost.id;
         var baseResponse = (await commentAPI(commentInsertDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
@@ -654,7 +779,9 @@ export default {
         commentPage.total++;
         commentPage.data.push(newComment);
         currPost.commentCount++;
-        commentText.value = "";
+        commentInsertDTO.content = "";
+        commentInsertDTO.picturesSplit = [];
+        commentPictures.value = [];
         // 成功提示
         showToast({
           message: "发送评论成功",
@@ -662,6 +789,38 @@ export default {
         });
       }
       commentShow.value = false;
+    };
+
+    // 上传图片
+    const uploadPicture = async (file) => {
+      var data = new FormData();
+      data.append("file", file.file);
+      var baseResponse = (await uploadFile(data)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+      if (baseResponse.code != 200) {
+        showToast({
+          message: "图片上传失败",
+          icon: "cross",
+        });
+        return;
+      }
+
+      // 记录返回的filePath
+      commentInsertDTO.picturesSplit.push(baseResponse.data);
+    };
+    const commentPictures = ref([]);
+
+    // 取消上传
+    const deletePicture = async (file, detail) => {
+      commentPictures.value.splice(detail.index, 1);
+      var deletePicturePath = commentInsertDTO.picturesSplit[detail.index];
+      commentInsertDTO.picturesSplit.splice(detail.index, 1);
+      var baseResponse = (await deleteFile(deletePicturePath)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
     };
 
     // 收藏
@@ -685,7 +844,9 @@ export default {
     return {
       commentLastView,
       router,
+      store,
       myUserId,
+      backToSomeone,
       gotoUser,
       gotoComment,
       noAnyComment,
@@ -695,14 +856,18 @@ export default {
       commentLoading,
       commentFinished,
       onCommentLoad,
+      viewPicture,
       deletePostShow,
       onBeforeDeleteClose,
       hasLike,
       likeColor,
       like,
       commentShow,
-      commentText,
+      commentInsertDTO,
       onBeforeCommentClose,
+      uploadPicture,
+      commentPictures,
+      deletePicture,
       hasCollect,
       collectionColor,
       collect,
@@ -812,13 +977,17 @@ export default {
       font-weight: 700;
     }
     .postContent {
-      border-bottom: solid 3px black;
       max-width: 100%;
       margin-top: 0.2rem;
       padding: 0.1rem;
       text-align: left;
       font-size: 0.5rem;
       font-weight: 500;
+    }
+    .postPictures {
+      margin-top: 0.1rem;
+      margin-left: 0.1rem;
+      border-bottom: solid 3px black;
     }
     .commentTitle {
       text-align: center;
@@ -899,6 +1068,7 @@ export default {
       .commentContent {
         display: inline-block;
         margin-top: 1rem;
+        margin-bottom: 0.5rem;
         margin-left: 1.8rem;
         font-size: 0.4rem;
         font-weight: 500;
@@ -909,6 +1079,9 @@ export default {
         top: 0;
         font-size: 0.3rem;
         font-weight: 800;
+      }
+      .commentPictures {
+        margin-left: 0.1rem;
       }
       .recomment {
         font-size: 0.4rem;

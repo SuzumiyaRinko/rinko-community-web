@@ -2,8 +2,10 @@
   <div class="home">
     <!-- Top -->
     <div class="top">
-      <span class="home" :style="homeStyle">HOME</span>
-      <span class="interest" :style="interestStyle">INTEREST</span>
+      <span class="home" :style="homeStyle" @click="gotoHome()">HOME</span>
+      <span class="interest" :style="interestStyle" @click="gotoInterest()"
+        >INTEREST</span
+      >
     </div>
 
     <!-- Search -->
@@ -44,7 +46,7 @@
       </div>
     </div>
 
-    <!-- 帖子 -->
+    <!-- Post -->
     <div id="scrollingPost" class="post">
       <!-- 无post时的提示 -->
       <div style="text-align: center">
@@ -175,7 +177,7 @@
                 ></path>
               </svg>
               <svg
-                v-if="post.postUser.isFamous == 1"
+                v-if="post.postUser.roles.indexOf(1) != -1"
                 t="1677033137631"
                 class="famous"
                 viewBox="0 0 1024 1024"
@@ -206,12 +208,48 @@
                   p-id="2894"
                 ></path>
               </svg>
+              -->
               <div class="nickname">
                 <span>{{ post.postUser.nickname }}</span>
               </div>
             </div>
             <span class="postTitle" v-html="post.title"></span>
             <span class="postContent" v-html="post.content"></span><br />
+            <!-- First3Pictures -->
+            <div class="first3Pictures">
+              <span
+                v-if="
+                  post.first3PicturesSplit != null &&
+                  post.first3PicturesSplit.length > 0
+                "
+                v-for="(pic, idx) in post.first3PicturesSplit"
+              >
+                <img
+                  class="onePostPicture"
+                  v-if="post.first3PicturesSplit.length == 1"
+                  style="max-width: 9rem; margin-left: 0.1rem"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                  alt="图片"
+                  @click="viewPicture(post.first3PicturesSplit, idx)"
+                />
+                <img
+                  class="onePostPicture"
+                  v-if="post.first3PicturesSplit.length == 2"
+                  style="max-width: 4.3rem; margin-left: 0.15rem"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                  alt="图片"
+                  @click="viewPicture(post.first3PicturesSplit, idx)"
+                />
+                <img
+                  class="onePostPicture"
+                  v-if="post.first3PicturesSplit.length >= 3"
+                  style="height: 2.9rem; width: 2.9rem; margin-left: 0.06rem"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                  alt="图片"
+                  @click="viewPicture(post.first3PicturesSplit, idx)"
+                />
+              </span>
+            </div>
             <span class="postCreateTime">{{ post.createTime }}</span
             ><br />
             <div class="postStatus">
@@ -238,6 +276,14 @@
       </van-pull-refresh>
     </div>
 
+    <!-- InsertPost -->
+    <van-icon
+      class="insertPost"
+      name="plus"
+      size="0.8rem"
+      @click="router.push('/insertPost')"
+    />
+
     <!-- BottomNav -->
     <div class="bottomNav">
       <div class="item currItem" @click="router.push('/home')">
@@ -258,11 +304,12 @@
 
 <script>
 import { onMounted, reactive, ref } from "vue";
-import { showDialog, showNotify } from "vant";
-import { postSearch, suggestionsSearch } from "@/api/post.js";
+import { useStore } from "vuex";
+import { onBeforeRouteLeave, useRouter } from "vue-router";
+import { showDialog, showNotify, showImagePreview, showToast } from "vant";
+import { postSearch, suggestionsSearch, feedsSearch } from "@/api/post.js";
 import { sleep } from "@/util/utils.js";
 import { checkAuthority } from "@/util/utils.js";
-import { onBeforeRouteLeave, useRouter } from "vue-router";
 
 export default {
   setup() {
@@ -277,11 +324,13 @@ export default {
         homeHistory.scrollTop = tmpHomeHistory.scrollTop;
       }
       window.sessionStorage.setItem("homeHistory", JSON.stringify(homeHistory));
+
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= homeHistory.pageNum) {
         onPostLoad();
         await sleep(80);
       }
+
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
         homeHistory.scrollTop;
@@ -291,16 +340,19 @@ export default {
       // oldRouter
       window.sessionStorage.setItem("oldRouter", "home");
       // homeHistory
-      var tmpHomeHistory = JSON.parse(
-        window.sessionStorage.getItem("homeHistory")
-      );
-      tmpHomeHistory.pageNum = postSearchDTO.pageNum - 1;
-      tmpHomeHistory.scrollTop =
-        document.getElementById("scrollingPost").scrollTop;
-      window.sessionStorage.setItem(
-        "homeHistory",
-        JSON.stringify(tmpHomeHistory)
-      );
+      if (!searchFlag.value) {
+        var tmpHomeHistory = JSON.parse(
+          window.sessionStorage.getItem("homeHistory")
+        );
+        tmpHomeHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpHomeHistory.scrollTop =
+          document.getElementById("scrollingPost").scrollTop;
+        window.sessionStorage.setItem(
+          "homeHistory",
+          JSON.stringify(tmpHomeHistory)
+        );
+      }
+
       next();
     });
 
@@ -314,40 +366,179 @@ export default {
     // router
     const router = useRouter();
 
+    // store
+    const store = useStore();
+
     // topNav的额外样式
     const homeStyle = ref("color: #1688f8;");
     const interestStyle = ref("");
     const clearable = ref(false);
 
+    // homePostHistory
+    const homePostHistory = reactive({
+      postLastView: -1,
+      pageNum: 1,
+      scrollTop: 0,
+    });
+
+    // homeInterestHistory
+    const homeInterestHistory = reactive({
+      postLastView: -1,
+      pageNum: 1,
+      scrollTop: 0,
+    });
+
+    // 防止用户频繁点击
+    const clickSearchLock = ref(false);
+
+    const gotoHome = async () => {
+      if (homeStyle.value != "") {
+        return;
+      }
+
+      // 加锁
+      if (clickSearchLock.value == true) {
+        showToast({
+          message: "请勿频繁点击",
+          icon: "cross",
+        });
+        return;
+      }
+      clickSearchLock.value = true;
+      setTimeout(() => {
+        // 0.6s后释放锁
+        clickSearchLock.value = false;
+      }, 600);
+
+      // 记录homeInterestHistory
+      var tmpHomeInterestHistory = JSON.parse(
+        window.sessionStorage.getItem("homeInterestHistory")
+      );
+      tmpHomeInterestHistory.pageNum = postSearchDTO.pageNum - 1;
+      tmpHomeInterestHistory.scrollTop =
+        document.getElementById("scrollingPost").scrollTop;
+      window.sessionStorage.setItem(
+        "homePostHistory",
+        JSON.stringify(tmpHomeInterestHistory)
+      );
+
+      // init
+      homeStyle.value = "color: #1688f8;"
+      interestStyle.value = ""
+      postSearchDTO.pageNum = 1;
+      postsPage.data = [];
+      postFinished.value = false;
+
+      // homePostHistory
+      var tmpHomePostHistory = JSON.parse(
+        window.sessionStorage.getItem("homePostHistory")
+      );
+      if (tmpHomeInterestHistory != null) {
+        homePostHistory.postLastView = tmpHomePostHistory.postLastView;
+        homePostHistory.pageNum = tmpHomePostHistory.pageNum;
+        homePostHistory.scrollTop = tmpHomePostHistory.scrollTop;
+      }
+      window.sessionStorage.setItem("homePostHistory", JSON.stringify(homePostHistory));
+
+      // 本次应该到达的页数
+      while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
+        onPostLoad();
+        await sleep(80);
+      }
+
+      // 移动scrollingPost的滚动条
+      document.getElementById("scrollingPost").scrollTop =
+        homeInterestHistory.scrollTop;
+    };
+
+    const gotoInterest = async () => {
+      if (homeStyle.value != "") {
+        return;
+      }
+
+      // 加锁
+      if (clickSearchLock.value == true) {
+        showToast({
+          message: "请勿频繁点击",
+          icon: "cross",
+        });
+        return;
+      }
+      clickSearchLock.value = true;
+      setTimeout(() => {
+        // 0.6s后释放锁
+        clickSearchLock.value = false;
+      }, 600);
+
+      // 记录homePostHistory
+      var tmpHomePostHistory = JSON.parse(
+        window.sessionStorage.getItem("homePostHistory")
+      );
+      tmpHomePostHistory.pageNum = postSearchDTO.pageNum - 1;
+      tmpHomePostHistory.scrollTop =
+        document.getElementById("scrollingPost").scrollTop;
+      window.sessionStorage.setItem(
+        "homePostHistory",
+        JSON.stringify(tmpHomePostHistory)
+      );
+
+      // init
+      interestStyle.value = "color: #1688f8;"
+      homeStyle.value = ""
+      postSearchDTO.pageNum = 1;
+      postsPage.data = [];
+      postFinished.value = false;
+
+      // homeInterestHistory
+      var tmpHomeInterestHistory = JSON.parse(
+        window.sessionStorage.getItem("homeInterestHistory")
+      );
+      if (tmpHomeInterestHistory != null) {
+        homeInterestHistory.postLastView = tmpHomeInterestHistory.postLastView;
+        homeInterestHistory.pageNum = tmpHomeInterestHistory.pageNum;
+        homeInterestHistory.scrollTop = tmpHomeInterestHistory.scrollTop;
+      }
+      window.sessionStorage.setItem("homeInterestHistory", JSON.stringify(homeInterestHistory));
+
+      // 本次应该到达的页数
+      while (postSearchDTO.pageNum <= homeInterestHistory.pageNum) {
+        onPostLoad();
+        await sleep(80);
+      }
+
+      // 移动scrollingPost的滚动条
+      document.getElementById("scrollingPost").scrollTop =
+        homeInterestHistory.scrollTop;
+    };
+
     // topNav
     // 搜索
+    const searchFlag = ref(false);
     const onSearch = async () => {
-      window.sessionStorage.removeItem("homeHistory");
+      searchFlag.value = true;
       postsPage.data = [];
       postSearchDTO.pageNum = 1;
       onPostLoad();
     };
     // 清除搜索框中的文本
     const onCancel = async () => {
+      searchFlag.value = false;
       postSearchDTO.searchKey = "";
       postsPage.data = [];
       postSearchDTO.pageNum = 1;
-      // 加载post
-      var baseResponse = (await postSearch(postSearchDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+      // 本次应该到达的页数
+      var tmpHomeHistory = JSON.parse(
+        window.sessionStorage.getItem("homeHistory")
+      );
+      while (postSearchDTO.pageNum <= tmpHomeHistory.pageNum) {
+        onPostLoad();
+        await sleep(80);
       }
-      postSearchDTO.pageNum++; // 页数+1
-      var page = baseResponse.data;
-      postsPage.total = page.total;
-      postsPage.data = postsPage.data.concat(page.data);
-
-      postLoading.value = false;
-      // 已经没有更多数据了
-      if (postsPage.data.length >= postsPage.total) {
-        postFinished.value = true;
-      }
+      // 移动scrollingPost的滚动条
+      document.getElementById("scrollingPost").scrollTop =
+        tmpHomeHistory.scrollTop;
     };
+
     // 用户停止输入0.6s后做联想查询
     const onUpdate = () => {
       var lastSearchKey = postSearchDTO.searchKey;
@@ -364,6 +555,7 @@ export default {
         }
       }, 600);
     };
+
     // 关闭suggestions
     const suggestionsShow = ref(false);
     const chooseSuggestion = (suggestion) => {
@@ -396,16 +588,28 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      // setTimeout(async () => {
       // 加载post
-      var baseResponse = (await postSearch(postSearchDTO)).data;
+      var baseResponse;
+      if(homeStyle.value != "") {
+        baseResponse = (await postSearch(postSearchDTO)).data;
+      } else {
+        baseResponse = (await feedsSearch(postSearchDTO.pageNum)).data;
+      }
+
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
       postSearchDTO.pageNum++; // 页数+1
       var page = baseResponse.data;
       postsPage.total = page.total;
-      postsPage.data = postsPage.data.concat(page.data);
+
+      // 防bug
+      if (
+        postsPage.data.length == 0 ||
+        postsPage.data[0].id != page.data[0].id
+      ) {
+        postsPage.data = postsPage.data.concat(page.data);
+      }
 
       console.log("postsPage.total", postsPage.total);
       console.log("postsPage.data.length", postsPage.data.length);
@@ -413,28 +617,44 @@ export default {
 
       postLoading.value = false;
       // 已经没有更多数据了
-      if (postsPage.data.length >= postsPage.total) {
+      if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
         postFinished.value = true;
       }
-      // }, 1000);
     };
 
+    // 查看图片
+    const viewPicture = (picturesSplit, idx) => {
+      // 阻止事件冒泡至外层div
+      event.stopPropagation();
 
-    const pullRefreshLoading = ref(false)
+      var images = [];
+      for (var i = 0; i <= picturesSplit.length - 1; i++) {
+        images.push(
+          `${store.state.SystemConst.resourcesPrefix}${picturesSplit[i]}`
+        );
+      }
+      showImagePreview({
+        images,
+        closeable: true,
+        startPosition: idx,
+      });
+    };
+
+    const pullRefreshLoading = ref(false);
     const onPullRefresh = async () => {
-      await sleep(500)
+      await sleep(500);
       postSearchDTO.pageNum = 1;
-      postsPage.data = []
-      onPostLoad()
-      pullRefreshLoading.value = false
-    }
-
+      postsPage.data = [];
+      onPostLoad();
+      pullRefreshLoading.value = false;
+    };
 
     // gotoPost
     const gotoPost = (post) => {
       // currPost
       var postJson = JSON.stringify(post);
       window.sessionStorage.setItem("currPost", postJson);
+      console.log("postJson", postJson);
 
       // postLastView
       var tmpHomeHistory = JSON.parse(
@@ -450,6 +670,7 @@ export default {
         JSON.stringify(tmpHomeHistory)
       );
 
+      window.sessionStorage.setItem("lastRouter2Post", "home");
       router.push("/post");
     };
 
@@ -468,9 +689,16 @@ export default {
     return {
       homeHistory,
       router,
+      store,
       homeStyle,
       interestStyle,
+      homePostHistory,
+      homeInterestHistory,
+      clickSearchLock,
+      gotoHome,
+      gotoInterest,
       clearable,
+      searchFlag,
       onSearch,
       onCancel,
       onUpdate,
@@ -484,6 +712,7 @@ export default {
       postLoading,
       postFinished,
       onPostLoad,
+      viewPicture,
       pullRefreshLoading,
       onPullRefresh,
       gotoPost,
@@ -665,6 +894,7 @@ export default {
       .postContent {
         width: 70%;
         margin-left: 0.5rem;
+        margin-bottom: 0.3rem;
         font-size: 0.35rem;
         font-weight: 500;
         // 最多显示1行
@@ -697,7 +927,16 @@ export default {
       }
     }
   }
-  // BottomNav
+  .insertPost {
+    position: absolute;
+    z-index: 4;
+    bottom: 1.5rem;
+    padding: 0.2rem;
+    right: 0;
+    color: white;
+    background-color: rgba(21, 212, 117, 0.9);
+    border-radius: 0.6rem;
+  }
   .bottomNav {
     position: absolute;
     bottom: 0;
