@@ -314,17 +314,24 @@
                   post.first3PicturesSplit != null &&
                   post.first3PicturesSplit.length == 1
                 "
+                v-for="(pic, idx) in post.first3PicturesSplit"
+                key="idx"
               >
-                <img
-                  style="max-width: 9rem; margin-left: 0.1rem"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${post.first3PicturesSplit[0]}`"
-                  alt="图片"
+                <van-image
+                  style="margin-left: 0.06rem"
+                  fit="cover"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
+                  ><template v-slot:loading>
+                    <van-loading type="spinner" size="80" /> </template
+                ></van-image>
               </span>
               <!-- 多张图片 -->
               <span
-                v-if="post.first3PicturesSplit.length > 1"
+                v-if="
+                  post.first3PicturesSplit != null &&
+                  post.first3PicturesSplit.length > 1
+                "
                 v-for="(pic, idx) in post.first3PicturesSplit"
                 key="idx"
               >
@@ -335,7 +342,9 @@
                   fit="cover"
                   :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
+                  ><template v-slot:loading>
+                    <van-loading type="spinner" size="80" /> </template
+                ></van-image>
               </span>
             </div>
             <span class="postCreateTime">{{ post.createTime }}</span

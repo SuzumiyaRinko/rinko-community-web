@@ -337,18 +337,24 @@
                 recomment.picturesSplit != null &&
                 recomment.picturesSplit.length == 1
               "
+              v-for="(pic, idx) in comment.picturesSplit"
+              key="idx"
             >
-              <img
-                class="onePostPicture"
-                style="max-width: 9rem; margin-left: 0.1rem"
-                :src="`${$store.state.SystemConst.resourcesPrefix}${recomment.picturesSplit[0]}`"
-                alt="图片"
+              <van-image
+                style="margin-left: 0.06rem"
+                fit="cover"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
                 @click="viewPicture(recomment.picturesSplit, idx)"
-              />
+                ><template v-slot:loading>
+                  <van-loading type="spinner" size="80" /> </template
+              ></van-image>
             </span>
             <!-- 多张图片 -->
             <span
-              v-if="recomment.picturesSplit.length > 1"
+              v-if="
+                recomment.picturesSplit != null &&
+                recomment.picturesSplit.length > 1
+              "
               v-for="(pic, idx) in recomment.picturesSplit"
               key="idx"
             >
@@ -359,7 +365,9 @@
                 fit="cover"
                 :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
                 @click="viewPicture(recomment.picturesSplit, idx)"
-              />
+                ><template v-slot:loading>
+                  <van-loading type="spinner" size="80" /> </template
+              ></van-image>
             </span>
           </div>
         </div>
@@ -789,7 +797,6 @@ export default {
 
       return true;
     };
-
 
     // 取消上传
     const deletePicture = async (file, detail) => {

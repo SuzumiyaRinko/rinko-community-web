@@ -119,7 +119,16 @@
           <span>{{ info.nickname }}</span>
         </div>
         <div>
-          <div v-if="info.isFamous == 1" class="famousDiv">知名用户</div>
+          <div v-if="info.roles.indexOf(3) != -1" class="rolesDiv red">
+            开发者
+          </div>
+          <div v-if="info.roles.indexOf(1) != -1" class="rolesDiv blue">
+            知名用户
+          </div>
+          <div v-if="info.roles.indexOf(2) != -1" class="rolesDiv green">
+            内测人员
+          </div>
+          <br>
           <span class="following">关注: {{ info.followingsCount }}</span>
           <span class="follower">粉丝: {{ info.followersCount }}</span>
         </div>
@@ -340,18 +349,24 @@
                   post.first3PicturesSplit != null &&
                   post.first3PicturesSplit.length == 1
                 "
+                v-for="(pic, idx) in post.first3PicturesSplit"
+                key="idx"
               >
-                <img
-                  class="onePostPicture"
-                  style="max-width: 9rem; margin-left: 0.1rem"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${post.first3PicturesSplit[0]}`"
-                  alt="图片"
+                <van-image
+                  style="margin-left: 0.06rem"
+                  fit="cover"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
+                  ><template v-slot:loading>
+                    <van-loading type="spinner" size="80" /> </template
+                ></van-image>
               </span>
               <!-- 多张图片 -->
               <span
-                v-if="post.first3PicturesSplit.length > 1"
+                v-if="
+                  post.first3PicturesSplit != null &&
+                  post.first3PicturesSplit.length > 1
+                "
                 v-for="(pic, idx) in post.first3PicturesSplit"
                 key="idx"
               >
@@ -362,7 +377,9 @@
                   fit="cover"
                   :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
+                  ><template v-slot:loading>
+                    <van-loading type="spinner" size="80" /> </template
+                ></van-image>
               </span>
             </div>
             <span class="postCreateTime">{{ post.createTime }}</span
@@ -627,19 +644,6 @@ export default {
         background-color: white;
       }
     }
-    .famousDiv {
-      display: inline-block;
-      border: solid 3px rgb(41, 137, 192);
-      border-radius: 0.5rem;
-      background-color: rgb(0, 238, 255);
-      width: 1.5rem;
-      height: 0.5rem;
-      font-size: 0.3rem;
-      font-weight: 700;
-      text-align: center;
-      margin-right: 0.2rem;
-      box-shadow: 0 0 15px 2px #bdcee0;
-    }
     .item {
       display: inline-block;
       .name {
@@ -651,6 +655,30 @@ export default {
       }
       .icon {
         margin-left: 1rem;
+      }
+      .rolesDiv {
+        display: inline-block;
+        border-radius: 0.5rem;
+        width: 1.5rem;
+        height: 0.5rem;
+        font-size: 0.3rem;
+        font-weight: 700;
+        text-align: center;
+        margin-right: 0.1rem;
+        margin-bottom: 0.1rem;
+        box-shadow: 0 0 15px 2px #bdcee0;
+      }
+      .red {
+        background-color: rgb(255, 0, 0);
+        border: solid 3px rgb(136, 39, 39);
+      }
+      .blue {
+        background-color: rgb(0, 217, 255);
+        border: solid 3px rgb(41, 137, 192);
+      }
+      .green {
+        background-color: rgb(0, 255, 115);
+        border: solid 3px rgb(53, 158, 88);
       }
       .follower,
       .following {

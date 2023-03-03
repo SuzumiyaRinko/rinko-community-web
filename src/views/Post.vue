@@ -343,34 +343,43 @@
           <!-- CommentPictures -->
           <div class="commentPictures">
             <!-- 一张图片 -->
-            <span
-              v-if="
-                comment.picturesSplit != null &&
-                comment.picturesSplit.length == 1
-              "
-            >
-              <img
-                style="max-width: 9rem; margin-left: 0.1rem"
-                :src="`${$store.state.SystemConst.resourcesPrefix}${comment.picturesSplit[0]}`"
-                alt="图片"
-                @click="viewPicture(comment.picturesSplit, idx)"
-              />
-            </span>
-            <!-- 多张图片 -->
-            <span
-              v-if="comment.picturesSplit.length > 1"
-              v-for="(pic, idx) in comment.picturesSplit"
-              key="idx"
-            >
-              <van-image
-                style="margin-left: 0.06rem"
-                width="2.9rem"
-                height="2.9rem"
-                fit="cover"
-                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                @click="viewPicture(comment.picturesSplit, idx)"
-              />
-            </span>
+              <span
+                v-if="
+                  comment.picturesSplit != null &&
+                  comment.picturesSplit.length == 1
+                "
+                v-for="(pic, idx) in comment.picturesSplit"
+                key="idx"
+              >
+                <van-image
+                  style="margin-left: 0.06rem"
+                  fit="cover"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                  @click="viewPicture(comment.picturesSplit, idx)"
+                  ><template v-slot:loading>
+                    <van-loading type="spinner" size="80" /> </template
+                ></van-image>
+              </span>
+              <!-- 多张图片 -->
+              <span
+                v-if="
+                  comment.picturesSplit != null &&
+                  comment.picturesSplit.length > 1
+                "
+                v-for="(pic, idx) in comment.picturesSplit"
+                key="idx"
+              >
+                <van-image
+                  style="margin-left: 0.06rem"
+                  width="2.9rem"
+                  height="2.9rem"
+                  fit="cover"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                  @click="viewPicture(comment.picturesSplit, idx)"
+                  ><template v-slot:loading>
+                    <van-loading type="spinner" size="80" /> </template
+                ></van-image>
+              </span>
           </div>
           <div class="recomment" v-if="comment.first3Comments.length > 0">
             <div v-for="(recomment, idx) in comment.first3Comments">
@@ -986,9 +995,6 @@ export default {
         background-color: white;
       }
       .nickname {
-        // position: absolute;
-        // left: 0.2rem;
-        // top: 1.8rem;
         margin-left: 2.5rem;
         font-size: 0.4rem;
         font-weight: 800;
@@ -1133,8 +1139,8 @@ export default {
       }
       .commentLastView {
         position: absolute;
-        top: 0.5rem;
-        right: 0;
+        top: -0.15rem;
+        right: 2rem;
         font-size: 0.4rem;
         font-weight: 700;
         color: rgb(226, 19, 19);

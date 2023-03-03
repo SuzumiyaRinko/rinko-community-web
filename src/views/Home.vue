@@ -38,7 +38,7 @@
         v-html="suggestion"
         @click="chooseSuggestion(suggestion)"
       />
-      <div v-else class="noSuggestionWarning">好像没有您想要的POST哦</div>
+      <div v-else class="noSuggestionWarning">（搜索不到任何提示哦）</div>
       <div class="suggestionsBottom">
         <van-button type="danger" @click="closeSuggestions()">关闭</van-button>
       </div>
@@ -221,18 +221,24 @@
                   post.first3PicturesSplit != null &&
                   post.first3PicturesSplit.length == 1
                 "
+                v-for="(pic, idx) in post.first3PicturesSplit"
+                key="idx"
               >
-                <img
-                  class="onePostPicture"
-                  style="max-width: 9rem; margin-left: 0.1rem"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${post.first3PicturesSplit[0]}`"
-                  alt="图片"
+                <van-image
+                  style="margin-left: 0.06rem"
+                  fit="cover"
+                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
-                />
+                  ><template v-slot:loading>
+                    <van-loading type="spinner" size="80" /> </template
+                ></van-image>
               </span>
               <!-- 多张图片 -->
               <span
-                v-if="post.first3PicturesSplit.length > 1"
+                v-if="
+                  post.first3PicturesSplit != null &&
+                  post.first3PicturesSplit.length > 1
+                "
                 v-for="(pic, idx) in post.first3PicturesSplit"
                 key="idx"
               >
@@ -243,7 +249,9 @@
                   fit="cover"
                   :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
                   @click="viewPicture(post.first3PicturesSplit, idx)"
-                  />
+                  ><template v-slot:loading>
+                    <van-loading type="spinner" size="80" /> </template
+                ></van-image>
               </span>
             </div>
             <span class="postCreateTime">{{ post.createTime }}</span
