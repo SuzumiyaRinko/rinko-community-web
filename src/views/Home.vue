@@ -57,7 +57,7 @@
         <span
           v-if="
             postsPage.data.length == 0 &&
-            postStyle != '' &&
+            homeStyle != '' &&
             postSearchDTO.searchKey == ''
           "
           class="noAnyPostWarning"
@@ -66,11 +66,19 @@
         <span
           v-if="
             postsPage.data.length == 0 &&
-            postStyle != '' &&
+            homeStyle != '' &&
             postSearchDTO.searchKey != ''
           "
           class="noAnyPostWarning"
           >搜索不到相关的POST</span
+        >
+        <span
+          v-if="
+            postsPage.data.length == 0 &&
+            interestStyle != ''
+          "
+          class="noAnyPostWarning"
+          >暂时没有任何关注的用户发表POST</span
         >
       </div>
 
@@ -616,6 +624,8 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
+      console.log("onLoad")
+
       // 加载post
       var baseResponse;
       if (homeStyle.value != "") {
@@ -633,15 +643,11 @@ export default {
 
       // 防bug
       if (
-        postsPage.data.length == 0 ||
-        postsPage.data[0].id != page.data[0].id
+        (page.data.length > 0 && postsPage.data.length > 0 && postsPage.data[0].id != page.data[0].id)
+        || (page.data.length > 0 && postsPage.data.length == 0)
       ) {
         postsPage.data = postsPage.data.concat(page.data);
       }
-
-      console.log("postsPage.total", postsPage.total);
-      console.log("postsPage.data.length", postsPage.data.length);
-      console.log("postsPage.data", postsPage.data);
 
       postLoading.value = false;
       // 已经没有更多数据了
@@ -668,6 +674,7 @@ export default {
       });
     };
 
+    // pull刷新
     const pullRefreshLoading = ref(false);
     const onPullRefresh = async () => {
       await sleep(500);
@@ -710,7 +717,7 @@ export default {
         );
       }
 
-      window.sessionStorage.setItem("lastRouter2Post", "home");
+      window.sessionStorage.setItem("backToSomeone", "home");
       router.push("/post");
     };
 

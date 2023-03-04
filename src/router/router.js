@@ -8,6 +8,7 @@ import Me from "@/views/Me.vue"
 import User from "@/views/User.vue"
 import Post from "@/views/Post.vue"
 import Comment from "@/views/Comment.vue"
+import Error from "@/views/Error.vue"
 
 const routes = [
   {
@@ -58,6 +59,11 @@ const routes = [
     path: '/comment',
     name: 'comment',
     component: Comment,
+  },
+  {
+    path: '/error',
+    name: 'error',
+    component: Error,
   },
 ]
 

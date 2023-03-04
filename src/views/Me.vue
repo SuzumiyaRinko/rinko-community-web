@@ -856,15 +856,17 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
+      console.log("onLoad")
+
       var baseResponse;
       if (postStyle.value != "") {
         // 加载用户post
         postSearchDTO.isSearchMyself = true;
-        var baseResponse = (await postSearch(postSearchDTO)).data;
+        baseResponse = (await postSearch(postSearchDTO)).data;
       } else {
         // 加载用户collections
         postSearchDTO.isSearchMyself = false;
-        var baseResponse = (await collectionsSearch(postSearchDTO.pageNum))
+        baseResponse = (await collectionsSearch(postSearchDTO.pageNum))
           .data;
       }
       if (checkAuthority(baseResponse) == false) {
@@ -876,8 +878,8 @@ export default {
 
       // 防bug
       if (
-        postsPage.data.length == 0 ||
-        postsPage.data[0].id != page.data[0].id
+        (page.data.length > 0 && postsPage.data.length > 0 && postsPage.data[0].id != page.data[0].id)
+        || (page.data.length > 0 && postsPage.data.length == 0)
       ) {
         postsPage.data = postsPage.data.concat(page.data);
       }

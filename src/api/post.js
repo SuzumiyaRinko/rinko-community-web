@@ -48,6 +48,17 @@ export function feedsSearch(pageNum) {
     })
 }
 
+// 根据postId查询post
+export function getPostByPostId(postId) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "GET",
+        url: `/post/${postId}`,
+    })
+}
+
 // 删除
 export function deletePostAPI(postId) {
     return service({

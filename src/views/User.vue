@@ -128,7 +128,7 @@
           <div v-if="info.roles.indexOf(2) != -1" class="rolesDiv green">
             内测人员
           </div>
-          <br>
+          <br />
           <span class="following">关注: {{ info.followingsCount }}</span>
           <span class="follower">粉丝: {{ info.followersCount }}</span>
         </div>
@@ -510,7 +510,10 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
+      console.log("onload");
+
       // 加载用户post
+      postSearchDTO.userId = info.id;
       var baseResponse = (await postSearch(postSearchDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
@@ -521,8 +524,10 @@ export default {
 
       // 防bug
       if (
-        postsPage.data.length == 0 ||
-        postsPage.data[0].id != postsPage.data[0].id
+        (page.data.length > 0 &&
+          postsPage.data.length > 0 &&
+          postsPage.data[0].id != page.data[0].id) ||
+        (page.data.length > 0 && postsPage.data.length == 0)
       ) {
         postsPage.data = postsPage.data.concat(page.data);
       }
@@ -694,7 +699,7 @@ export default {
     width: 94%;
     height: 100%;
     margin: 0.3rem auto;
-    height: 17rem;
+    height: 16.5rem;
     box-shadow: 0 0 15px 1px #000000;
     overflow: auto; // 防止文本溢出盒子
     .title {
@@ -775,6 +780,7 @@ export default {
       .postContent {
         width: 70%;
         margin-left: 0.5rem;
+        margin-bottom: 0.3rem;
         font-size: 0.35rem;
         font-weight: 500;
         // 最多显示1行

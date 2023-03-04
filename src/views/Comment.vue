@@ -337,7 +337,7 @@
                 recomment.picturesSplit != null &&
                 recomment.picturesSplit.length == 1
               "
-              v-for="(pic, idx) in comment.picturesSplit"
+              v-for="(pic, idx) in recomment.picturesSplit"
               key="idx"
             >
               <van-image
@@ -455,9 +455,8 @@ export default {
       myUserId.value = window.sessionStorage.getItem("myUserId");
 
       // currComment
-      var currCommentParse = JSON.parse(
-        window.sessionStorage.getItem("currComment")
-      );
+      var currCommentJson = window.sessionStorage.getItem("currComment");
+      var currCommentParse = JSON.parse(currCommentJson);
       currComment.id = currCommentParse.id;
       currComment.userId = currCommentParse.userId;
       currComment.title = currCommentParse.title;
@@ -607,8 +606,8 @@ export default {
 
       // 防bug
       if (
-        recommentPage.data.length == 0 ||
-        recommentPage.data[0].id != recommentPage.data[0].id
+        (pageInfo.list.length > 0 && recommentPage.data.length > 0 && recommentPage.data[0].id != pageInfo.list[0].id)
+        || (pageInfo.list.length > 0 && recommentPage.data.length == 0)
       ) {
         recommentPage.data = recommentPage.data.concat(pageInfo.list);
       }

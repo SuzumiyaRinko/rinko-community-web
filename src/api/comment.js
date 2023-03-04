@@ -67,3 +67,14 @@ export function getPostByCommentId(commentId) {
         url: `/post/getPostByCommentId/${commentId}`,
     })
 }
+
+// 根据commentId获取comment
+export function getCommentByCommentId(commentId) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "GET",
+        url: `/comment/${commentId}`,
+    })
+}

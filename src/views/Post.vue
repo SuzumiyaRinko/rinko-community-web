@@ -343,43 +343,43 @@
           <!-- CommentPictures -->
           <div class="commentPictures">
             <!-- 一张图片 -->
-              <span
-                v-if="
-                  comment.picturesSplit != null &&
-                  comment.picturesSplit.length == 1
-                "
-                v-for="(pic, idx) in comment.picturesSplit"
-                key="idx"
-              >
-                <van-image
-                  style="margin-left: 0.06rem"
-                  fit="cover"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                  @click="viewPicture(comment.picturesSplit, idx)"
-                  ><template v-slot:loading>
-                    <van-loading type="spinner" size="80" /> </template
-                ></van-image>
-              </span>
-              <!-- 多张图片 -->
-              <span
-                v-if="
-                  comment.picturesSplit != null &&
-                  comment.picturesSplit.length > 1
-                "
-                v-for="(pic, idx) in comment.picturesSplit"
-                key="idx"
-              >
-                <van-image
-                  style="margin-left: 0.06rem"
-                  width="2.9rem"
-                  height="2.9rem"
-                  fit="cover"
-                  :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
-                  @click="viewPicture(comment.picturesSplit, idx)"
-                  ><template v-slot:loading>
-                    <van-loading type="spinner" size="80" /> </template
-                ></van-image>
-              </span>
+            <span
+              v-if="
+                comment.picturesSplit != null &&
+                comment.picturesSplit.length == 1
+              "
+              v-for="(pic, idx) in comment.picturesSplit"
+              key="idx"
+            >
+              <van-image
+                style="margin-left: 0.06rem"
+                fit="cover"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                @click="viewPicture(comment.picturesSplit, idx)"
+                ><template v-slot:loading>
+                  <van-loading type="spinner" size="80" /> </template
+              ></van-image>
+            </span>
+            <!-- 多张图片 -->
+            <span
+              v-if="
+                comment.picturesSplit != null &&
+                comment.picturesSplit.length > 1
+              "
+              v-for="(pic, idx) in comment.picturesSplit"
+              key="idx"
+            >
+              <van-image
+                style="margin-left: 0.06rem"
+                width="2.9rem"
+                height="2.9rem"
+                fit="cover"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                @click="viewPicture(comment.picturesSplit, idx)"
+                ><template v-slot:loading>
+                  <van-loading type="spinner" size="80" /> </template
+              ></van-image>
+            </span>
           </div>
           <div class="recomment" v-if="comment.first3Comments.length > 0">
             <div v-for="(recomment, idx) in comment.first3Comments">
@@ -472,7 +472,7 @@ import {
 import { commentSelect, commentAPI } from "@/api/comment.js";
 import { saveHistory, getHistory } from "@/api/history.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
-import { checkAuthority, sleep } from "@/util/utils.js";
+import { checkAuthority, checkResource, sleep } from "@/util/utils.js";
 import moment from "moment";
 
 export default {
@@ -501,6 +501,7 @@ export default {
       var baseResponse = (await hasLikeAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
+        return;
       }
       hasLike.value = baseResponse.data;
       if (hasLike.value) {
@@ -508,9 +509,11 @@ export default {
       } else {
         likeColor.value = "black";
       }
+
       var baseResponse = (await hasCollectAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
+        return;
       }
       hasCollect.value = baseResponse.data;
       if (hasCollect.value) {
@@ -577,11 +580,13 @@ export default {
 
     // backToSomeone
     const backToSomeone = () => {
-      var backToSomeone = window.sessionStorage.getItem("lastRouter2Post");
+      var backToSomeone = window.sessionStorage.getItem("backToSomeone");
       if (backToSomeone == "home") {
         router.push("/home");
       } else if (backToSomeone == "me") {
         router.push("/me");
+      } else if (backToSomeone == "message") {
+        router.push("/message");
       }
     };
 
@@ -645,22 +650,24 @@ export default {
     const commentLoading = ref(false);
     const commentFinished = ref(false);
     const onCommentLoad = async () => {
+      console.log("onLoad");
+
       // 加载comment
       commentSelectDTO.targetId = currPost.id;
-      console.log("commentSelectDTO.targetId", commentSelectDTO.targetId);
       var baseResponse = (await commentSelect(commentSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
       commentSelectDTO.pageNum++; // 页数+1
       var pageInfo = baseResponse.data;
-      console.log("pageInfo", pageInfo);
       commentPage.total = pageInfo.total;
 
       // 防bug
       if (
-        commentPage.data.length == 0 ||
-        commentPage.data[0].id != commentPage.data[0].id
+        (pageInfo.list.length > 0 &&
+          commentPage.data.length > 0 &&
+          commentPage.data[0].id != pageInfo.list[0].id) ||
+        (pageInfo.list.length > 0 && commentPage.data.length == 0)
       ) {
         commentPage.data = commentPage.data.concat(pageInfo.list);
       }
