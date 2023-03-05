@@ -1,5 +1,13 @@
 <template>
   <div class="user">
+    <!-- Top -->
+    <div class="top">
+      <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
+      <span class="back" @click="router.go(-1)">返回</span>
+      <span class="title">USER</span>
+    </div>
+
+    <!-- UserInfo -->
     <div class="info">
       <div class="leftInfo">
         <img
@@ -136,51 +144,25 @@
       <div class="item">
         <van-button
           v-if="!hasFollow"
+          class="follow"
           type="primary"
           size="0.3rem"
-          style="
-            position: absolute;
-            top: 0.9rem;
-            right: 0.8rem;
-            height: 0.6rem;
-            width: 1.7rem;
-            margin-bottom: 0.2rem;
-            font-weight: 700;
-            font-size: 0.4rem;
-          "
           @click="follow(info.id)"
           >关注</van-button
         >
         <van-button
           v-if="hasFollow"
+          class="follow"
           type="default"
           size="0.3rem"
-          style="
-            position: absolute;
-            top: 0.9rem;
-            right: 0.8rem;
-            height: 0.6rem;
-            width: 1.7rem;
-            margin-bottom: 0.2rem;
-            font-weight: 700;
-            font-size: 0.4rem;
-          "
           @click="follow(info.id)"
           >取消关注</van-button
         >
         <van-button
           type="default"
+          class="chat"
           size="0.3rem"
           color="pink"
-          style="
-            position: absolute;
-            top: 1.6rem;
-            right: 0.8rem;
-            height: 0.6rem;
-            width: 1.7rem;
-            font-weight: 700;
-            font-size: 0.4rem;
-          "
           >私聊</van-button
         >
       </div>
@@ -392,22 +374,6 @@
         </van-list>
       </van-pull-refresh>
     </div>
-
-    <!-- BottomNav -->
-    <div class="bottomNav">
-      <div class="item" @click="router.push('/home')">
-        <van-icon name="wap-home-o" size="0.8rem" />
-        <span>主页</span>
-      </div>
-      <div class="item" @click="router.push('/message')">
-        <van-icon name="chat-o" size="0.8rem" />
-        <span>消息</span>
-      </div>
-      <div class="item" @click="router.push('/me')">
-        <van-icon name="user-o" size="0.8rem" />
-        <span>返回个人</span>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -605,8 +571,31 @@ export default {
 
 <style lang="less">
 .user {
-  width: 100%;
-  height: 100%;
+  .top {
+    margin: 0 0.2rem;
+    padding: 0.2rem 0;
+    border: solid 3px black;
+    box-shadow: 0 0 15px 1px #000000;
+    border-radius: 1rem;
+    margin-top: 0.3rem;
+    vertical-align: top;
+    .van-icon {
+      margin-left: 0.2rem;
+    }
+    .back {
+      display: inline-block;
+      margin-left: 0.2rem;
+      font-size: 0.5rem;
+      font-weight: 700;
+      color: #1776d2;
+    }
+    .title {
+      display: inline-block;
+      margin-left: 2.1rem;
+      font-size: 0.5rem;
+      font-weight: 700;
+    }
+  }
   .info {
     display: flex;
     align-items: center;
@@ -615,7 +604,7 @@ export default {
     border: solid 3px black;
     box-shadow: 0 0 15px 1px #000000;
     border-radius: 1rem;
-    margin-top: 0.5rem;
+    margin-top: 0.3rem;
     .leftInfo {
       position: relative;
       margin-right: 0.6rem;
@@ -690,6 +679,25 @@ export default {
         font-size: 0.3rem;
         font-weight: 600;
         margin-right: 0.3rem;
+      }
+      .follow {
+        position: absolute;
+        top: 2.1rem;
+        right: 0.8rem;
+        height: 0.6rem;
+        width: 1.7rem;
+        margin-bottom: 0.2rem;
+        font-weight: 700;
+        font-size: 0.4rem;
+      }
+      .chat {
+        position: absolute;
+        top: 2.8rem;
+        right: 0.8rem;
+        height: 0.6rem;
+        width: 1.7rem;
+        font-weight: 700;
+        font-size: 0.4rem;
       }
     }
   }
