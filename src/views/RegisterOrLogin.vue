@@ -41,6 +41,7 @@
             left-icon="envelop-o"
             placeholder="请输入邮箱"
             :rules="[{ validator: verifyMail, message: '邮箱格式错误' }]"
+            :formatter="formatter"
           />
           <!-- 密码 -->
           <van-field
@@ -60,6 +61,7 @@
                   '密码格式错误 (长度为8-16，只能由A-Z,a-z,0-9以及下划线组成)',
               },
             ]"
+            :formatter="formatter"
           />
           <!-- 确认密码 -->
           <van-field
@@ -72,6 +74,7 @@
             label="确认密码"
             left-icon="certificate"
             placeholder="请确认密码"
+            :formatter="formatter"
           />
           <!-- 验证码 -->
           <van-field
@@ -83,6 +86,7 @@
             label="验证码"
             left-icon="shield-o"
             placeholder="请输入验证码"
+            :formatter="formatter"
           />
           <div class="verifyCode">
             <img :src="base64Code" alt="验证码" />
@@ -113,6 +117,7 @@
             left-icon="envelop-o"
             placeholder="请输入邮箱"
             :rules="[{ validator: verifyMail, message: '邮箱格式错误' }]"
+            :formatter="formatter"
           />
           <!-- 密码 -->
           <van-field
@@ -132,6 +137,7 @@
                   '密码格式错误 (长度为8-16，只能由A-Z,a-z,0-9以及下划线组成)',
               },
             ]"
+            :formatter="formatter"
           />
         </van-cell-group>
       </van-form>
@@ -151,6 +157,15 @@ import { showToast } from "vant";
 
 export default {
   setup() {
+    onMounted(() => {
+      // 欢迎
+      showDialog({
+        title: "欢迎使用",
+        message: "🥰",
+        theme: "round-button",
+      });
+    });
+
     onBeforeRouteLeave(() => {
       // oldRouter
       window.sessionStorage.setItem("oldRouter", "registerOrLogin");
@@ -213,6 +228,8 @@ export default {
       var regex = /^[A-Za-z0-9_]{8,16}$/;
       return regex.test(val);
     };
+
+    const formatter = (str) => str.replace(/\s/g, "");
 
     // 注册Dialog关闭前的判断
     const onBeforeRegisterClose = async (action) => {
@@ -299,20 +316,11 @@ export default {
           message: "确认后将跳转到主页",
           theme: "round-button",
         }).then(() => {
-          router.push("/home");
+          router.push("/main");
         });
       }
       loginShow.value = false;
     };
-
-    onMounted(() => {
-      // 欢迎
-      showDialog({
-        title: "欢迎使用",
-        message: "🥰",
-        theme: "round-button",
-      });
-    });
 
     return {
       router,
@@ -327,6 +335,7 @@ export default {
       userLoginDTO,
       verifyMail,
       verifyPassword,
+      formatter,
       onBeforeRegisterClose,
       onBeforeLoginClose,
     };

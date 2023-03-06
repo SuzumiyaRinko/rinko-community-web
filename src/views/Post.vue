@@ -143,11 +143,11 @@
           </div>
         </div>
         <span class="postCreateTime">{{ currPost.createTime }}</span>
-        <span class="postTitle">{{ currPost.title }}</span>
+        <span class="postTitle" v-html="currPost.title" />
       </div>
 
       <!-- PostContent -->
-      <div class="postContent">{{ currPost.content }}</div>
+      <div class="postContent" v-html="currPost.content" />
       <!-- PostPictures -->
       <div class="postPictures">
         <!-- 一张图片 -->
@@ -339,7 +339,7 @@
             </div>
           </div>
           <span class="commentCreateTime">{{ comment.createTime }}</span>
-          <span class="commentContent">{{ comment.content }}</span>
+          <span class="commentContent" v-html="comment.content" />
           <!-- CommentPictures -->
           <div class="commentPictures">
             <!-- 一张图片 -->
@@ -472,12 +472,22 @@ import {
 import { commentSelect, commentAPI } from "@/api/comment.js";
 import { saveHistory, getHistory } from "@/api/history.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
-import { checkAuthority, checkResource, sleep } from "@/util/utils.js";
+import {
+  checkAuthority,
+  checkResource,
+  sleep,
+  saveEnter2Br4Web,
+  saveEnter2Br4Save,
+} from "@/util/utils.js";
 import moment from "moment";
 
 export default {
-  setup() {
+  props: ["shareData"],
+  setup(props) {
     onBeforeMount(() => {
+      // bottomNav
+      props.shareData.bottomNavShow = false;
+
       // myUserId
       myUserId.value = window.sessionStorage.getItem("myUserId");
 
@@ -545,8 +555,6 @@ export default {
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
-      // oldRouter
-      window.sessionStorage.setItem("oldRouter", "post");
       // 存储历史
       var targetType = 2;
       var targetId = currPost.id;
@@ -562,6 +570,16 @@ export default {
       var baseResponse = (await saveHistory(history)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
+        return;
+      }
+
+      // bottomNav
+      if (
+        to.path == "/main/home" ||
+        to.path == "/main/message" ||
+        to.path == "/main/me"
+      ) {
+        props.shareData.bottomNavShow = true;
       }
 
       next();
@@ -580,14 +598,7 @@ export default {
 
     // backToSomeone
     const backToSomeone = () => {
-      var backToSomeone = window.sessionStorage.getItem("backToSomeone");
-      if (backToSomeone == "home") {
-        router.push("/home");
-      } else if (backToSomeone == "me") {
-        router.push("/me");
-      } else if (backToSomeone == "message") {
-        router.push("/message");
-      }
+      router.push(window.sessionStorage.getItem("backToSomeone"));
     };
 
     // gotoUser
@@ -595,10 +606,13 @@ export default {
       event.stopPropagation(); // 阻止事件冒泡至外层div
       var myUserId = window.sessionStorage.getItem("myUserId");
       if (userId == myUserId) {
-        router.push("/me");
+        props.shareData.homeStyle = "";
+        props.shareData.messageStyle = "";
+        props.shareData.meStyle = "color: #1989fa";
+        router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);
-        router.push("/user");
+        router.push("/main/user");
       }
     };
 
@@ -612,7 +626,7 @@ export default {
       // commentLastView
       commentLastView.value = comment.id;
 
-      router.push("/comment");
+      router.push("/main/comment");
     };
 
     // noAnyComment
@@ -724,7 +738,7 @@ export default {
           title: "POST删除成功",
           theme: "round-button",
         }).then(() => {
-          router.push("/me");
+          router.push("/main/me");
         });
       }
       deletePostShow.value = false;
@@ -777,11 +791,11 @@ export default {
         );
         // 立刻显示
         var now = moment().format("YYYY-MM-DD HH:mm:ss");
-        var newComment = {
+        var newComment4Show = {
           id: 0,
           commentUser: myUserInfo,
           createTime: now,
-          content: commentInsertDTO.content,
+          content: saveEnter2Br4Web(commentInsertDTO.content),
           likeCount: 0,
           commentCount: 0,
           first3Comments: [],
@@ -789,13 +803,14 @@ export default {
         };
         // 发送ajax
         commentInsertDTO.targetId = currPost.id;
+        commentInsertDTO.content = saveEnter2Br4Save(commentInsertDTO.content);
         var baseResponse = (await commentAPI(commentInsertDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
         }
-        newComment.id = baseResponse.data;
+        newComment4Show.id = baseResponse.data;
         commentPage.total++;
-        commentPage.data.push(newComment);
+        commentPage.data.push(newComment4Show); // 立即展示
         currPost.commentCount++;
         commentInsertDTO.content = "";
         commentInsertDTO.picturesSplit = [];
@@ -934,10 +949,10 @@ export default {
     border: solid 3px black;
     box-shadow: 0 0 15px 1px #000000;
     border-radius: 1rem;
-    margin-top: 0.5rem;
+    margin-top: 0.3rem;
     vertical-align: top;
     .van-icon {
-      margin-left: 0.2rem;
+      margin-left: 0.3rem;
     }
     .back {
       display: inline-block;
@@ -954,7 +969,7 @@ export default {
     }
     .deleteButton {
       position: absolute;
-      top: 0.8rem;
+      top: 0.6rem;
       right: 0.8rem;
       font-size: 0.5rem;
       font-weight: 700;
@@ -966,7 +981,8 @@ export default {
     height: 18rem;
     border: solid 3px black;
     box-shadow: 0 0 15px 1px #000000;
-    margin: 0.25rem auto;
+    margin: 0.35rem auto;
+    border-radius: 1rem;
     overflow: auto; // 防止文本溢出盒子
     .onePostSimpleUser {
       position: relative;
@@ -1182,7 +1198,7 @@ export default {
   // commentDialog
   .commentDialog .van-field__control {
     border: solid 1px black;
-    max-height: 16rem;
+    max-height: 16rem; // 让textarea能上下滚动
   }
 }
 </style>

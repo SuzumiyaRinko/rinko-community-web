@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import RegisterOrLogin from "@/views/RegisterOrLogin.vue"
+import Main from "@/views/Main.vue"
 import Home from "@/views/Home.vue"
 import InsertPost from "@/views/InsertPost.vue"
 import Message from "@/views/Message.vue"
@@ -8,6 +9,7 @@ import Me from "@/views/Me.vue"
 import User from "@/views/User.vue"
 import Post from "@/views/Post.vue"
 import Comment from "@/views/Comment.vue"
+import Chat from "@/views/Chat.vue"
 import Error from "@/views/Error.vue"
 
 const routes = [
@@ -17,53 +19,20 @@ const routes = [
     component: RegisterOrLogin,
   },
   {
-    path: '/home',
-    name: 'home',
-    component: Home,
-    beforeEnter: (to, from) => {
-      // if (!(from.name == "post" || to.name == "user" || to.name == "me")) {
-      //   window.sessionStorage.setItem("homeScroll", 0);
-      //   window.sessionStorage.setItem("homePage", 1);
-      // }
-    },
-  },
-  {
-    path: '/insertPost',
-    name: 'insertPost',
-    component: InsertPost,
-  },
-  {
-    path: '/message',
-    name: 'message',
-    component: Message,
-  },
-  {
-    path: '/me',
-    name: 'me',
-    component: Me,
-    meta: {
-      keepAlive: false,
-    },
-  },
-  {
-    path: '/user',
-    name: 'user',
-    component: User,
-  },
-  {
-    path: '/post',
-    name: 'post',
-    component: Post,
-  },
-  {
-    path: '/comment',
-    name: 'comment',
-    component: Comment,
-  },
-  {
-    path: '/error',
-    name: 'error',
-    component: Error,
+    path: '/main',
+    name: 'main',
+    component: Main,
+    children: [
+      { path: 'home', component: Home },
+      { path: 'message', component: Message },
+      { path: 'me', component: Me },
+      { path: 'insertPost', component: InsertPost },
+      { path: 'user', component: User },
+      { path: 'post', component: Post },
+      { path: 'comment', component: Comment },
+      { path: 'chat', component: Chat },
+      { path: 'error', component: Error },
+    ]
   },
 ]
 

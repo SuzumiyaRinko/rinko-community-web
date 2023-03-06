@@ -143,10 +143,10 @@
           </div>
         </div>
         <span class="commentCreateTime">{{ currComment.createTime }}</span>
-        <span class="commentTitle">{{ currComment.title }}</span>
+        <span class="commentTitle" v-html="currComment.title" />
       </div>
       <!-- CommentContent -->
-      <div class="commentContent">{{ currComment.content }}</div>
+      <div class="commentContent" v-html="currComment.content" />
       <!-- CommentPictures -->
       <div class="commentPictures">
         <!-- 一张图片 -->
@@ -445,12 +445,21 @@ import {
 } from "@/api/comment.js";
 import { saveHistory, getHistory } from "@/api/history.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
-import { checkAuthority, sleep } from "@/util/utils.js";
+import {
+  checkAuthority,
+  sleep,
+  saveEnter2Br4Web,
+  saveEnter2Br4Save,
+} from "@/util/utils.js";
 import moment from "moment";
 
 export default {
-  setup() {
+  props: ["shareData"],
+  setup(props) {
     onBeforeMount(() => {
+      // bottomNav
+      props.shareData.bottomNavShow = false;
+
       // myUserId
       myUserId.value = window.sessionStorage.getItem("myUserId");
 
@@ -503,8 +512,6 @@ export default {
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
-      // oldRouter
-      window.sessionStorage.setItem("oldRouter", "comment");
       // 存储历史
       var targetType = 3;
       var targetId = currComment.id;
@@ -519,6 +526,16 @@ export default {
       var baseResponse = (await saveHistory(history)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
+        return;
+      }
+
+      // bottomNav
+      if (
+        to.path == "/main/home" ||
+        to.path == "/main/message" ||
+        to.path == "/main/me"
+      ) {
+        props.shareData.bottomNavShow = true;
       }
 
       next();
@@ -540,7 +557,7 @@ export default {
       var postJson = JSON.stringify(baseResponse.data);
       window.sessionStorage.setItem("currPost", postJson);
 
-      router.push("/post");
+      router.push("/main/post");
     };
 
     // myUserId
@@ -551,10 +568,13 @@ export default {
       event.stopPropagation(); // 阻止事件冒泡至外层div
       var myUserId = window.sessionStorage.getItem("myUserId");
       if (userId == myUserId) {
-        router.push("/me");
+        props.shareData.homeStyle = "";
+        props.shareData.messageStyle = "";
+        props.shareData.meStyle = "color: #1989fa";
+        router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);
-        router.push("/user");
+        router.push("/main/user");
       }
     };
 
@@ -606,8 +626,10 @@ export default {
 
       // 防bug
       if (
-        (pageInfo.list.length > 0 && recommentPage.data.length > 0 && recommentPage.data[0].id != pageInfo.list[0].id)
-        || (pageInfo.list.length > 0 && recommentPage.data.length == 0)
+        (pageInfo.list.length > 0 &&
+          recommentPage.data.length > 0 &&
+          recommentPage.data[0].id != pageInfo.list[0].id) ||
+        (pageInfo.list.length > 0 && recommentPage.data.length == 0)
       ) {
         recommentPage.data = recommentPage.data.concat(pageInfo.list);
       }
@@ -715,6 +737,7 @@ export default {
           window.sessionStorage.getItem("myUserInfo")
         );
         // 发送ajax
+        commentInsertDTO.content = saveEnter2Br4Save(commentInsertDTO.content);
         commentInsertDTO.targetId = currComment.id;
         var baseResponse = (await commentAPI(commentInsertDTO)).data;
         if (checkAuthority(baseResponse) == false) {
@@ -722,16 +745,16 @@ export default {
         }
         // 立刻显示
         var now = moment().format("YYYY-MM-DD HH:mm:ss");
-        var newComment = {
+        var newComment4Show = {
           id: 0,
           createTime: now,
-          content: commentInsertDTO.content,
+          content: saveEnter2Br4Web(commentInsertDTO.content),
           commentUser: myUserInfo,
           picturesSplit: commentInsertDTO.picturesSplit,
         };
-        newComment.id = baseResponse.data;
+        newComment4Show.id = baseResponse.data;
         recommentPage.total++;
-        recommentPage.data.push(newComment);
+        recommentPage.data.push(newComment4Show);
         currComment.commentCount++;
         commentInsertDTO.content = "";
         commentInsertDTO.picturesSplit = [];
@@ -847,7 +870,7 @@ export default {
     border: solid 3px black;
     box-shadow: 0 0 15px 1px #000000;
     border-radius: 1rem;
-    margin-top: 0.5rem;
+    margin-top: 0.3rem;
     vertical-align: top;
     .van-icon {
       margin-left: 0.2rem;
@@ -867,7 +890,7 @@ export default {
     }
     .deleteButton {
       position: absolute;
-      top: 0.8rem;
+      top: 0.6rem;
       right: 0.8rem;
       font-size: 0.5rem;
       font-weight: 700;
@@ -877,9 +900,10 @@ export default {
   .content {
     width: 96%;
     height: 18rem;
+    border-radius: 1rem;
     border: solid 3px black;
     box-shadow: 0 0 15px 1px #000000;
-    margin: 0.25rem auto;
+    margin: 0.35rem auto;
     overflow: auto; // 防止文本溢出盒子
     .oneCommentSimpleUser {
       position: relative;

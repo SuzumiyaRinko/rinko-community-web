@@ -158,11 +158,7 @@
           @click="follow(info.id)"
           >取消关注</van-button
         >
-        <van-button
-          type="default"
-          class="chat"
-          size="0.3rem"
-          color="pink"
+        <van-button type="default" class="chat" size="0.3rem" color="pink"
           >私聊</van-button
         >
       </div>
@@ -320,8 +316,8 @@
                 <span>{{ info.nickname }}</span>
               </div>
             </div>
-            <span class="postTitle">{{ post.title }}</span>
-            <span class="postContent">{{ post.content }}</span
+            <span class="postTitle" v-html="post.title" />
+            <span class="postContent" v-html="post.content" />
             ><br />
             <!-- First3Pictures -->
             <div class="first3Pictures">
@@ -387,8 +383,12 @@ import { postSearch } from "@/api/post.js";
 import { checkAuthority, sleep } from "@/util/utils.js";
 
 export default {
-  setup() {
+  props: ["shareData"],
+  setup(props) {
     onMounted(async () => {
+      // bottomNav
+      props.shareData.bottomNavShow = false;
+
       // 加载用户信息
       var gotoUserId = window.sessionStorage.getItem("gotoUserId");
       var baseResponse = (await getUserInfo(gotoUserId)).data;
@@ -416,9 +416,17 @@ export default {
       onPostLoad();
     });
 
-    onBeforeRouteLeave(() => {
-      // oldRouter
-      window.sessionStorage.setItem("oldRouter", "user");
+    onBeforeRouteLeave((to, from, next) => {
+      // bottomNav
+      if (
+        to.path == "/main/home" ||
+        to.path == "/main/message" ||
+        to.path == "/main/me"
+      ) {
+        props.shareData.bottomNavShow = true;
+      }
+
+      next()
     });
 
     // router
@@ -539,7 +547,7 @@ export default {
       console.log("gotoPost()");
       var postJson = JSON.stringify(post);
       window.sessionStorage.setItem("currPost", postJson);
-      router.push("/post");
+      router.push("/main/post");
     };
     // stopGotoPost
     const stopGotoPost = () => {
@@ -843,29 +851,6 @@ export default {
   }
   .van-picker {
     --van-picker-option-font-size: 0.5rem;
-  }
-  // BottomNav
-  .bottomNav {
-    position: absolute;
-    bottom: 0;
-    border: 3px black solid;
-    border-top-left-radius: 0.2rem;
-    border-top-right-radius: 0.2rem;
-    display: flex;
-    justify-content: space-evenly;
-    width: 100%;
-    font-size: 0.4rem;
-    font-weight: 700;
-    box-shadow: 0 0 15px 1px #000000;
-    .item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 0.5rem;
-    }
-    .currItem {
-      color: #1989fa;
-    }
   }
 }
 </style>

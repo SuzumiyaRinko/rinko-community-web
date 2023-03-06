@@ -27,12 +27,23 @@ import { useStore } from "vuex";
 import { checkAuthority, sleep } from "@/util/utils.js";
 
 export default {
-  setup() {
-    onMounted(async () => {});
+  props: ["shareData"],
+  setup(props) {
+    onMounted(async () => {
+      // bottomNav
+      props.shareData.bottomNavShow = false;
+    });
 
     onBeforeRouteLeave(async (to, from, next) => {
-      // oldRouter
-      window.sessionStorage.setItem("oldRouter", "error");
+      // bottomNav
+      if (
+        to.path == "/main/home" ||
+        to.path == "/main/message" ||
+        to.path == "/main/me"
+      ) {
+        props.shareData.bottomNavShow = true;
+      }
+
       next();
     });
 
@@ -47,14 +58,7 @@ export default {
 
     // backToSomeone
     const backToSomeone = () => {
-      var backToSomeone = window.sessionStorage.getItem("backToSomeone");
-      if (backToSomeone == "home") {
-        router.push("/home");
-      } else if (backToSomeone == "me") {
-        router.push("/me");
-      } else if(backToSomeone == "message") {
-        router.push("/message");
-      }
+      router.push(window.sessionStorage.getItem("backToSomeone"));
     };
 
     return {

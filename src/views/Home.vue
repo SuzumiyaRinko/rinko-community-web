@@ -73,10 +73,7 @@
           >搜索不到相关的POST</span
         >
         <span
-          v-if="
-            postsPage.data.length == 0 &&
-            interestStyle != ''
-          "
+          v-if="postsPage.data.length == 0 && interestStyle != ''"
           class="noAnyPostWarning"
           >暂时没有任何关注的用户发表POST</span
         >
@@ -297,24 +294,8 @@
       class="insertPost"
       name="plus"
       size="0.8rem"
-      @click="router.push('/insertPost')"
+      @click="router.push('/main/insertPost')"
     />
-
-    <!-- BottomNav -->
-    <div class="bottomNav">
-      <div class="item currItem" @click="router.push('/home')">
-        <van-icon name="wap-home-o" size="0.8rem" />
-        <span>主页</span>
-      </div>
-      <div class="item" @click="router.push('/message')">
-        <van-icon name="chat-o" size="0.8rem" />
-        <span>消息</span>
-      </div>
-      <div class="item" @click="router.push('/me')">
-        <van-icon name="user-o" size="0.8rem" />
-        <span>个人</span>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -324,10 +305,11 @@ import { useStore } from "vuex";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { showDialog, showNotify, showImagePreview, showToast } from "vant";
 import { postSearch, suggestionsSearch, feedsSearch } from "@/api/post.js";
-import { checkAuthority, sleep } from "@/util/utils.js";
+import { checkAuthority, sleep, saveEnter2Br } from "@/util/utils.js";
 
 export default {
-  setup() {
+  props: ["shareData"],
+  setup(props) {
     onMounted(async () => {
       // homePostHistory
       var tmpHomePostHistory = JSON.parse(
@@ -344,14 +326,14 @@ export default {
       );
 
       // 本次应该到达的页数
-      while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
-        onPostLoad();
-        await sleep(80);
-      }
+      // while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
+      //   onPostLoad();
+      //   await sleep(80);
+      // }
 
       // 移动scrollingPost的滚动条
-      document.getElementById("scrollingPost").scrollTop =
-        homePostHistory.scrollTop;
+      // document.getElementById("scrollingPost").scrollTop =
+      //   homePostHistory.scrollTop;
     });
 
     onBeforeRouteLeave((to, from, next) => {
@@ -624,7 +606,7 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      console.log("onLoad")
+      console.log("onLoad");
 
       // 加载post
       var baseResponse;
@@ -643,8 +625,10 @@ export default {
 
       // 防bug
       if (
-        (page.data.length > 0 && postsPage.data.length > 0 && postsPage.data[0].id != page.data[0].id)
-        || (page.data.length > 0 && postsPage.data.length == 0)
+        (page.data.length > 0 &&
+          postsPage.data.length > 0 &&
+          postsPage.data[0].id != page.data[0].id) ||
+        (page.data.length > 0 && postsPage.data.length == 0)
       ) {
         postsPage.data = postsPage.data.concat(page.data);
       }
@@ -717,8 +701,8 @@ export default {
         );
       }
 
-      window.sessionStorage.setItem("backToSomeone", "home");
-      router.push("/post");
+      window.sessionStorage.setItem("backToSomeone", "/main/home");
+      router.push("/main/post");
     };
 
     // gotoUser
@@ -726,10 +710,13 @@ export default {
       event.stopPropagation(); // 阻止事件冒泡至外层div
       var myUserId = window.sessionStorage.getItem("myUserId");
       if (userId == myUserId) {
-        router.push("/me");
+        props.shareData.homeStyle = "";
+        props.shareData.messageStyle = "";
+        props.shareData.meStyle = "color: #1989fa";
+        router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);
-        router.push("/user");
+        router.push("/main/user");
       }
     };
 
@@ -989,28 +976,6 @@ export default {
     color: white;
     background-color: rgba(21, 212, 117, 0.9);
     border-radius: 0.6rem;
-  }
-  .bottomNav {
-    position: absolute;
-    bottom: 0;
-    border: 3px black solid;
-    border-top-left-radius: 0.2rem;
-    border-top-right-radius: 0.2rem;
-    display: flex;
-    justify-content: space-evenly;
-    width: 100%;
-    font-size: 0.4rem;
-    font-weight: 700;
-    box-shadow: 0 0 15px 1px #000000;
-    .item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 0.5rem;
-    }
-    .currItem {
-      color: #1989fa;
-    }
   }
   em {
     color: red;

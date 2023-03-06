@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
-      <span class="back" @click="router.go(-1)">返回</span>
+      <span class="back" @click="goBack()">返回</span>
       <span class="title">发表POST</span>
       <van-button
         class="commitButton"
@@ -19,6 +19,7 @@
       <van-field
         class="postTitle"
         v-model.trim="postInsertDTO.title"
+        required
         clearable
         maxlength="39"
         label="标题"
@@ -66,15 +67,31 @@ import { showDialog, showNotify, showToast } from "vant";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { insertPostAPI } from "@/api/post.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
-import { checkAuthority, sleep } from "@/util/utils.js";
+import {
+  checkAuthority,
+  sleep,
+  saveEnter2Br4Web,
+  saveEnter2Br4Save,
+} from "@/util/utils.js";
 
 export default {
-  setup() {
-    onMounted(() => {});
+  props: ["shareData"],
+  setup(props) {
+    onMounted(() => {
+      // bottomNav
+      props.shareData.bottomNavShow = false;
+    });
 
-    onBeforeRouteLeave(() => {
-      // oldRouter
-      window.sessionStorage.setItem("oldRouter", "insertPost");
+    onBeforeRouteLeave((to, from, next) => {
+      // bottomNav
+      if (
+        to.path == "/main/home" ||
+        to.path == "/main/message" ||
+        to.path == "/main/me"
+      ) {
+        props.shareData.bottomNavShow = true;
+      }
+      next();
     });
 
     const router = useRouter();
@@ -84,6 +101,10 @@ export default {
       content: "",
       picturesSplit: [],
     });
+
+    const goBack = () => {
+      router.go(-1);
+    };
 
     // 上传头像
     const uploadPicture = async (file) => {
@@ -171,6 +192,10 @@ export default {
           return;
         }
 
+        // 转换回车键
+        postInsertDTO.title = saveEnter2Br4Save(postInsertDTO.title);
+        postInsertDTO.content = saveEnter2Br4Save(postInsertDTO.content);
+
         var baseResponse = (await insertPostAPI(postInsertDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
@@ -189,8 +214,7 @@ export default {
           title: "POST发表成功",
           theme: "round-button",
         }).then(() => {
-          console.log("postPictures", postPictures);
-          router.push("/me");
+          router.push("/main/me");
         });
       }
       insertPostShow.value = false;
@@ -199,6 +223,7 @@ export default {
     return {
       router,
       postInsertDTO,
+      goBack,
       uploadPicture,
       postPictures,
       beforeRead,
@@ -260,7 +285,7 @@ export default {
       border-bottom: solid 3px black;
       width: 92%;
       .van-field__label {
-        width: 0.8rem;
+        width: 1rem;
       }
     }
     .postContent {

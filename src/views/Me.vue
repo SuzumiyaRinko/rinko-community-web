@@ -303,8 +303,8 @@
                 <span>{{ post.postUser.nickname }}</span>
               </div>
             </div>
-            <span class="postTitle">{{ post.title }}</span>
-            <span class="postContent">{{ post.content }}</span
+            <span class="postTitle" v-html="post.title" />
+            <span class="postContent" v-html="post.content" />
             ><br />
             <!-- First3Pictures -->
             <div class="first3Pictures">
@@ -378,22 +378,6 @@
       <van-button color="#d2221e" @click="logoutShow = true"
         >退出登录</van-button
       >
-    </div>
-
-    <!-- BottomNav -->
-    <div class="bottomNav">
-      <div class="item" @click="router.push('/home')">
-        <van-icon name="wap-home-o" size="0.8rem" />
-        <span>主页</span>
-      </div>
-      <div class="item" @click="router.push('/message')">
-        <van-icon name="chat-o" size="0.8rem" />
-        <span>消息</span>
-      </div>
-      <div class="item currItem" @click="router.push('/me')">
-        <van-icon name="user-o" size="0.8rem" />
-        <span>个人</span>
-      </div>
     </div>
 
     <!-- 更换头像 -->
@@ -594,8 +578,6 @@ export default {
     };
     // 上传头像
     const updateAvatar = async (file) => {
-      var oldAvatar = info.avatarUrl;
-
       var data = new FormData();
       data.append("file", file.file);
       var baseResponse = (await uploadAvatar(data)).data;
@@ -620,10 +602,11 @@ export default {
         var myUserInfo = JSON.parse(myUserInfoJson);
         myUserInfo.avatar = baseResponse.data;
         window.sessionStorage.setItem("myUserInfo", JSON.stringify(myUserInfo));
-        // 刷新页面
+        // 更新userInfo数据
+        info.avatarUrl = baseResponse.data;
+
         avatarUploadShow.value = false;
         avatarList.value = [];
-        window.location.reload();
       });
     };
     const avatarList = ref([]);
@@ -689,7 +672,9 @@ export default {
             "myUserInfo",
             JSON.stringify(myUserInfo)
           );
-          window.location.reload();
+          // 更新userInfo数据
+          info.nickname = userUpdateDTO.nickname;
+          info.gender = userUpdateDTO.gender;
         });
       }
       userInfoUploadShow.value = false;
@@ -856,7 +841,7 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      console.log("onLoad")
+      console.log("onLoad");
 
       var baseResponse;
       if (postStyle.value != "") {
@@ -866,8 +851,7 @@ export default {
       } else {
         // 加载用户collections
         postSearchDTO.isSearchMyself = false;
-        baseResponse = (await collectionsSearch(postSearchDTO.pageNum))
-          .data;
+        baseResponse = (await collectionsSearch(postSearchDTO.pageNum)).data;
       }
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
@@ -878,8 +862,10 @@ export default {
 
       // 防bug
       if (
-        (page.data.length > 0 && postsPage.data.length > 0 && postsPage.data[0].id != page.data[0].id)
-        || (page.data.length > 0 && postsPage.data.length == 0)
+        (page.data.length > 0 &&
+          postsPage.data.length > 0 &&
+          postsPage.data[0].id != page.data[0].id) ||
+        (page.data.length > 0 && postsPage.data.length == 0)
       ) {
         postsPage.data = postsPage.data.concat(page.data);
       }
@@ -964,8 +950,8 @@ export default {
         );
       }
 
-      window.sessionStorage.setItem("lastRouter2Post", "me");
-      router.push("/post");
+      window.sessionStorage.setItem("backToSomeone", "/main/me");
+      router.push("/main/post");
     };
 
     // gotoUser
@@ -973,10 +959,10 @@ export default {
       event.stopPropagation(); // 阻止事件冒泡至外层div
       var myUserId = window.sessionStorage.getItem("myUserId");
       if (userId == myUserId) {
-        router.push("/me");
+        router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);
-        router.push("/user");
+        router.push("/main/user");
       }
     };
 
@@ -1266,10 +1252,6 @@ export default {
     margin-top: 0.4rem;
     font-size: 0.5rem;
   }
-  .BottomNav {
-    position: absolute;
-    bottom: 0;
-  }
   .van-popup {
     text-align: center;
     .van-uploader {
@@ -1280,29 +1262,6 @@ export default {
   }
   .van-picker {
     --van-picker-option-font-size: 0.5rem;
-  }
-  // BottomNav
-  .bottomNav {
-    position: absolute;
-    bottom: 0;
-    border: 3px black solid;
-    border-top-left-radius: 0.2rem;
-    border-top-right-radius: 0.2rem;
-    display: flex;
-    justify-content: space-evenly;
-    width: 100%;
-    font-size: 0.4rem;
-    font-weight: 700;
-    box-shadow: 0 0 15px 1px #000000;
-    .item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 0.5rem;
-    }
-    .currItem {
-      color: #1989fa;
-    }
   }
 }
 </style>

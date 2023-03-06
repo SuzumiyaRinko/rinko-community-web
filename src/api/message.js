@@ -23,6 +23,17 @@ export function setIsRead(messageType, id) {
     })
 }
 
+// 获取当前用户私信列表的总未读消息数
+export function notReadCountAPI() {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "GET",
+        url: "/message/notReadCount",
+    })
+}
+
 // 删除消息
 export function deleteMessage(messageType, id) {
     return service({
