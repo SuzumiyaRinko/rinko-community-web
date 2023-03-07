@@ -13,7 +13,7 @@
     <!-- Notice&Message -->
     <div class="messageDiv">
       <!-- 无消息时的提示 -->
-      <div style="text-align: center">
+      <div v-if="systemStyle != ''" style="text-align: center">
         <img
           v-if="messagesPage.data.length == 0"
           class="noAnyMessage"
@@ -21,7 +21,7 @@
           alt="noAnyMessage"
         />
         <span v-if="messagesPage.data.length == 0" class="noAnyMessageWarning"
-          >暂时没有任何消息</span
+          >暂时没有任何通知</span
         >
       </div>
       <!-- 遍历Notice -->
@@ -187,6 +187,94 @@
       </van-pull-refresh>
       <!-- 遍历Message -->
       <div v-if="chatStyle != ''">
+        <!-- 公共聊天室 -->
+        <div class="public">
+          <svg
+            t="1678174356253"
+            class="icon"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="3324"
+            width="200"
+            height="200"
+          >
+            <path
+              d="M66.131487 85.330951c-33.705726 0-62.718249 24.788641-65.832829 58.110378l-0.298658 5.973167v642.755389c0 34.260377 27.135242 61.01163 60.243652 63.827552l5.887835 0.255993h51.198571v103.63444c0 34.260377 27.135242 60.968965 60.243651 63.827551l5.887836 0.255993c12.884974 0 25.513954-3.626565 36.350985-10.538372l5.205188-3.669231 207.65287-162.555462a42.665476 42.665476 0 0 0-48.169322-70.270039l-4.394544 3.071915-177.445713 138.876123v-105.298394a42.665476 42.665476 0 0 0-37.673615-42.366817l-4.991861-0.298659H85.330951V170.661902h853.309512v298.658329a42.665476 42.665476 0 0 0 37.673615 42.366818l4.991861 0.298658a42.665476 42.665476 0 0 0 42.366817-37.673615l0.298658-4.991861v-319.905735c0-34.260377-27.135242-60.968965-60.243651-63.827552l-5.887836-0.255993h-891.70844z"
+              fill="#000000"
+              p-id="3325"
+            ></path>
+            <path
+              d="M255.992854 255.992854m42.665475 0l170.661902 0q42.665476 0 42.665476 42.665475l0 0q0 42.665476-42.665476 42.665476l-170.661902 0q-42.665476 0-42.665475-42.665476l0 0q0-42.665476 42.665475-42.665475Z"
+              fill="#000000"
+              p-id="3326"
+            ></path>
+            <path
+              d="M255.992854 426.654756m42.665475 0l255.992854 0q42.665476 0 42.665475 42.665475l0 0q0 42.665476-42.665475 42.665476l-255.992854 0q-42.665476 0-42.665475-42.665476l0 0q0-42.665476 42.665475-42.665475Z"
+              fill="#000000"
+              p-id="3327"
+            ></path>
+            <path
+              d="M959.973201 597.316658h-383.989281a63.998213 63.998213 0 0 0-63.998213 63.998214v213.028719l0.298658 6.186494a63.998213 63.998213 0 0 0 63.699555 57.81172h139.174782l161.702152 81.064403 4.479875 2.005278a42.665476 42.665476 0 0 0 57.299734-40.105547v-42.964134h21.332738a63.998213 63.998213 0 0 0 63.998213-63.998214v-213.028719a63.998213 63.998213 0 0 0-63.998213-63.998214z m-21.332738 85.330951v170.363244h-42.665476l-4.99186 0.298659a42.665476 42.665476 0 0 0-37.673615 42.366817v16.468874l-108.882294-54.611809-4.52254-1.962612a42.665476 42.665476 0 0 0-14.591593-2.559929h-127.996427V682.647609h341.323805z"
+              fill="#191919"
+              p-id="3328"
+            ></path>
+          </svg>
+          <span class="lastMessage4PublicTitle">公共聊天室</span>
+          <span
+            v-if="lastMessage4Public.createTime != null"
+            class="lastMessage4PublicCreatetime"
+            v-html="lastMessage4Public.createTime"
+          />
+          <span
+            v-if="lastMessage4Public.createTime == null"
+            class="lastMessage4PublicCreatetime"
+            >--------------</span
+          >
+          <span class="lastMessage4PublicPreContent">消息：</span>
+          <span
+            v-if="lastMessage4Public.createTime == null"
+            class="lastMessage4PublicContent"
+            style="color: red"
+            >[暂无消息]</span
+          >
+          <span
+            v-if="
+              lastMessage4Public.createTime != null &&
+              lastMessage4Public.content != null
+            "
+            class="lastMessage4PublicContent"
+            v-html="lastMessage4Public.content"
+          />
+          <span
+            v-if="
+              lastMessage4Public.createTime != null &&
+              lastMessage4Public.content == null
+            "
+            class="lastMessage4PublicContent"
+            >[图片]</span
+          >
+          <svg
+            class="gotoTarget"
+            t="1677825944096"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="2693"
+            width="200"
+            height="200"
+            @click="gotoWSChat(lastMessage4Public)"
+          >
+            <path
+              d="M425.344 879.36a43.690667 43.690667 0 0 1 6.698667-61.354667l381.482666-306.901333L433.92 206.08a43.690667 43.690667 0 0 1 54.698667-68.096l422.016 339.114667a43.733333 43.733333 0 0 1 0 68.096l-423.808 340.906666a43.818667 43.818667 0 0 1-61.482667-6.698666z m-330.026667 0a43.690667 43.690667 0 0 1 6.698667-61.354667l381.525333-306.901333L103.936 206.08a43.690667 43.690667 0 0 1 54.698667-68.096l421.973333 339.114667a43.733333 43.733333 0 0 1 0 68.096l-423.765333 340.906666a43.818667 43.818667 0 0 1-61.482667-6.698666z"
+              fill="#000000"
+              opacity=".65"
+              p-id="2694"
+            ></path>
+          </svg>
+          <hr style="margin-left: 0.3rem; margin-top: 1.7rem" />
+        </div>
+        <!-- 用户私聊列表 -->
         <div
           class="oneMessage"
           v-for="(message, idx) in messagesPage.data"
@@ -358,7 +446,11 @@
     <!-- setIsRead Dialog -->
     <van-dialog
       v-model:show="setIsReadShow"
-      title="是否设置所有系统消息为已读"
+      :title="
+        systemStyle != ''
+          ? '是否设置所有系统消息为已读'
+          : '是否设置所有私信为已读'
+      "
       show-cancel-button
       confirm-button-text="确认"
       :before-close="onBeforeSetIsReadClose"
@@ -368,7 +460,7 @@
     <!-- deleteMessage Dialog -->
     <van-dialog
       v-model:show="deleteMessageShow"
-      title="是否删除所有系统消息"
+      :title="systemStyle != '' ? '是否删除所有系统消息' : '是否清空私信列表'"
       show-cancel-button
       confirm-button-text="确认"
       :before-close="onBeforeDeleteMessageClose"
@@ -405,14 +497,19 @@ export default {
     });
 
     watch(props.shareData.messageQueue4ChangingMessage, (newVal, oldVal) => {
-      console.log("messageQueue4ChangingMessage", newVal)
+      console.log("messageQueue4ChangingMessage", newVal);
       // 更新私聊列表
       if (chatStyle.value != "" && newVal.length > 0) {
         var newMessage = newVal.pop();
-        messagesPage.data = messagesPage.data.filter((message) => {
-          return message.eventUser.id != newMessage.fromUserId;
-        });
-        messagesPage.data.unshift(newMessage);
+        if (newMessage.toUserId != 0) {
+          messagesPage.data = messagesPage.data.filter((message) => {
+            return message.eventUser.id != newMessage.fromUserId;
+          });
+          messagesPage.data.unshift(newMessage);
+        } else if (newMessage.toUserId == 0) {
+          lastMessage4Public.content = newMessage.content;
+          lastMessage4Public.createTime = newMessage.createTime;
+        }
       }
     });
 
@@ -504,6 +601,13 @@ export default {
       data: [],
     });
 
+    // lastMessage4Public
+    const lastMessage4Public = reactive({
+      content: "",
+      createTime: "",
+      unreadCount: "",
+    });
+
     // message往下滚动
     const messageLoading = ref(false);
     const messageFinished = ref(false);
@@ -518,6 +622,14 @@ export default {
 
       var messageSelectVO = baseResponse.data;
       messageSelectDTO.lastId = baseResponse.lastId; // 记录lastId
+
+      // lastMessage4Public
+      if (chatStyle.value != "") {
+        var tmpLastMessage4Public = messageSelectVO.lastMessage4Public;
+        lastMessage4Public.content = tmpLastMessage4Public.content;
+        lastMessage4Public.createTime = tmpLastMessage4Public.createTime;
+        lastMessage4Public.unreadCount = tmpLastMessage4Public.unreadCount;
+      }
 
       // 防bug
       console.log("messageSelectVO", messageSelectVO);
@@ -557,8 +669,20 @@ export default {
 
     // gotoTarget
     const gotoTarget = async (targetId, systemMsgType, messageId) => {
+      var messageSetIsReadDTO = {
+        messageType: 1,
+        targetId: messageId,
+        isAll: false,
+      };
+
+      var messageDeleteDTO = {
+        messageType: 1,
+        targetId: messageId,
+        isAll: false,
+      };
+
       // 标记为已读
-      var baseResponse = (await setIsRead(1, messageId)).data;
+      var baseResponse = (await setIsRead(messageSetIsReadDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
@@ -578,7 +702,7 @@ export default {
           return;
         }
         if (checkResource(baseResponse) == false) {
-          deleteMessage(1, messageId);
+          deleteMessage(messageDeleteDTO);
           router.push("/main/error");
           return;
         }
@@ -595,7 +719,7 @@ export default {
           return;
         }
         if (checkResource(baseResponse) == false) {
-          deleteMessage(1, messageId);
+          deleteMessage(messageDeleteDTO);
           router.push("/main/error");
           return;
         }
@@ -625,10 +749,12 @@ export default {
 
     // gotoWSChat
     const gotoWSChat = async (message) => {
-      // 计算unreadCount
-      props.shareData.notReadCount -= message.unreadCount;
-      // 获取对方id
-      window.sessionStorage.setItem("wsChatTargetId", message.eventUser.id);
+      if (message.eventUser != null) {
+        props.shareData.notReadCount -= message.unreadCount; // 计算unreadCount
+        window.sessionStorage.setItem("wsChatTargetId", message.eventUser.id); // 获取对方id
+      } else {
+        window.sessionStorage.setItem("wsChatTargetId", 0); // 获取对方id
+      }
       // 设置该message的unreadCount为0
       message.unreadCount = 0;
 
@@ -640,17 +766,37 @@ export default {
     // "setIsRead Dialog"关闭前的判断
     const onBeforeSetIsReadClose = async (action) => {
       if (action === "confirm") {
-        var baseResponse = (await setIsRead(1, 0)).data;
+        var messageSetIsReadDTO = {
+          messageType: 0,
+          isAll: true,
+        };
+
+        if (systemStyle.value != "") {
+          messageSetIsReadDTO.messageType = 1;
+        } else if (chatStyle.value != "") {
+          messageSetIsReadDTO.messageType = 2;
+        }
+
+        var baseResponse = (await setIsRead(messageSetIsReadDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
         }
 
-        // 跳转到主页
+        var endIndex = messagesPage.data.length - 1;
+        if (systemStyle.value != "") {
+          for (var i = 0; i <= endIndex; i++) {
+            messagesPage.data[i].isRead = true;
+          }
+        } else if (chatStyle.value != "") {
+          props.shareData.notReadCount = 0;
+          for (var i = 0; i <= endIndex; i++) {
+            messagesPage.data[i].unreadCount = 0;
+          }
+        }
+
         showDialog({
           title: "操作成功",
           theme: "round-button",
-        }).then(() => {
-          window.location.reload();
         });
       }
       setIsReadShow.value = false;
@@ -661,17 +807,30 @@ export default {
     // "deleteMessage Dialog"关闭前的判断
     const onBeforeDeleteMessageClose = async (action) => {
       if (action === "confirm") {
-        var baseResponse = (await deleteMessage(1, 0)).data;
+        var messageDeleteDTO = {
+          messageType: 0,
+          isAll: true,
+        };
+
+        if (systemStyle.value != "") {
+          messageDeleteDTO.messageType = 1;
+        } else if (chatStyle.value != "") {
+          messageDeleteDTO.messageType = 2;
+        }
+
+        var baseResponse = (await deleteMessage(messageDeleteDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
         }
 
-        // 跳转到主页
+        if(chatStyle.value != "") {
+          props.shareData.notReadCount = 0;
+        }
+        messagesPage.data = [];
+
         showDialog({
           title: "操作成功",
           theme: "round-button",
-        }).then(() => {
-          window.location.reload();
         });
       }
       deleteMessageShow.value = false;
@@ -686,6 +845,7 @@ export default {
       gotoSystem,
       gotoChat,
       messagesPage,
+      lastMessage4Public,
       noAnyMessage,
       messageSelectDTO,
       messageLoading,
@@ -820,6 +980,74 @@ export default {
         width: 0.7rem;
       }
     }
+    .public {
+      margin-top: 0.3rem;
+      width: 96%;
+      height: 2rem;
+      display: inline-block;
+      position: relative;
+      .icon {
+        position: absolute;
+        width: 1rem;
+        bottom: 0.3rem;
+        left: 0.5rem;
+      }
+      .lastMessage4PublicUnreadCount {
+        position: absolute;
+        top: -0.1rem;
+        right: 1.2rem;
+        z-index: 5;
+        background-color: rgb(73, 71, 71);
+        border: solid 1px whitesmoke;
+        color: white;
+        height: 0.4rem;
+        border-radius: 0.2rem;
+        text-align: center;
+        padding: 0 0.1rem;
+      }
+      .lastMessage4PublicTitle {
+        position: absolute;
+        font-size: 0.45rem;
+        font-weight: 700;
+        top: 0;
+        left: 1.7rem;
+      }
+      .lastMessage4PublicCreatetime {
+        position: absolute;
+        margin-left: 1.7rem;
+        margin-top: 0.6rem;
+        width: 70%;
+        font-size: 0.4rem;
+        font-weight: 500;
+      }
+      .lastMessage4PublicPreContent {
+        position: absolute;
+        top: 1.1rem;
+        left: 1.7rem;
+        font-size: 0.4rem;
+        font-weight: 700;
+      }
+      .lastMessage4PublicContent {
+        position: absolute;
+        left: 2.8rem;
+        top: 1.1rem;
+        width: 60%;
+        font-size: 0.4rem;
+        font-weight: 500;
+        // 最多显示1行
+        overflow: hidden;
+        display: -webkit-box;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+      }
+      .gotoTarget {
+        position: absolute;
+        right: 0.2rem;
+        bottom: -0.2rem;
+        width: 0.7rem;
+      }
+    }
     .oneMessage {
       margin-top: 0.3rem;
       width: 96%;
@@ -913,7 +1141,7 @@ export default {
       .oneMessageContent {
         position: absolute;
         left: 2.7rem;
-        top: 1.37rem;
+        top: 1.34rem;
         width: 60%;
         font-size: 0.4rem;
         font-weight: 500;

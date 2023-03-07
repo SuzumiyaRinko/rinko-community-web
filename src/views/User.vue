@@ -158,7 +158,7 @@
           @click="follow(info.id)"
           >取消关注</van-button
         >
-        <van-button type="default" class="chat" size="0.3rem" color="pink"
+        <van-button type="default" class="chat" size="0.3rem" color="pink" @click="gotoWSChat(info.id)"
           >私聊</van-button
         >
       </div>
@@ -426,7 +426,7 @@ export default {
         props.shareData.bottomNavShow = true;
       }
 
-      next()
+      next();
     });
 
     // router
@@ -554,6 +554,12 @@ export default {
       event.stopPropagation(); // 阻止事件冒泡至外层div
     };
 
+    // gotoWSChat
+    const gotoWSChat = async (wsChatTargetId) => {
+      window.sessionStorage.setItem("wsChatTargetId", wsChatTargetId); // 获取对方id
+      router.push("/main/chat");
+    };
+
     return {
       router,
       store,
@@ -571,6 +577,7 @@ export default {
       viewPicture,
       gotoPost,
       stopGotoPost,
+      gotoWSChat,
     };
   },
   components: {},

@@ -41,6 +41,12 @@ import {
 export default {
   setup() {
     onMounted(async () => {
+      // 防止用户刷新导致某些removeItem没触发
+      window.sessionStorage.removeItem("oldRouter");
+      window.sessionStorage.removeItem("gotoUserId");
+      window.sessionStorage.removeItem("wsChatTargetId");
+      window.sessionStorage.removeItem("backToSomeone");
+
       // 默认push到/main/home页面
       gotoHome();
 
@@ -65,10 +71,12 @@ export default {
 
         // 判断是否改变未读消息条数
         var wsChatTargetId = window.sessionStorage.getItem("wsChatTargetId");
-        if (wsChatTargetId == null || wsChatTargetId != message.fromUserId) {
+        if (
+          message.toUserId != 0 &&
+          (wsChatTargetId == null || wsChatTargetId != message.fromUserId)
+        ) {
           shareData.notReadCount++;
         }
-        console.log("shareData.notReadCount", shareData.notReadCount);
       };
       ws.onclose = () => {
         console.log("ws.onclose()");

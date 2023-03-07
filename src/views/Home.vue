@@ -211,7 +211,6 @@
                   p-id="2894"
                 ></path>
               </svg>
-              -->
               <div class="nickname">
                 <span>{{ post.postUser.nickname }}</span>
               </div>
@@ -260,7 +259,7 @@
               </span>
             </div>
             <span class="postCreateTime">{{ post.createTime }}</span
-            ><br />
+            ><br>
             <div class="postStatus">
               <van-icon name="like-o" size="0.5rem" />
               {{ post.likeCount }}
@@ -326,14 +325,14 @@ export default {
       );
 
       // 本次应该到达的页数
-      // while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
-      //   onPostLoad();
-      //   await sleep(80);
-      // }
+      while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
+        onPostLoad();
+        await sleep(80);
+      }
 
       // 移动scrollingPost的滚动条
-      // document.getElementById("scrollingPost").scrollTop =
-      //   homePostHistory.scrollTop;
+      document.getElementById("scrollingPost").scrollTop =
+        homePostHistory.scrollTop;
     });
 
     onBeforeRouteLeave((to, from, next) => {

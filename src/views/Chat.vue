@@ -4,7 +4,10 @@
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
       <span class="back" @click="router.go(-1)">返回</span>
-      <span class="title">{{ targetUserInfo.nickname }}</span>
+      <span v-if="wsChatTargetId != 0" class="chatTitle">{{
+        targetUserInfo.nickname
+      }}</span>
+      <span v-if="wsChatTargetId == 0" class="publicTitle">公共聊天室</span>
     </div>
 
     <!-- Content -->
@@ -29,8 +32,8 @@
         key="idx"
       >
         <!-- 对方的消息 -->
-        <div v-if="message.fromUserId == wsChatTargetId" class="oneMessage">
-          <div class="oneMessageSimpleUser_left">
+        <div v-if="message.fromUserId != myUserId" class="oneMessage">
+          <div v-if="wsChatTargetId != 0" class="oneMessageSimpleUser_left">
             <img
               class="avatar item"
               :src="`${$store.state.SystemConst.resourcesPrefix}${targetUserInfo.avatarUrl}`"
@@ -144,11 +147,178 @@
               ></path>
             </svg>
           </div>
-          <div class="oneMessageCreateTime_left">{{ message.createTime }}</div>
+          <div v-if="wsChatTargetId == 0" class="oneMessageSimpleUser_left">
+            <img
+              class="avatar item"
+              :src="`${$store.state.SystemConst.resourcesPrefix}${message.eventUser.avatar}`"
+              alt="用户头像"
+              @click="gotoUser(message.eventUser.id)"
+            />
+            <svg
+              v-if="message.eventUser.gender == 1"
+              t="1677032158928"
+              class="gender"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="2491"
+              width="200"
+              height="200"
+            >
+              <path
+                d="M511.843434 512m-446.708971 0a446.708971 446.708971 0 1 0 893.417942 0 446.708971 446.708971 0 1 0-893.417942 0Z"
+                fill="#FFFFFF"
+                p-id="2492"
+              ></path>
+              <path
+                d="M424.111301 818.825061c-59.328223 0-115.140367-23.107277-157.101038-65.081251-86.620823-86.620823-86.620823-227.581252 0-314.215378 41.960671-41.973974 97.771791-65.081251 157.101038-65.081251 59.355853 0 115.140367 23.12058 157.101037 65.081251 41.960671 41.973974 65.081251 97.771791 65.081251 157.11434s-23.12058 115.140367-65.081251 157.101038-97.745185 65.081251-157.101037 65.081251z m0-360.620268c-36.97103 0-71.733765 14.409175-97.881285 40.543392-53.957913 53.984518-53.957913 141.804656 0 195.775872 26.14752 26.14752 60.910255 40.543392 97.881285 40.543391s71.733765-14.395872 97.881284-40.543391c26.14752-26.14752 40.543392-60.910255 40.543392-97.881285s-14.395872-71.733765-40.543392-97.894587c-26.146497-26.14752-60.909232-40.543392-97.881284-40.543392z"
+                fill="#75B9EB"
+                p-id="2493"
+              ></path>
+              <path
+                d="M551.602973 511.016603c-10.715039 0-21.430078-4.090155-29.609365-12.269442-16.358573-16.358573-16.358573-42.874483 0-59.219753L672.577209 288.943808h-42.833551c-23.12058 0-41.878806-18.744923-41.878806-41.878806s18.758226-41.878806 41.878806-41.878806h143.958716c16.931624 0 32.200376 10.210549 38.689161 25.847691 6.488785 15.650445 2.889817 33.67189-9.078773 45.641503L581.212338 498.747161c-8.179286 8.179286-18.894326 12.269441-29.609365 12.269442z"
+                fill="#75B9EB"
+                p-id="2494"
+              ></path>
+              <path
+                d="M773.703397 288.943808h-143.958716c-23.12058 0-41.878806-18.744923-41.878806-41.878806s18.758226-41.878806 41.878806-41.878806h143.958716c23.12058 0 41.878806 18.744923 41.878806 41.878806s-18.758226 41.878806-41.878806 41.878806z"
+                fill="#75B9EB"
+                p-id="2495"
+              ></path>
+              <path
+                d="M779.864724 439.050548c-23.12058 0-41.878806-18.744923-41.878806-41.878806V253.226329c0-23.133883 18.758226-41.878806 41.878806-41.878807s41.878806 18.744923 41.878806 41.878807v143.945413c0 23.133883-18.758226 41.878806-41.878806 41.878806z"
+                fill="#75B9EB"
+                p-id="2496"
+              ></path>
+              <path
+                d="M779.864724 439.050548c-23.12058 0-41.878806-18.744923-41.878806-41.878806V253.226329c0-23.133883 18.758226-41.878806 41.878806-41.878807s41.878806 18.744923 41.878806 41.878807v143.945413c0 23.133883-18.758226 41.878806-41.878806 41.878806z"
+                fill="#75B9EB"
+                p-id="2497"
+              ></path>
+            </svg>
+            <svg
+              v-if="message.eventUser.gender == 2"
+              t="1677032186969"
+              class="gender"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="2651"
+              width="200"
+              height="200"
+            >
+              <path
+                d="M510.887666 512m-446.708971 0a446.708971 446.708971 0 1 0 893.417942 0 446.708971 446.708971 0 1 0-893.417942 0Z"
+                fill="#FFFFFF"
+                p-id="2652"
+              ></path>
+              <path
+                d="M510.87948 578.902736c-123.673717 0-224.282113-100.607372-224.282113-224.282113s100.607372-224.282113 224.282113-224.282113 224.282113 100.607372 224.282112 224.282113-100.608396 224.282113-224.282112 224.282113z m0-364.80559c-77.486792 0-140.523477 63.036685-140.523477 140.523477s63.036685 140.523477 140.523477 140.523477 140.523477-63.036685 140.523477-140.523477-63.036685-140.523477-140.523477-140.523477z"
+                fill="#FF3EC9"
+                p-id="2653"
+              ></path>
+              <path
+                d="M510.87948 896.635217c-23.12058 0-41.878806-18.744923-41.878806-41.878806V537.02393c0-23.133883 18.758226-41.878806 41.878806-41.878806s41.878806 18.744923 41.878806 41.878806v317.732481c0 23.133883-18.758226 41.878806-41.878806 41.878806z"
+                fill="#FF3EC9"
+                p-id="2654"
+              ></path>
+              <path
+                d="M669.752884 737.762837H352.033705c-23.12058 0-41.878806-18.744923-41.878806-41.878806s18.758226-41.878806 41.878806-41.878807h317.719179c23.12058 0 41.878806 18.744923 41.878806 41.878807s-18.758226 41.878806-41.878806 41.878806z"
+                fill="#FF3EC9"
+                p-id="2655"
+              ></path>
+            </svg>
+            <svg
+              v-if="message.eventUser.roles.indexOf(1) != -1"
+              t="1677033137631"
+              class="famous"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="2890"
+              width="200"
+              height="200"
+            >
+              <path
+                d="M738.460185 854.903447c22.705905-14.191191 19.867667-59.603001 39.735334-76.63243 19.867667-17.029429 65.279478-5.676476 82.308907-25.544143 17.029429-19.867667 0-62.44124 11.352953-85.147145 11.352953-22.705905 59.603001-28.382382 68.117716-53.926525 8.514714-22.705905-22.705905-59.603001-17.029429-85.147145 5.676476-25.544143 45.411811-48.250049 45.411811-73.794192 0-25.544143-39.735334-48.250049-45.411811-73.794192-5.676476-25.544143 25.544143-59.603001 17.029429-85.147145-8.514714-25.544143-53.926525-31.22062-68.117716-53.926525-11.352953-22.705905 5.676476-65.279478-11.352953-85.147145-17.029429-19.867667-62.44124-11.352953-82.308907-25.544143-19.867667-17.029429-17.029429-62.44124-39.735334-76.63243-22.705905-14.191191-62.44124 11.352953-85.147145 2.838238-22.705905-8.514714-36.897096-53.926525-62.44124-56.764763-25.544143-5.676476-53.926525 31.22062-79.470669 31.22062S457.474607-2.244479 431.930463 0.593759c-25.544143 5.676476-39.735334 48.250049-62.44124 56.764763-22.705905 8.514714-62.44124-17.029429-85.147145-2.838238C261.636173 68.711475 264.474412 116.961524 244.606744 131.152715 224.739077 148.182144 179.327267 139.667429 162.297838 159.535097c-17.029429 19.867667 0 62.44124-11.352953 85.147145-11.352953 22.705905-59.603001 28.382382-68.117716 53.926525-8.514714 22.705905 22.705905 59.603001 17.029429 85.147145C97.01836 406.461817 57.283026 429.167722 57.283026 454.711866c0 25.544143 39.735334 48.250049 45.411811 73.794192 5.676476 25.544143-25.544143 59.603001-17.029429 85.147145 8.514714 25.544143 53.926525 31.22062 68.117716 53.926525 11.352953 22.705905-5.676476 65.279478 11.352953 85.147145 17.029429 19.867667 62.44124 11.352953 82.308907 25.544143 19.867667 17.029429 17.029429 62.44124 39.735334 76.63243 22.705905 14.191191 62.44124-11.352953 85.147145-2.838238 22.705905 8.514714 36.897096 53.926525 62.44124 56.764763 25.544143 5.676476 53.926525-31.22062 79.470669-31.22062s53.926525 36.897096 79.470669 31.22062c25.544143-5.676476 39.735334-48.250049 62.44124-56.764763C676.018945 840.712256 715.75428 866.256399 738.460185 854.903447zM511.401132 823.682827C307.047984 823.682827 142.43017 659.065013 142.43017 454.711866S307.047984 85.740904 511.401132 85.740904s368.970961 164.617813 368.970961 368.970961S715.75428 823.682827 511.401132 823.682827z"
+                fill="#333333"
+                p-id="2891"
+              ></path>
+              <path
+                d="M255.959697 903.153495c-25.544143-14.191191-22.705905-68.117716-45.411811-85.147145-22.705905-19.867667-73.794192-8.514714-90.823621-31.22062 0 0-2.838238-2.838238-2.838238-2.838238l-48.250049 48.250049c-22.705905 22.705905-14.191191 45.411811 14.191191 53.926525l31.22062 8.514714c31.22062 8.514714 62.44124 39.735334 68.117716 68.117716L193.518457 993.977117c8.514714 31.22062 31.22062 36.897096 53.926525 14.191191l107.85305-107.85305c0 0-2.838238 0-2.838238-2.838238C324.077413 888.962305 281.50384 917.344686 255.959697 903.153495z"
+                fill="#333333"
+                p-id="2892"
+              ></path>
+              <path
+                d="M905.916236 783.947493c0 0-2.838238 2.838238-2.838238 2.838238-17.029429 22.705905-68.117716 11.352953-90.823621 31.22062-22.705905 19.867667-19.867667 70.955954-45.411811 85.147145-25.544143 14.191191-68.117716-14.191191-96.500098-2.838238 0 0-2.838238 0-2.838238 2.838238l107.85305 107.85305c22.705905 22.705905 45.411811 14.191191 53.926525-14.191191l8.514714-31.22062c8.514714-31.22062 39.735334-62.44124 68.117716-68.117716l31.22062-8.514714c31.22062-8.514714 36.897096-31.22062 14.191191-53.926525L905.916236 783.947493z"
+                fill="#333333"
+                p-id="2893"
+              ></path>
+              <path
+                d="M727.107232 258.873432c-11.352953 0-28.382382 0-42.573572 0-31.22062 0-62.44124 0-90.823621-2.838238 0 2.838238-2.838238 5.676476-2.838238 8.514714 0 2.838238 0 5.676476 0 5.676476 0 8.514714 5.676476 14.191191 14.191191 14.191191 17.029429 2.838238 28.382382 5.676476 34.058858 11.352953 5.676476 5.676476 5.676476 11.352953 5.676476 17.029429 0 11.352953-8.514714 39.735334-25.544143 82.308907s-42.573572 107.85305-76.63243 190.161957L454.636368 383.755912c-8.514714-22.705905-17.029429-39.735334-19.867667-51.088287-5.676476-14.191191-5.676476-22.705905-5.676476-25.544143 0-5.676476 2.838238-8.514714 8.514714-14.191191 5.676476-2.838238 17.029429-5.676476 34.058858-8.514714 8.514714 0 14.191191-5.676476 14.191191-14.191191 0-5.676476 0-8.514714-2.838238-14.191191-19.867667 0-36.897096 2.838238-53.926525 2.838238s-36.897096 0-62.44124 0c-19.867667 0-39.735334 0-53.926525 0C292.856793 258.873432 275.827364 256.035194 258.797935 256.035194 255.959697 261.71167 255.959697 267.388147 255.959697 270.226385 255.959697 278.741099 261.636173 284.417576 270.150888 284.417576c11.352953 0 17.029429 2.838238 25.544143 5.676476s11.352953 5.676476 17.029429 8.514714c5.676476 2.838238 8.514714 8.514714 11.352953 14.191191 2.838238 5.676476 8.514714 14.191191 11.352953 25.544143L483.01875 667.579728c8.514714 17.029429 11.352953 28.382382 17.029429 34.058858 2.838238 5.676476 8.514714 8.514714 17.029429 8.514714 5.676476 0 11.352953 0 17.029429-2.838238l156.103099-371.809199c5.676476-14.191191 14.191191-22.705905 28.382382-31.22062 11.352953-5.676476 25.544143-14.191191 36.897096-19.867667 5.676476-2.838238 8.514714-5.676476 11.352953-5.676476S766.842566 273.064623 766.842566 270.226385c0-2.838238 0-8.514714-2.838238-14.191191C752.651376 256.035194 741.298423 258.873432 727.107232 258.873432z"
+                fill="#333333"
+                p-id="2894"
+              ></path>
+            </svg>
+          </div>
+          <div v-if="wsChatTargetId == 0" class="oneMessageNickname_left">
+            {{ message.eventUser.nickname }}
+          </div>
+          <div v-if="wsChatTargetId != 0" class="oneMessageCreateTime_left">
+            {{ message.createTime }}
+          </div>
+          <!-- 文本 -->
           <div
+            v-if="message.content != null && message.content.length > 0"
             class="oneMessageContent_left bgc_grey"
             v-html="message.content"
           />
+          <!-- 图片 -->
+          <div
+            v-if="
+              message.picturesSplit != null && message.picturesSplit.length > 0
+            "
+            class="oneMessageContent_left bgc_grey"
+          >
+            <!-- 一张图片 -->
+            <span
+              v-if="
+                message.picturesSplit != null &&
+                message.picturesSplit.length == 1
+              "
+              v-for="(pic, idx) in message.picturesSplit"
+              key="idx"
+            >
+              <van-image
+                style="margin-left: 0.06rem"
+                fit="cover"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                @click="viewPicture(message.picturesSplit, idx)"
+                ><template v-slot:loading>
+                  <van-loading type="spinner" size="80" /> </template
+              ></van-image>
+            </span>
+            <!-- 多张图片 -->
+            <span
+              v-if="
+                message.picturesSplit != null &&
+                message.picturesSplit.length > 1
+              "
+              v-for="(pic, idx) in message.picturesSplit"
+              key="idx"
+            >
+              <van-image
+                style="margin-left: 0.06rem"
+                width="2.9rem"
+                height="2.9rem"
+                fit="cover"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                @click="viewPicture(message.picturesSplit, idx)"
+                ><template v-slot:loading>
+                  <van-loading type="spinner" size="80" /> </template
+              ></van-image>
+            </span>
+          </div>
         </div>
         <!-- 自己的消息 -->
         <div
@@ -270,11 +440,64 @@
               ></path>
             </svg>
           </div>
-          <div class="oneMessageCreateTime_right">{{ message.createTime }}</div>
+          <div v-if="wsChatTargetId == 0" class="oneMessageNickname_right">
+            {{ myUserInfo.nickname }}
+          </div>
+          <div v-if="wsChatTargetId != 0" class="oneMessageCreateTime_right">
+            {{ message.createTime }}
+          </div>
+          <!-- 文本 -->
           <div
+            v-if="message.content != null && message.content.length > 0"
             class="oneMessageContent_right bgc_green"
             v-html="message.content"
           />
+          <!-- 图片 -->
+          <div
+            v-if="
+              message.picturesSplit != null && message.picturesSplit.length > 0
+            "
+            class="oneMessageContent_right bgc_green"
+          >
+            <!-- 一张图片 -->
+            <span
+              v-if="
+                message.picturesSplit != null &&
+                message.picturesSplit.length == 1
+              "
+              v-for="(pic, idx) in message.picturesSplit"
+              key="idx"
+            >
+              <van-image
+                style="margin-left: 0.06rem"
+                fit="cover"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                @click="viewPicture(message.picturesSplit, idx)"
+                ><template v-slot:loading>
+                  <van-loading type="spinner" size="80" /> </template
+              ></van-image>
+            </span>
+            <!-- 多张图片 -->
+            <span
+              v-if="
+                message.picturesSplit != null &&
+                message.picturesSplit.length > 1
+              "
+              v-for="(pic, idx) in message.picturesSplit"
+              key="idx"
+            >
+              <van-image
+                style="margin-left: 0.06rem"
+                width="2.9rem"
+                height="2.9rem"
+                fit="cover"
+                :src="`${$store.state.SystemConst.resourcesPrefix}${pic}`"
+                @click="viewPicture(message.picturesSplit, idx)"
+                ><template v-slot:loading>
+                  <van-loading type="spinner" size="80" /> </template
+              ></van-image>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -282,38 +505,70 @@
     <!-- Input -->
     <div class="input">
       <!-- textarea -->
-      <van-field
-        class="textarea"
-        v-model.trim="messageInsertDTO.content"
-        rows="2"
-        type="textarea"
-        maxlength="1000"
-        placeholder="请输入消息内容"
-      />
-      <!-- submit -->
-      <van-button class="submit" type="primary" @click="sendText()"
-        >发送</van-button
-      >
-      <!-- picIcon -->
-      <div class="picIcon" @click="sendPicturesShow = true">
+      <div class="textIcon">
         <svg
-          t="1678101194001"
+          t="1678149538391"
           class="icon"
           viewBox="0 0 1024 1024"
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
-          p-id="2480"
+          p-id="1524"
           width="200"
           height="200"
+          @click="sendTextShow = true"
         >
           <path
-            d="M938.666667 553.92V768c0 64.8-52.533333 117.333333-117.333334 117.333333H202.666667c-64.8 0-117.333333-52.533333-117.333334-117.333333V256c0-64.8 52.533333-117.333333 117.333334-117.333333h618.666666c64.8 0 117.333333 52.533333 117.333334 117.333333v297.92z m-64-74.624V256a53.333333 53.333333 0 0 0-53.333334-53.333333H202.666667a53.333333 53.333333 0 0 0-53.333334 53.333333v344.48A290.090667 290.090667 0 0 1 192 597.333333a286.88 286.88 0 0 1 183.296 65.845334C427.029333 528.384 556.906667 437.333333 704 437.333333c65.706667 0 126.997333 16.778667 170.666667 41.962667z m0 82.24c-5.333333-8.32-21.130667-21.653333-43.648-32.917333C796.768 511.488 753.045333 501.333333 704 501.333333c-121.770667 0-229.130667 76.266667-270.432 188.693334-2.730667 7.445333-7.402667 20.32-13.994667 38.581333-7.68 21.301333-34.453333 28.106667-51.370666 13.056-16.437333-14.634667-28.554667-25.066667-36.138667-31.146667A222.890667 222.890667 0 0 0 192 661.333333c-14.464 0-28.725333 1.365333-42.666667 4.053334V768a53.333333 53.333333 0 0 0 53.333334 53.333333h618.666666a53.333333 53.333333 0 0 0 53.333334-53.333333V561.525333zM320 480a96 96 0 1 1 0-192 96 96 0 0 1 0 192z m0-64a32 32 0 1 0 0-64 32 32 0 0 0 0 64z"
-            fill="#000000"
-            p-id="2481"
+            d="M943.104 216.064q-8.192 9.216-15.36 16.384l-12.288 12.288q-6.144 6.144-11.264 10.24l-138.24-139.264q8.192-8.192 20.48-19.456t20.48-17.408q20.48-16.384 44.032-14.336t37.888 9.216q15.36 8.192 34.304 28.672t29.184 43.008q5.12 14.336 6.656 33.792t-15.872 36.864zM551.936 329.728l158.72-158.72 138.24 138.24q-87.04 87.04-158.72 157.696-30.72 29.696-59.904 58.88t-53.248 52.224-39.424 38.4l-18.432 18.432q-7.168 7.168-16.384 14.336t-20.48 12.288-31.232 12.288-41.472 13.824-40.96 12.288-29.696 6.656q-19.456 2.048-20.992-3.584t1.536-25.088q1.024-10.24 5.12-30.208t8.192-40.448 8.704-38.4 7.68-25.088q5.12-11.264 10.752-19.456t15.872-18.432zM899.072 478.208q21.504 0 40.96 10.24t19.456 41.984l0 232.448q0 28.672-10.752 52.736t-29.184 41.984-41.984 27.648-48.128 9.728l-571.392 0q-24.576 0-48.128-10.752t-41.472-29.184-29.184-43.52-11.264-53.76l0-570.368q0-20.48 11.264-42.496t29.184-39.936 40.448-29.696 45.056-11.776l238.592 0q28.672 0 40.448 20.992t11.776 42.496-11.776 41.472-40.448 19.968l-187.392 0q-21.504 0-34.816 14.848t-13.312 36.352l0 481.28q0 20.48 13.312 34.304t34.816 13.824l474.112 0q21.504 0 36.864-13.824t15.36-34.304l0-190.464q0-14.336 6.656-24.576t16.384-16.384 21.504-8.704 23.04-2.56z"
+            p-id="1525"
+          ></path>
+        </svg>
+      </div>
+      <!-- picIcon -->
+      <div class="picIcon">
+        <svg
+          t="1678149929288"
+          class="icon"
+          viewBox="0 0 1194 1024"
+          version="1.1"
+          xmlns="http://www.w3.org/2000/svg"
+          p-id="4451"
+          width="200"
+          height="200"
+          @click="sendPicturesShow = true"
+        >
+          <path
+            d="M0 0v1024h1194.666667V0z m1024 170.666667v473.6L830.293333 360.106667 541.866667 775.68 313.173333 512 170.666667 682.666667V170.666667zM170.666667 811.52l143.36-165.546667L496.64 853.333333H170.666667z m421.546666 41.813333l237.226667-341.333333L1024 795.306667V853.333333z"
+            fill="#272536"
+            p-id="4452"
+          ></path>
+          <path
+            d="M469.333333 384m-128 0a128 128 0 1 0 256 0 128 128 0 1 0-256 0Z"
+            fill="#272536"
+            p-id="4453"
           ></path>
         </svg>
       </div>
     </div>
+
+    <!-- 发送文本Dialog -->
+    <van-dialog
+      v-model:show="sendTextShow"
+      title="发送文本"
+      show-cancel-button
+      confirm-button-text="发送"
+      :before-close="onBeforeSendTextClose"
+    >
+      <van-field
+        class="textField"
+        v-model.trim="messageInsertDTO.content"
+        rows="10"
+        autosize
+        type="textarea"
+        maxlength="1000"
+        show-word-limit
+        placeholder="请输入消息内容"
+      />
+    </van-dialog>
 
     <!-- 发送图片Dialog -->
     <van-dialog
@@ -323,6 +578,16 @@
       confirm-button-text="发送"
       :before-close="onBeforeSendPictureClose"
     >
+      <van-uploader
+        class="picField"
+        :before-read="beforePictureRead"
+        :after-read="uploadPicture"
+        :before-delete="deletePicture"
+        preview-size="2.6rem"
+        v-model="messagePictures"
+        multiple
+        :max-count="9"
+      />
     </van-dialog>
   </div>
 </template>
@@ -373,17 +638,19 @@ export default {
       myUserInfo.roles = userInfo.roles;
       console.log("myUserInfo", myUserInfo);
       // targetUserInfo
-      var baseResponse = (await getUserInfo(wsChatTargetId.value)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+      if (wsChatTargetId.value != 0) {
+        var baseResponse = (await getUserInfo(wsChatTargetId.value)).data;
+        if (checkAuthority(baseResponse) == false) {
+          router.push("/");
+        }
+        var userInfo = baseResponse.data;
+        targetUserInfo.id = userInfo.id;
+        targetUserInfo.nickname = userInfo.nickname;
+        targetUserInfo.gender = userInfo.gender;
+        targetUserInfo.avatarUrl = userInfo.avatar;
+        targetUserInfo.roles = userInfo.roles;
+        console.log("targetUserInfo", targetUserInfo);
       }
-      var userInfo = baseResponse.data;
-      targetUserInfo.id = userInfo.id;
-      targetUserInfo.nickname = userInfo.nickname;
-      targetUserInfo.gender = userInfo.gender;
-      targetUserInfo.avatarUrl = userInfo.avatar;
-      targetUserInfo.roles = userInfo.roles;
-      console.log("targetUserInfo", targetUserInfo);
 
       onMessageLoad();
 
@@ -394,7 +661,14 @@ export default {
 
     onBeforeRouteLeave(async (to, from, next) => {
       // 设置对方的未读为0
-      await setIsRead(2, wsChatTargetId.value);
+      if (wsChatTargetId.value != 0) {
+        var messageSetIsReadDTO = {
+          messageType: 2,
+          targetId: wsChatTargetId.value,
+          isAll: false,
+        };
+        await setIsRead(messageSetIsReadDTO);
+      }
 
       if (
         to.path == "/main/home" ||
@@ -414,23 +688,21 @@ export default {
       // 判断是否需要更新当前对话内容
       if (newVal.length > 0) {
         var newMessage = newVal.pop();
-        if (newMessage.fromUserId == wsChatTargetId.value) {
-          // 尝试移动scroll
-          var scrollingFlag = false;
-          var scrollingContent = document.getElementById("scrollingContent");
-          var scrollTop = scrollingContent.scrollTop;
-          var height = scrollingContent.offsetHeight;
-          var scrollHeight = scrollingContent.scrollHeight;
-          if (scrollTop + height >= scrollHeight) {
-            scrollingFlag = true;
-          }
+        // 尝试移动scroll
+        var scrollingFlag = false;
+        var scrollingContent = document.getElementById("scrollingContent");
+        var scrollTop = scrollingContent.scrollTop;
+        var height = scrollingContent.offsetHeight;
+        var scrollHeight = scrollingContent.scrollHeight;
+        if (scrollTop + height >= scrollHeight) {
+          scrollingFlag = true;
+        }
 
-          messagesPage.data.push(newMessage);
+        messagesPage.data.push(newMessage);
 
-          if (scrollingFlag) {
-            await sleep(30);
-            scrollingContent.scrollTop = 99999999;
-          }
+        if (scrollingFlag) {
+          await sleep(30);
+          scrollingContent.scrollTop = 99999999;
         }
       }
     });
@@ -500,7 +772,7 @@ export default {
       console.log("onLoad");
 
       // 加载message
-      messageSelectDTO.targetId = targetUserInfo.id;
+      messageSelectDTO.targetId = wsChatTargetId.value;
       var baseResponse = (await getMessages(messageSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
@@ -529,43 +801,54 @@ export default {
     };
 
     const messageInsertDTO = reactive({
-      toUserId: targetUserInfo.id,
+      toUserId: wsChatTargetId.value,
       content: "",
       picturesSplit: [],
     });
 
-    // 发送文本
-    const sendText = async () => {
-      // 判空
-      if (messageInsertDTO.content.length == 0) {
+    // 发送文本Dialog
+    const sendTextShow = ref(false);
+    // "发送文本Dialog"关闭前的判断
+    const onBeforeSendTextClose = async (action) => {
+      if (action === "confirm") {
+        // 判空
+        if (messageInsertDTO.content.length == 0) {
+          showToast({
+            message: "文本不能为空",
+            icon: "cross",
+          });
+          return;
+        }
+
+        var newMessage4Show = {
+          fromUserId: myUserId,
+          toUserId: wsChatTargetId.value,
+          content: saveEnter2Br4Web(messageInsertDTO.content), // 转换回车键
+          createTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+        };
+        var newMessage4Save = {
+          fromUserId: myUserId,
+          toUserId: wsChatTargetId.value,
+          content: saveEnter2Br4Save(messageInsertDTO.content), // 转换回车键
+          createTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+        };
+
+        // 发送文本
+        props.shareData.messageQueue4Send.unshift(newMessage4Save);
+        messageInsertDTO.content = "";
+
+        // 立即展现
+        messagesPage.data.push(newMessage4Show);
+        await sleep(30);
+        document.getElementById("scrollingContent").scrollTop = 99999999;
+
         showToast({
-          message: "文本不能为空",
-          icon: "cross",
+          message: "文本发送成功",
+          icon: "success",
         });
-        return;
       }
 
-      var newMessage4Show = {
-        fromUserId: myUserId,
-        toUserId: targetUserInfo.id,
-        content: saveEnter2Br4Web(messageInsertDTO.content), // 转换回车键
-        createTime: moment().format("YYYY-MM-DD HH:mm:ss"),
-      };
-      var newMessage4Save = {
-        fromUserId: myUserId,
-        toUserId: targetUserInfo.id,
-        content: saveEnter2Br4Save(messageInsertDTO.content), // 转换回车键
-        createTime: moment().format("YYYY-MM-DD HH:mm:ss"),
-      };
-
-      // 发送文本
-      props.shareData.messageQueue4Send.unshift(newMessage4Save);
-      messageInsertDTO.content = "";
-
-      // 立即展现
-      messagesPage.data.push(newMessage4Show);
-      await sleep(30);
-      document.getElementById("scrollingContent").scrollTop = 99999999;
+      sendTextShow.value = false;
     };
 
     // 发送图片Dialog
@@ -584,18 +867,26 @@ export default {
 
         // 发送图片
         var newMessage = {
-          toUserId: targetUserInfo.id,
+          fromUserId: myUserId,
+          toUserId: wsChatTargetId.value,
           picturesSplit: messageInsertDTO.picturesSplit,
+          createTime: moment().format("YYYY-MM-DD HH:mm:ss"),
         };
-        props.shareData.messageQueue4ChangingChat.unshift(newMessage);
+        props.shareData.messageQueue4Send.unshift(newMessage);
         messageInsertDTO.picturesSplit = [];
         messagePictures.value = [];
+
+        // 立即展现
+        messagesPage.data.push(newMessage);
+        await sleep(30);
+        document.getElementById("scrollingContent").scrollTop = 99999999;
 
         showToast({
           message: "图片发送成功",
           icon: "success",
         });
       }
+
       sendPicturesShow.value = false;
     };
 
@@ -616,7 +907,7 @@ export default {
       }
 
       // 记录返回的filePath
-      commentInsertDTO.picturesSplit.push(baseResponse.data);
+      messageInsertDTO.picturesSplit.push(baseResponse.data);
     };
     const messagePictures = ref([]);
 
@@ -661,6 +952,24 @@ export default {
       }
     };
 
+    // 查看图片
+    const viewPicture = (picturesSplit, idx) => {
+      // 阻止事件冒泡至外层div
+      event.stopPropagation();
+
+      var images = [];
+      for (var i = 0; i <= picturesSplit.length - 1; i++) {
+        images.push(
+          `${store.state.SystemConst.resourcesPrefix}${picturesSplit[i]}`
+        );
+      }
+      showImagePreview({
+        images,
+        closeable: true,
+        startPosition: idx,
+      });
+    };
+
     return {
       router,
       store,
@@ -676,13 +985,15 @@ export default {
       messageFinished,
       onMessageLoad,
       messageInsertDTO,
-      sendText,
+      sendTextShow,
+      onBeforeSendTextClose,
       sendPicturesShow,
       onBeforeSendPictureClose,
       uploadPicture,
       messagePictures,
       beforePictureRead,
       deletePicture,
+      viewPicture,
     };
   },
   components: {},
@@ -715,10 +1026,25 @@ export default {
       font-weight: 700;
       color: #1776d2;
     }
-    .title {
+    .chatTitle {
       position: absolute;
       left: 1rem;
       top: 0.2rem;
+      max-width: 40%;
+      margin-left: 2.1rem;
+      font-size: 0.5rem;
+      font-weight: 700;
+      // 最多显示1行
+      overflow: hidden;
+      display: -webkit-box;
+      text-overflow: ellipsis;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+    }
+    .publicTitle {
+      position: absolute;
+      left: 1.5rem;
+      top: 0.15rem;
       max-width: 40%;
       margin-left: 2.1rem;
       font-size: 0.5rem;
@@ -784,6 +1110,20 @@ export default {
           background-color: white;
         }
       }
+      .oneMessageNickname_left {
+        position: absolute;
+        top: 0.1rem;
+        left: 1.7rem;
+        font-size: 0.4rem;
+        font-weight: 700;
+        max-width: 5rem;
+        // 最多显示1行
+        overflow: hidden;
+        display: -webkit-box;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+      }
       .oneMessageCreateTime_left {
         position: absolute;
         top: 0.2rem;
@@ -840,6 +1180,20 @@ export default {
           background-color: white;
         }
       }
+      .oneMessageNickname_right {
+        position: absolute;
+        top: 0.15rem;
+        right: 1.6rem;
+        font-size: 0.4rem;
+        font-weight: 700;
+        max-width: 5rem;
+        // 最多显示1行
+        overflow: hidden;
+        display: -webkit-box;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+      }
       .oneMessageCreateTime_right {
         position: absolute;
         top: 0.2rem;
@@ -879,23 +1233,25 @@ export default {
     box-shadow: 0 0 15px 1px #000000;
     border-radius: 1rem;
     margin: 0.4rem auto;
-    .textarea {
-      width: 7rem;
-      height: 100%;
-      border-top-left-radius: 1rem;
-      border-bottom-left-radius: 1rem;
-      // border: solid 1px black;
-    }
-    .submit {
+    .textIcon {
       position: absolute;
-      right: 1.3rem;
-      bottom: 0.1rem;
+      left: 2rem;
+      bottom: 0;
+      height: 100%;
       width: 1.2rem;
-      height: 1.2rem;
+      border-top-right-radius: 1rem;
+      border-bottom-right-radius: 1rem;
+      text-align: center;
+      .icon {
+        width: 0.8rem;
+        height: 0.8rem;
+        padding: auto;
+        margin-top: 0.38rem;
+      }
     }
     .picIcon {
       position: absolute;
-      right: 0;
+      right: 3.5rem;
       bottom: 0;
       height: 100%;
       width: 1.2rem;
@@ -905,10 +1261,15 @@ export default {
       .icon {
         width: 0.8rem;
         height: 0.8rem;
-        margin-top: 0.3rem;
-        margin-left: 0.1rem;
+        padding: auto;
+        margin-left: 1.8rem;
+        margin-top: 30%;
       }
     }
+  }
+  .van-field__control {
+    border: solid 3px black;
+    max-height: 8.5rem; // 使textarea可以上下滚动
   }
 }
 </style>

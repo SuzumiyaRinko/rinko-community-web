@@ -15,11 +15,14 @@
       <van-button type="primary" @click="loginShow = true">登录</van-button>
     </div>
     <div class="register">
-      <van-button type="default" @click="readyToRegister()">注册</van-button>
+      <van-button type="default" disabled @click="readyToRegister()">注册</van-button>
     </div>
+    <div style="color: red; margin-top: 0.1rem;">** 目前暂时不开放注册功能 **</div>
     <div class="bottom">
-      <span>SuzumiyaRinko</span>
-      <span>CopyRight @114514</span>
+      <span>
+        SuzumiyaRinko<br>
+        CopyRight© 114514
+      </span>
     </div>
 
     <!-- 注册 -->
@@ -376,12 +379,18 @@ export default {
     }
   }
   .bottom {
-    height: 100%;
+    position: relative;
+    display: block;
+    // height: 100%;
     margin-top: 3.2rem;
     opacity: 0.8;
+    text-align: center;
     span {
-      margin: 0 0.1rem;
-      text-align: center;
+      position: absolute;
+      bottom: 0;
+      left: 3.5rem;
+      // margin: 0 0.1rem;
+      // text-align: center;
       font-size: 0.3rem;
       font-weight: 700;
       font-family: "Microsoft YaHei";

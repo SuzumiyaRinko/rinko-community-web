@@ -13,13 +13,14 @@ export function getMessages(messageSelectDTO) {
 }
 
 // 设置已读
-export function setIsRead(messageType, id) {
+export function setIsRead(messageSetIsReadDTO) {
     return service({
         headers: {
             "Authorization": window.sessionStorage.getItem("token"),
         },
         method: "POST",
-        url: `/message/setIsRead/${messageType}/${id}`,
+        url: "/message/setIsRead",
+        data: messageSetIsReadDTO,
     })
 }
 
@@ -35,12 +36,13 @@ export function notReadCountAPI() {
 }
 
 // 删除消息
-export function deleteMessage(messageType, id) {
+export function deleteMessage(messageDeleteDTO) {
     return service({
         headers: {
             "Authorization": window.sessionStorage.getItem("token"),
         },
         method: "DELETE",
-        url: `/message/deleteMessage/${messageType}/${id}`,
+        url: "/message/deleteMessage",
+        data: messageDeleteDTO,
     })
 }
