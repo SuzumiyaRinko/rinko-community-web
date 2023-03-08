@@ -31,6 +31,7 @@
         :finished="messageFinished"
         finished-text="没有更多了"
         @load="onMessageLoad"
+        offset="0"
         :immediate-check="false"
         direction="up"
       >
@@ -663,10 +664,7 @@ export default {
         console.log("targetUserInfo", targetUserInfo);
       }
 
-      await onMessageLoad();
-
-      // scrollingContent
-      document.getElementById("scrollingContent").scrollTop = 999999999;
+      onMessageLoad();
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
@@ -810,10 +808,8 @@ export default {
           );
         }
 
-        messageLoading.value = false;
-
         // 记录数组concat后的高度
-        // await sleep(100);
+        await sleep(100);
         var currScrollHeight =
           document.getElementById("scrollingContent").scrollHeight;
         console.log("currScrollHeight", currScrollHeight);
@@ -822,11 +818,13 @@ export default {
         document.getElementById("scrollingContent").scrollTop =
           currScrollHeight - lastScrollHeight;
 
+        messageLoading.value = false;
+
         // 已经没有更多数据了
         if (messageSelectVO.isFinished) {
           messageFinished.value = true;
         }
-      }, 500);
+      }, 1000);
     };
 
     const messageInsertDTO = reactive({
