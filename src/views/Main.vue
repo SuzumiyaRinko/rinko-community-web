@@ -5,11 +5,11 @@
 
     <!-- BottomNav -->
     <div class="bottomNav" v-show="shareData.bottomNavShow">
-      <div class="item" :style="shareData.homeStyle" @click="gotoHome()">
+      <div class="item" :style="shareData.homeStyle" @click="router.push('/main/home')">
         <van-icon name="wap-home-o" size="0.8rem" />
         <span>主页</span>
       </div>
-      <div class="item" :style="shareData.messageStyle" @click="gotoMessage()">
+      <div class="item" :style="shareData.messageStyle" @click="router.push('/main/message')">
         <van-icon
           name="chat-o"
           :badge="unreadCountStr(shareData.notReadCount)"
@@ -17,7 +17,7 @@
         />
         <span>消息</span>
       </div>
-      <div class="item" :style="shareData.meStyle" @click="gotoMe()">
+      <div class="item" :style="shareData.meStyle" @click="router.push('/main/me')">
         <van-icon name="user-o" size="0.8rem" />
         <span>个人</span>
       </div>
@@ -48,7 +48,7 @@ export default {
       window.sessionStorage.removeItem("backToSomeone");
 
       // 默认push到/main/home页面
-      gotoHome();
+      router.push("/main/home");
 
       // ws连接
       var token = window.sessionStorage.getItem("token");
@@ -115,25 +115,6 @@ export default {
     // store
     const store = useStore();
 
-    const gotoHome = () => {
-      shareData.homeStyle = "color: #1989fa";
-      shareData.messageStyle = "";
-      shareData.meStyle = "";
-      router.push("/main/home");
-    };
-    const gotoMessage = () => {
-      shareData.homeStyle = "";
-      shareData.messageStyle = "color: #1989fa";
-      shareData.meStyle = "";
-      router.push("/main/message");
-    };
-    const gotoMe = () => {
-      shareData.homeStyle = "";
-      shareData.messageStyle = "";
-      shareData.meStyle = "color: #1989fa";
-      router.push("/main/me");
-    };
-
     const shareData = reactive({
       bottomNavShow: true,
       homeStyle: "",
@@ -149,9 +130,6 @@ export default {
       ws,
       router,
       store,
-      gotoHome,
-      gotoMessage,
-      gotoMe,
       shareData,
       unreadCountStr,
     };

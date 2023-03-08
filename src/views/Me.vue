@@ -122,11 +122,11 @@
           <div v-if="info.roles.indexOf(3) != -1" class="rolesDiv red">
             开发者
           </div>
-          <div v-if="info.roles.indexOf(1) != -1" class="rolesDiv blue">
-            知名用户
-          </div>
           <div v-if="info.roles.indexOf(2) != -1" class="rolesDiv green">
             内测人员
+          </div>
+          <div v-if="info.roles.indexOf(1) != -1" class="rolesDiv blue">
+            知名用户
           </div>
           <span class="following">关注: {{ info.followingsCount }}</span>
           <span class="follower">粉丝: {{ info.followersCount }}</span>
@@ -186,6 +186,43 @@
             key="idx"
             @click="gotoPost(post)"
           >
+            <!-- 置顶 -->
+            <svg
+              v-if="post.isTop"
+              t="1678240024033"
+              class="isTop icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="2665"
+              width="200"
+              height="200"
+            >
+              <path
+                d="M128 128l768 0 0 89.6-768 0 0-89.6ZM732.288 496 555.7888 309.8624c-10.9504-11.2064-26.4128-18.4896-43.7888-18.4896s-32.832 7.2832-43.6032 18.6048L291.5264 495.8656c-9.2288 10.0224-15.1104 22.9696-15.1104 37.3248 0 30.816 26.3808 55.8016 58.8992 55.8016 0.4544 0 0.896-0.0576 1.344-0.0704l0 0.352L416 589.2736 416 896l192 0L608 589.2736l77.1904 0 0-0.448c1.1648 0.064 2.3104 0.1792 3.5008 0.1792 32.5248 0 58.8992-24.992 58.8992-55.8144C747.5904 518.8352 741.7024 505.8944 732.288 496z"
+                fill="#d81e06"
+                p-id="2666"
+              ></path>
+            </svg>
+            <!-- 加精 -->
+            <svg
+              v-if="post.isWonderful"
+              t="1678240479749"
+              class="isWonderful icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="7298"
+              width="200"
+              height="200"
+            >
+              <path
+                d="M331.84 580.224c3.008 32 53.952 155.136 180.544 155.136 53.184 0 123.584 10.88 135.36 77.568 5.888 33.472-28.288 116.48-142.848 116.48-218.624 0-173.056-349.184-173.056-349.184z m311.936-110.4C549.76 469.76 473.6 346.24 473.6 193.92c0-16.256 1.728-35.136 5.248-56.576a64 64 0 0 0-103.488-60.096c-201.024 163.264-298.112 359.68-291.264 589.376 5.76 195.904 234.048 354.944 462.464 354.944 228.352 0 413.504-158.912 413.504-354.944 0-90.56-31.936-187.136-95.808-289.92a64 64 0 0 0-108.416-0.448c-39.488 62.336-76.8 93.568-112 93.568z"
+                fill="#d81e06"
+                p-id="7299"
+              ></path>
+            </svg>
+            <!-- 用户头像 -->
             <div class="onePostSimpleUser">
               <img
                 class="avatar item"
@@ -462,8 +499,13 @@ import { checkAuthority, sleep } from "@/util/utils.js";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
 
 export default {
-  setup() {
+  props: ["shareData"],
+  setup(props) {
     onMounted(async () => {
+      props.shareData.homeStyle = "";
+      props.shareData.messageStyle = "";
+      props.shareData.meStyle = "color: #1989fa";
+
       // 加载用户信息
       var baseResponse = (await getUserInfo()).data;
       if (checkAuthority(baseResponse) == false) {
@@ -1146,6 +1188,20 @@ export default {
       margin-top: 0.2rem;
       width: 96%;
       position: relative;
+      .isTop {
+        position: absolute;
+        width: 1rem;
+        top: -0.8rem;
+        right: 2.1rem;
+        z-index: 5;
+      }
+      .isWonderful {
+        position: absolute;
+        width: 0.9rem;
+        top: -0.8rem;
+        right: 1.3rem;
+        z-index: 5;
+      }
       .onePostSimpleUser {
         position: absolute;
         right: 0rem;
@@ -1226,8 +1282,8 @@ export default {
       }
       .postLastView {
         position: absolute;
-        top: 0rem;
-        right: 1.1rem;
+        top: 7rem;
+        left: 5rem;
         font-size: 0.4rem;
         font-weight: 700;
         color: rgb(226, 19, 19);

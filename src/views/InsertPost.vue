@@ -214,6 +214,9 @@ export default {
           title: "POST发表成功",
           theme: "round-button",
         }).then(() => {
+          props.shareData.homeStyle = "";
+          props.shareData.messageStyle = "";
+          props.shareData.meStyle = "color: #1989fa";
           router.push("/main/me");
         });
       }

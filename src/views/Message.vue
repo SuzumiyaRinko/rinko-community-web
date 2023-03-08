@@ -221,6 +221,9 @@
             ></path>
           </svg>
           <span class="lastMessage4PublicTitle">公共聊天室</span>
+          <div v-if="lastMessage4Public.unreadCount > 0" class="lastMessage4PublicUnreadCount">
+            {{ unreadCountStr(lastMessage4Public.unreadCount) }}
+          </div>
           <span
             v-if="lastMessage4Public.createTime != null"
             class="lastMessage4PublicCreatetime"
@@ -488,6 +491,10 @@ export default {
   props: ["shareData"],
   setup(props) {
     onMounted(() => {
+      props.shareData.homeStyle = "";
+      props.shareData.messageStyle = "color: #1989fa";
+      props.shareData.meStyle = "";
+
       onMessageLoad();
     });
 
@@ -509,6 +516,7 @@ export default {
         } else if (newMessage.toUserId == 0) {
           lastMessage4Public.content = newMessage.content;
           lastMessage4Public.createTime = newMessage.createTime;
+          lastMessage4Public.unreadCount = newMessage.unreadCount;
         }
       }
     });
@@ -605,7 +613,7 @@ export default {
     const lastMessage4Public = reactive({
       content: "",
       createTime: "",
-      unreadCount: "",
+      unreadCount: 0,
     });
 
     // message往下滚动
@@ -749,6 +757,7 @@ export default {
 
     // gotoWSChat
     const gotoWSChat = async (message) => {
+      console.log("message", message)
       if (message.eventUser != null) {
         props.shareData.notReadCount -= message.unreadCount; // 计算unreadCount
         window.sessionStorage.setItem("wsChatTargetId", message.eventUser.id); // 获取对方id
@@ -823,7 +832,7 @@ export default {
           router.push("/");
         }
 
-        if(chatStyle.value != "") {
+        if (chatStyle.value != "") {
           props.shareData.notReadCount = 0;
         }
         messagesPage.data = [];
