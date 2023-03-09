@@ -974,6 +974,7 @@ export default {
         }
       }
       .postTitle {
+        margin-top: 0.6rem;
         margin-left: 0.5rem;
         font-size: 0.5rem;
         font-weight: 700;
@@ -1013,8 +1014,8 @@ export default {
       }
       .postLastView {
         position: absolute;
-        top: 7.1rem;
-        left: 4.7rem;
+        top: -0.5rem;
+        left: 0.5rem;
         font-size: 0.4rem;
         font-weight: 700;
         color: rgb(226, 19, 19);

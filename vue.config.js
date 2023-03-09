@@ -5,6 +5,7 @@ const { VantResolver } = require('unplugin-vue-components/resolvers');
 const ComponentsPlugin = require('unplugin-vue-components/webpack');
 
 module.exports = defineConfig({
+  publicPath: "/Rinko-Community",
   transpileDependencies: true,
   devServer: {
     port: 80
