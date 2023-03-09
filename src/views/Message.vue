@@ -491,6 +491,14 @@ export default {
   props: ["shareData"],
   setup(props) {
     onMounted(() => {
+      var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".topNav").style.height = `${
+        (totalHeight * 4.5) / 100
+      }px`;
+      document.querySelector(".messageDiv").style.height = `${
+        (totalHeight * 82) / 100
+      }px`;
+
       props.shareData.homeStyle = "";
       props.shareData.messageStyle = "color: #1989fa";
       props.shareData.meStyle = "";

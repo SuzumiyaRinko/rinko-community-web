@@ -30,6 +30,11 @@ export default {
   props: ["shareData"],
   setup(props) {
     onMounted(async () => {
+      var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".content").style.height = `${
+        (totalHeight * 88) / 100
+      }px`;
+
       // bottomNav
       props.shareData.bottomNavShow = false;
     });

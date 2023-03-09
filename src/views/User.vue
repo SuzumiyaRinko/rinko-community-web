@@ -158,7 +158,12 @@
           @click="follow(info.id)"
           >取消关注</van-button
         >
-        <van-button type="default" class="chat" size="0.3rem" color="pink" @click="gotoWSChat(info.id)"
+        <van-button
+          type="default"
+          class="chat"
+          size="0.3rem"
+          color="pink"
+          @click="gotoWSChat(info.id)"
           >私聊</van-button
         >
       </div>
@@ -386,6 +391,11 @@ export default {
   props: ["shareData"],
   setup(props) {
     onMounted(async () => {
+      var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".post").style.height = `${
+        (totalHeight * 75) / 100
+      }px`;
+
       // bottomNav
       props.shareData.bottomNavShow = false;
 

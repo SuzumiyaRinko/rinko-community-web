@@ -15,12 +15,16 @@
       <van-button type="primary" @click="loginShow = true">登录</van-button>
     </div>
     <div class="register">
-      <van-button type="default" disabled @click="readyToRegister()">注册</van-button>
+      <van-button type="default" disabled @click="readyToRegister()"
+        >注册</van-button
+      >
     </div>
-    <div style="color: red; margin-top: 0.1rem;">** 目前暂时不开放注册功能 **</div>
+    <div style="color: red; margin-top: 0.1rem">
+      ** 目前暂时不开放注册功能 **
+    </div>
     <div class="bottom">
       <span>
-        SuzumiyaRinko<br>
+        SuzumiyaRinko<br />
         CopyRight© 114514
       </span>
     </div>
@@ -161,6 +165,11 @@ import { showToast } from "vant";
 export default {
   setup() {
     onMounted(() => {
+      var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".top").style.height = `${
+        (totalHeight * 30) / 100
+      }px`;
+
       // 欢迎
       showDialog({
         title: "欢迎使用",

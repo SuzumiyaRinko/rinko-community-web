@@ -78,6 +78,11 @@ export default {
   props: ["shareData"],
   setup(props) {
     onMounted(() => {
+      var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".content").style.height = `${
+        (totalHeight * 88) / 100
+      }px`;
+
       // bottomNav
       props.shareData.bottomNavShow = false;
     });
@@ -146,13 +151,13 @@ export default {
         return false;
       }
       // 大小
-      if (file.size > 10 * 1024 * 1024) {
-        showToast({
-          message: "文件大小不能超过10MB",
-          icon: "cross",
-        });
-        return false;
-      }
+      // if (file.size > 10 * 1024 * 1024) {
+      //   showToast({
+      //     message: "文件大小不能超过10MB",
+      //     icon: "cross",
+      //   });
+      //   return false;
+      // }
 
       return true;
     };

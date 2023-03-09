@@ -502,6 +502,14 @@ export default {
   props: ["shareData"],
   setup(props) {
     onMounted(async () => {
+      var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".post").style.height = `${
+        (totalHeight * 70) / 100
+      }px`;
+      document.querySelector(".logout").style.height = `${
+        (totalHeight * 5.5) / 100
+      }px`;
+
       props.shareData.homeStyle = "";
       props.shareData.messageStyle = "";
       props.shareData.meStyle = "color: #1989fa";

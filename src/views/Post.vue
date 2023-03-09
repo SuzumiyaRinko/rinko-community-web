@@ -547,6 +547,17 @@ export default {
     });
 
     onMounted(async () => {
+      var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".top").style.height = `${
+        (totalHeight * 6) / 100
+      }px`;
+      document.querySelector(".content").style.height = `${
+        (totalHeight * 80) / 100
+      }px`;
+      document.querySelector(".bottomNav").style.height = `${
+        (totalHeight * 8) / 100
+      }px`;
+
       // 判断当前用户是否已点赞、收藏
       var baseResponse = (await hasLikeAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {

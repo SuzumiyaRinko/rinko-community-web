@@ -5,11 +5,19 @@
 
     <!-- BottomNav -->
     <div class="bottomNav" v-show="shareData.bottomNavShow">
-      <div class="item" :style="shareData.homeStyle" @click="router.push('/main/home')">
+      <div
+        class="item"
+        :style="shareData.homeStyle"
+        @click="router.push('/main/home')"
+      >
         <van-icon name="wap-home-o" size="0.8rem" />
         <span>主页</span>
       </div>
-      <div class="item" :style="shareData.messageStyle" @click="router.push('/main/message')">
+      <div
+        class="item"
+        :style="shareData.messageStyle"
+        @click="router.push('/main/message')"
+      >
         <van-icon
           name="chat-o"
           :badge="unreadCountStr(shareData.notReadCount)"
@@ -17,7 +25,11 @@
         />
         <span>消息</span>
       </div>
-      <div class="item" :style="shareData.meStyle" @click="router.push('/main/me')">
+      <div
+        class="item"
+        :style="shareData.meStyle"
+        @click="router.push('/main/me')"
+      >
         <van-icon name="user-o" size="0.8rem" />
         <span>个人</span>
       </div>
@@ -41,6 +53,12 @@ import {
 export default {
   setup() {
     onMounted(async () => {
+      var totalHeight = document.documentElement.clientHeight;
+      console.log("totalHeight", totalHeight);
+      document.querySelector(".bottomNav").style.height = `${
+        (totalHeight * 7.5) / 100
+      }px`;
+
       // 防止用户刷新导致某些removeItem没触发
       window.sessionStorage.removeItem("oldRouter");
       window.sessionStorage.removeItem("gotoUserId");
@@ -77,6 +95,9 @@ export default {
         ) {
           shareData.notReadCount++;
         }
+      };
+      ws.onerror = () => {
+        router.push("/");
       };
       ws.onclose = () => {
         console.log("ws.onclose()");
@@ -149,6 +170,7 @@ export default {
     display: flex;
     justify-content: space-evenly;
     width: 100%;
+    height: 6.5%;
     font-size: 0.4rem;
     font-weight: 700;
     box-shadow: 0 0 15px 1px #000000;

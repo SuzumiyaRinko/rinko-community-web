@@ -347,6 +347,17 @@ export default {
   props: ["shareData"],
   setup(props) {
     onMounted(async () => {
+      var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".top").style.height = `${
+        (totalHeight * 4.5) / 100
+      }px`;
+      document.querySelector(".van-search").style.height = `${
+        (totalHeight * 4) / 100
+      }px`;
+      document.querySelector(".post").style.height = `${
+        (totalHeight * 76.5) / 100
+      }px`;
+
       props.shareData.homeStyle = "color: #1989fa";
       props.shareData.messageStyle = "";
       props.shareData.meStyle = "";
@@ -896,9 +907,9 @@ export default {
     border: solid 5px black;
     border-radius: 1rem;
     width: 94%;
-    height: 100%;
     margin: 0.3rem auto;
-    height: 16.7rem;
+    // height: 16.7rem;
+    height: 10%;
     box-shadow: 0 0 15px 1px #000000;
     overflow: auto; // 防止文本溢出盒子
     overflow-y: scroll;
