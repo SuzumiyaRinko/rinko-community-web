@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
-      <span class="back" @click="backToPost()">返回</span>
+      <span class="back" @click="router.go(-1)">返回</span>
       <span class="title">COMMENT</span>
       <van-button
         v-if="currComment.commentUser.id == myUserId"
@@ -606,6 +606,7 @@ export default {
         router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);
+        window.sessionStorage.setItem("backToSomeone", "/main/comment");
         router.push("/main/user");
       }
     };

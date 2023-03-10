@@ -164,6 +164,7 @@
               >**newMessage!!**</span
             >
             <span class="oneNoticeContent" v-html="message.content" />
+            <span class="oneNoticeCreateTime" v-html="message.createTime" />
             <hr style="margin-left: 0.3rem" />
           </div>
         </van-list>
@@ -728,6 +729,7 @@ export default {
         );
       } else if (systemMsgType == 7) {
         window.sessionStorage.setItem("gotoUserId", targetId);
+        window.sessionStorage.setItem("backToSomeone", "/main/message");
       }
 
       // 路由跳转
@@ -974,6 +976,14 @@ export default {
         text-overflow: ellipsis;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+      }
+      .oneNoticeCreateTime {
+        display: block;
+        margin-left: 1.7rem;
+        margin-top: -0.4rem;
+        width: 70%;
+        font-size: 0.4rem;
+        font-weight: 700;
       }
       .gotoTarget {
         position: absolute;

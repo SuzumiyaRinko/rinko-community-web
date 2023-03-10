@@ -433,6 +433,17 @@ export default {
     onBeforeRouteLeave((to, from, next) => {
       window.sessionStorage.setItem("oldRouter", "/main/user");
 
+      // 判断是否退回"/"
+      var token = window.sessionStorage.getItem("token");
+      if (token == null || token.length == 0) {
+        console.log("onBeforeRouteLeave push");
+        if (to.fullPath == "/") {
+          next();
+        } else {
+          next("/");
+        }
+      }
+
       // bottomNav
       if (
         to.path == "/main/home" ||
@@ -462,6 +473,11 @@ export default {
       followersCount: "",
       roles: [],
     });
+
+    // backToSomeone
+    const backToSomeone = () => {
+      router.push(window.sessionStorage.getItem("backToSomeone"));
+    };
 
     // hasFollow
     const hasFollow = ref(false);
@@ -563,6 +579,7 @@ export default {
       console.log("gotoPost()");
       var postJson = JSON.stringify(post);
       window.sessionStorage.setItem("currPost", postJson);
+      window.sessionStorage.setItem("backToSomeone", "/main/user");
       router.push("/main/post");
     };
     // stopGotoPost
@@ -580,6 +597,7 @@ export default {
       router,
       store,
       info,
+      backToSomeone,
       hasFollow,
       follow,
       postsPage,

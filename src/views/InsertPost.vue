@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
-      <span class="back" @click="goBack()">返回</span>
+      <span class="back" @click="router.go(-1)">返回</span>
       <span class="title">发表POST</span>
       <van-button
         class="commitButton"
@@ -119,10 +119,6 @@ export default {
       content: "",
       picturesSplit: [],
     });
-
-    const goBack = () => {
-      router.go(-1);
-    };
 
     // 上传头像
     const uploadPicture = async (file) => {
@@ -244,7 +240,6 @@ export default {
     return {
       router,
       postInsertDTO,
-      goBack,
       uploadPicture,
       postPictures,
       beforeRead,

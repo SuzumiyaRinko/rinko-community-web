@@ -545,19 +545,19 @@ export default {
       window.sessionStorage.setItem("oldRouter", "/main/me");
 
       // 判断是否退回"/"
-      var token = window.sessionStorage.getItem("token");
-      if (token == null || token.length == 0) {
-        console.log("onBeforeRouteLeave push");
-        if (to.fullPath == "/") {
-          next();
-        } else {
-          next("/");
-        }
-      }
+      // var token = window.sessionStorage.getItem("token");
+      // if (token == null || token.length == 0) {
+      //   console.log("onBeforeRouteLeave push");
+      //   if (to.fullPath == "/") {
+      //     next();
+      //   } else {
+      //     next("/");
+      //   }
+      // }
 
-      if (to.name == "registerOrLogin") {
+      if (to.fullPath == "/") {
         window.sessionStorage.clear();
-        router.push("/");
+        next()
         return;
       }
 
@@ -1016,6 +1016,7 @@ export default {
         router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);
+        window.sessionStorage.setItem("backToSomeone", "/main/me");
         router.push("/main/user");
       }
     };

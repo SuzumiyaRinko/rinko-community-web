@@ -809,6 +809,7 @@ export default {
         router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);
+        window.sessionStorage.setItem("backToSomeone", "/main/chat");
         router.push("/main/user");
       }
     };

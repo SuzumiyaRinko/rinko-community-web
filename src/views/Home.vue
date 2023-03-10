@@ -771,6 +771,8 @@ export default {
         router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);
+        window.sessionStorage.setItem("backToSomeone", "/main/home");
+
         router.push("/main/user");
       }
     };
