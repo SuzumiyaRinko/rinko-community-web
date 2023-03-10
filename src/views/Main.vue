@@ -140,16 +140,17 @@ export default {
     onBeforeRouteLeave((to, from, next) => {
       // 断开ws连接
       var token = window.sessionStorage.getItem("token");
-      if (token == null || token.length == 0) {
-        console.log("onBeforeRouteLeave push");
-        if(to.fullPath == "/") {
-          next();
-        } else {
-          next("/")
-        }
+      // if (token == null || token.length == 0) {
+      //   console.log("onBeforeRouteLeave push");
+      //   if(to.fullPath == "/") {
+      //     next();
+      //   } else {
+      //     next("/")
+      //   }
+      // }
+      if (token) {
+        ws.close();
       }
-
-      ws.close();
 
       next();
     });

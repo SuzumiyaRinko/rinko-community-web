@@ -481,15 +481,15 @@ export default {
       window.sessionStorage.setItem("oldRouter", "/main/message");
 
       // 判断是否退回"/"
-      var token = window.sessionStorage.getItem("token");
-      if (token == null || token.length == 0) {
-        console.log("onBeforeRouteLeave push");
-        if (to.fullPath == "/") {
-          next();
-        } else {
-          next("/");
-        }
-      }
+      // var token = window.sessionStorage.getItem("token");
+      // if (token == null || token.length == 0) {
+      //   console.log("onBeforeRouteLeave push");
+      //   if (to.fullPath == "/") {
+      //     next();
+      //   } else {
+      //     next("/");
+      //   }
+      // }
     });
 
     watch(props.shareData.messageQueue4ChangingMessage, (newVal, oldVal) => {

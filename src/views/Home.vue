@@ -378,15 +378,15 @@ export default {
       window.sessionStorage.setItem("oldRouter", "/main/home");
 
       // 判断是否退回"/"
-      var token = window.sessionStorage.getItem("token");
-      if (token == null || token.length == 0) {
-        console.log("onBeforeRouteLeave push");
-        if (to.fullPath == "/") {
-          next();
-        } else {
-          next("/");
-        }
-      }
+      // var token = window.sessionStorage.getItem("token");
+      // if (token == null || token.length == 0) {
+      //   console.log("onBeforeRouteLeave push");
+      //   if (to.fullPath == "/") {
+      //     next();
+      //   } else {
+      //     next("/");
+      //   }
+      // }
 
       // homePostHistory / homeInterestHistory
       if (!searchFlag.value) {

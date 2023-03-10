@@ -534,15 +534,15 @@ export default {
 
     onBeforeRouteLeave(async (to, from, next) => {
       // 判断是否退回"/"
-      var token = window.sessionStorage.getItem("token");
-      if (token == null || token.length == 0) {
-        console.log("onBeforeRouteLeave push");
-        if (to.fullPath == "/") {
-          next();
-        } else {
-          next("/");
-        }
-      }
+      // var token = window.sessionStorage.getItem("token");
+      // if (token == null || token.length == 0) {
+      //   console.log("onBeforeRouteLeave push");
+      //   if (to.fullPath == "/") {
+      //     next();
+      //   } else {
+      //     next("/");
+      //   }
+      // }
 
       // 存储历史
       var targetType = 3;
