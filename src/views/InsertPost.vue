@@ -88,6 +88,8 @@ export default {
     });
 
     onBeforeRouteLeave((to, from, next) => {
+      window.sessionStorage.setItem("oldRouter", "/main/insertPost");
+
       // bottomNav
       if (
         to.path == "/main/home" ||

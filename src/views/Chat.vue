@@ -640,6 +640,10 @@ export default {
       document.querySelector(".top").style.height = `${
         (totalHeight * 6) / 100
       }px`;
+      var noAnyMessage = document.querySelector(".noAnyMessage");
+      if (noAnyMessage != null) {
+        noAnyMessage.style.height = `${(totalHeight * 30) / 100}px`;
+      }
       document.querySelector(".content").style.height = `${
         (totalHeight * 80) / 100
       }px`;
@@ -675,10 +679,35 @@ export default {
         console.log("targetUserInfo", targetUserInfo);
       }
 
-      onMessageLoad();
+      // 加载message
+      messageSelectDTO.targetId = wsChatTargetId.value;
+      var baseResponse = (await getMessages(messageSelectDTO)).data;
+      if (checkAuthority(baseResponse) == false) {
+        router.push("/");
+      }
+
+      var messageSelectVO = baseResponse.data;
+      messageSelectDTO.lastId = messageSelectVO.lastId; // 记录lastId
+
+      // 防bug
+      console.log("messageSelectDTO", messageSelectDTO);
+      console.log("messageSelectVO", messageSelectVO);
+      messagesPage.data = messageSelectVO.messages.concat(messagesPage.data);
+
+      await sleep(100);
+      document.getElementById("scrollingContent").scrollTop = 99999999;
+
+      messageLoading.value = false;
+
+      // 已经没有更多数据了
+      if (messageSelectVO.isFinished) {
+        messageFinished.value = true;
+      }
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
+      window.sessionStorage.setItem("oldRouter", "/main/chat");
+
       // 设置"与当前聊天对象的未读"为0
       var messageSetIsReadDTO = {
         messageType: 2,
@@ -705,21 +734,27 @@ export default {
       // 判断是否需要更新当前对话内容
       if (newVal.length > 0) {
         var newMessage = newVal.pop();
-        // 尝试移动scroll
-        var scrollingFlag = false;
-        var scrollingContent = document.getElementById("scrollingContent");
-        var scrollTop = scrollingContent.scrollTop;
-        var height = scrollingContent.offsetHeight;
-        var scrollHeight = scrollingContent.scrollHeight;
-        if (scrollTop + height >= scrollHeight) {
-          scrollingFlag = true;
-        }
+        if (
+          (wsChatTargetId.value == 0 && newMessage.toUserId == 0) ||
+          (wsChatTargetId.value != 0 &&
+            newMessage.fromUserId == wsChatTargetId.value)
+        ) {
+          // 尝试移动scroll (设置flag)
+          var scrollingFlag = false;
+          var scrollingContent = document.getElementById("scrollingContent");
+          var scrollTop = scrollingContent.scrollTop;
+          var height = scrollingContent.offsetHeight;
+          var scrollHeight = scrollingContent.scrollHeight;
+          if (scrollTop + height >= scrollHeight) {
+            scrollingFlag = true;
+          }
 
-        messagesPage.data.push(newMessage);
+          messagesPage.data.push(newMessage);
 
-        if (scrollingFlag) {
-          await sleep(30);
-          scrollingContent.scrollTop = 99999999;
+          if (scrollingFlag) {
+            await sleep(30);
+            scrollingContent.scrollTop = 99999999;
+          }
         }
       }
     });

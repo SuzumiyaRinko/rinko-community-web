@@ -395,6 +395,10 @@ export default {
       document.querySelector(".post").style.height = `${
         (totalHeight * 75) / 100
       }px`;
+      var noAnyPost = document.querySelector(".noAnyPost");
+      if (noAnyPost != null) {
+        noAnyPost.style.height = `${(totalHeight * 30) / 100}px`;
+      }
 
       // bottomNav
       props.shareData.bottomNavShow = false;
@@ -427,6 +431,8 @@ export default {
     });
 
     onBeforeRouteLeave((to, from, next) => {
+      window.sessionStorage.setItem("oldRouter", "/main/user");
+
       // bottomNav
       if (
         to.path == "/main/home" ||

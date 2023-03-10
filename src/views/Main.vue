@@ -59,14 +59,20 @@ export default {
         (totalHeight * 7.5) / 100
       }px`;
 
-      // 防止用户刷新导致某些removeItem没触发
-      window.sessionStorage.removeItem("oldRouter");
-      window.sessionStorage.removeItem("gotoUserId");
-      window.sessionStorage.removeItem("wsChatTargetId");
-      window.sessionStorage.removeItem("backToSomeone");
-
       // 默认push到/main/home页面
-      router.push("/main/home");
+      // var oldRouter = window.sessionStorage.getItem("oldRouter");
+      // if (oldRouter != null) {
+      //   console.log("oldRouter", oldRouter)
+      //   router.push(oldRouter);
+      // } else {
+        router.push("/main/home");
+      // }
+
+      // 防止用户刷新导致某些removeItem没触发
+      // window.sessionStorage.removeItem("oldRouter");
+      // window.sessionStorage.removeItem("gotoUserId");
+      // window.sessionStorage.removeItem("wsChatTargetId");
+      // window.sessionStorage.removeItem("backToSomeone");
 
       // ws连接
       var token = window.sessionStorage.getItem("token");
@@ -97,7 +103,7 @@ export default {
         }
       };
       ws.onerror = () => {
-        router.push("/");
+        // router.push("/");
       };
       ws.onclose = () => {
         console.log("ws.onclose()");

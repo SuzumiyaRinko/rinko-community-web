@@ -478,10 +478,16 @@ export default {
     });
 
     onMounted(async () => {
+      window.sessionStorage.setItem("oldRouter", "/main/comment");
+
       var totalHeight = document.documentElement.clientHeight;
       document.querySelector(".top").style.height = `${
         (totalHeight * 6) / 100
       }px`;
+      var noAnyRecomment = document.querySelector(".noAnyRecomment");
+      if (noAnyRecomment != null) {
+        noAnyRecomment.style.height = `${(totalHeight * 30) / 100}px`;
+      }
       document.querySelector(".content").style.height = `${
         (totalHeight * 80) / 100
       }px`;

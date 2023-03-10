@@ -31,6 +31,10 @@ export default {
   setup(props) {
     onMounted(async () => {
       var totalHeight = document.documentElement.clientHeight;
+      var noResource = document.querySelector(".noResource");
+      if (noResource != null) {
+        noResource.style.height = `${(totalHeight * 30) / 100}px`;
+      }
       document.querySelector(".content").style.height = `${
         (totalHeight * 88) / 100
       }px`;
@@ -40,6 +44,8 @@ export default {
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
+      window.sessionStorage.setItem("oldRouter", "/main/error");
+
       // bottomNav
       if (
         to.path == "/main/home" ||

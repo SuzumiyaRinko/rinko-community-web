@@ -25,3 +25,11 @@ export function login(userLoginDTO) {
         data: userLoginDTO,
     })
 }
+
+// 匿名登录
+export function loginAnonymously() {
+    return service({
+        method: "POST",
+        url: "/user/loginAnonymously",
+    })
+}

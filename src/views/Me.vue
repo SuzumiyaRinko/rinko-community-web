@@ -150,7 +150,7 @@
       <!-- 无post时的提示 -->
       <div style="text-align: center">
         <img
-          v-if="postsPage.data.length == 0"
+          v-show="postsPage.data.length == 0"
           class="noAnyPost"
           :src="`${$store.state.SystemConst.resourcesPrefix}${noAnyPost}`"
           alt="noAnyPost"
@@ -503,6 +503,9 @@ export default {
   setup(props) {
     onMounted(async () => {
       var totalHeight = document.documentElement.clientHeight;
+      document.querySelector(".noAnyPost").style.height = `${
+        (totalHeight * 30) / 100
+      }px`;
       document.querySelector(".post").style.height = `${
         (totalHeight * 70) / 100
       }px`;
@@ -539,6 +542,9 @@ export default {
         mePostHistory.pageNum = tmpMePostHistory.pageNum;
         mePostHistory.scrollTop = tmpMePostHistory.scrollTop;
       }
+      if (mePostHistory.pageNum <= 0) {
+        mePostHistory.pageNum = 1;
+      }
       window.sessionStorage.setItem(
         "mePostHistory",
         JSON.stringify(mePostHistory)
@@ -555,7 +561,7 @@ export default {
 
     onBeforeRouteLeave((to, from, next) => {
       // oldRouter
-      window.sessionStorage.setItem("oldRouter", "me");
+      window.sessionStorage.setItem("oldRouter", "/main/me");
       // mePostHistory / meCollectionHistory
       if (postStyle.value != "") {
         var tmpMePostHistory = JSON.parse(
@@ -653,10 +659,11 @@ export default {
         myUserInfo.avatar = baseResponse.data;
         window.sessionStorage.setItem("myUserInfo", JSON.stringify(myUserInfo));
         // 更新userInfo数据
-        info.avatarUrl = baseResponse.data;
+        // info.avatarUrl = baseResponse.data;
+        // avatarUploadShow.value = false;
+        // avatarList.value = [];
 
-        avatarUploadShow.value = false;
-        avatarList.value = [];
+        window.location.reload();
       });
     };
     const avatarList = ref([]);
@@ -723,8 +730,9 @@ export default {
             JSON.stringify(myUserInfo)
           );
           // 更新userInfo数据
-          info.nickname = userUpdateDTO.nickname;
-          info.gender = userUpdateDTO.gender;
+          // info.nickname = userUpdateDTO.nickname;
+          // info.gender = userUpdateDTO.gender;
+          window.location.reload();
         });
       }
       userInfoUploadShow.value = false;

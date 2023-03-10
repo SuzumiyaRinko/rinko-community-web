@@ -551,6 +551,10 @@ export default {
       document.querySelector(".top").style.height = `${
         (totalHeight * 6) / 100
       }px`;
+      var noAnyComment = document.querySelector(".noAnyComment");
+      if (noAnyComment != null) {
+        noAnyComment.style.height = `${(totalHeight * 30) / 100}px`;
+      }
       document.querySelector(".content").style.height = `${
         (totalHeight * 80) / 100
       }px`;
@@ -606,6 +610,8 @@ export default {
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
+      window.sessionStorage.setItem("oldRouter", "/main/post");
+
       // 存储历史
       var targetType = 2;
       var targetId = currPost.id;

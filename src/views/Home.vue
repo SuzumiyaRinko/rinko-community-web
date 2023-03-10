@@ -49,7 +49,7 @@
       <!-- 无post时的提示 -->
       <div style="text-align: center">
         <img
-          v-if="postsPage.data.length == 0"
+          v-show="postsPage.data.length == 0"
           class="noAnyPost"
           :src="`${$store.state.SystemConst.resourcesPrefix}${noAnyPost}`"
           alt="noAnyPost"
@@ -354,6 +354,9 @@ export default {
       document.querySelector(".van-search").style.height = `${
         (totalHeight * 4) / 100
       }px`;
+      document.querySelector(".noAnyPost").style.height = `${
+        (totalHeight * 30) / 100
+      }px`;
       document.querySelector(".post").style.height = `${
         (totalHeight * 76.5) / 100
       }px`;
@@ -370,6 +373,9 @@ export default {
         homePostHistory.postLastView = tmpHomePostHistory.postLastView;
         homePostHistory.pageNum = tmpHomePostHistory.pageNum;
         homePostHistory.scrollTop = tmpHomePostHistory.scrollTop;
+      }
+      if (homePostHistory.pageNum <= 0) {
+        homePostHistory.pageNum = 1;
       }
       window.sessionStorage.setItem(
         "homePostHistory",
@@ -389,7 +395,7 @@ export default {
 
     onBeforeRouteLeave((to, from, next) => {
       // oldRouter
-      window.sessionStorage.setItem("oldRouter", "home");
+      window.sessionStorage.setItem("oldRouter", "/main/home");
       // homePostHistory / homeInterestHistory
       if (!searchFlag.value) {
         if (homeStyle.value != "") {

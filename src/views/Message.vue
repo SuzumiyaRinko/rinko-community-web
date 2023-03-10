@@ -15,7 +15,7 @@
       <!-- 无消息时的提示 -->
       <div v-if="systemStyle != ''" style="text-align: center">
         <img
-          v-if="messagesPage.data.length == 0"
+          v-show="messagesPage.data.length == 0"
           class="noAnyMessage"
           :src="`${$store.state.SystemConst.resourcesPrefix}${noAnyMessage}`"
           alt="noAnyMessage"
@@ -42,6 +42,9 @@
             class="oneNotice"
             v-for="(message, idx) in messagesPage.data"
             key="idx"
+            @click="
+              gotoTarget(message.targetId, message.systemMsgType, message.id)
+            "
           >
             <div class="oneNoticeSimpleUser">
               <img
@@ -161,37 +164,17 @@
               >**newMessage!!**</span
             >
             <span class="oneNoticeContent" v-html="message.content" />
-            <svg
-              class="gotoTarget"
-              t="1677825944096"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="2693"
-              width="200"
-              height="200"
-              @click="
-                gotoTarget(message.targetId, message.systemMsgType, message.id)
-              "
-            >
-              <path
-                d="M425.344 879.36a43.690667 43.690667 0 0 1 6.698667-61.354667l381.482666-306.901333L433.92 206.08a43.690667 43.690667 0 0 1 54.698667-68.096l422.016 339.114667a43.733333 43.733333 0 0 1 0 68.096l-423.808 340.906666a43.818667 43.818667 0 0 1-61.482667-6.698666z m-330.026667 0a43.690667 43.690667 0 0 1 6.698667-61.354667l381.525333-306.901333L103.936 206.08a43.690667 43.690667 0 0 1 54.698667-68.096l421.973333 339.114667a43.733333 43.733333 0 0 1 0 68.096l-423.765333 340.906666a43.818667 43.818667 0 0 1-61.482667-6.698666z"
-                fill="#000000"
-                opacity=".65"
-                p-id="2694"
-              ></path>
-            </svg>
             <hr style="margin-left: 0.3rem" />
           </div>
         </van-list>
       </van-pull-refresh>
       <!-- 遍历Message -->
-      <div v-if="chatStyle != ''">
+      <div v-show="chatStyle != ''">
         <!-- 公共聊天室 -->
-        <div class="public">
+        <div class="public" @click="gotoWSChat(lastMessage4Public)">
           <svg
             t="1678174356253"
-            class="icon"
+            class="icon publicIcon"
             viewBox="0 0 1024 1024"
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
@@ -220,8 +203,12 @@
               p-id="3328"
             ></path>
           </svg>
+
           <span class="lastMessage4PublicTitle">公共聊天室</span>
-          <div v-if="lastMessage4Public.unreadCount > 0" class="lastMessage4PublicUnreadCount">
+          <div
+            v-if="lastMessage4Public.unreadCount > 0"
+            class="lastMessage4PublicUnreadCount"
+          >
             {{ unreadCountStr(lastMessage4Public.unreadCount) }}
           </div>
           <span
@@ -257,24 +244,6 @@
             class="lastMessage4PublicContent"
             >[图片]</span
           >
-          <svg
-            class="gotoTarget"
-            t="1677825944096"
-            viewBox="0 0 1024 1024"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            p-id="2693"
-            width="200"
-            height="200"
-            @click="gotoWSChat(lastMessage4Public)"
-          >
-            <path
-              d="M425.344 879.36a43.690667 43.690667 0 0 1 6.698667-61.354667l381.482666-306.901333L433.92 206.08a43.690667 43.690667 0 0 1 54.698667-68.096l422.016 339.114667a43.733333 43.733333 0 0 1 0 68.096l-423.808 340.906666a43.818667 43.818667 0 0 1-61.482667-6.698666z m-330.026667 0a43.690667 43.690667 0 0 1 6.698667-61.354667l381.525333-306.901333L103.936 206.08a43.690667 43.690667 0 0 1 54.698667-68.096l421.973333 339.114667a43.733333 43.733333 0 0 1 0 68.096l-423.765333 340.906666a43.818667 43.818667 0 0 1-61.482667-6.698666z"
-              fill="#000000"
-              opacity=".65"
-              p-id="2694"
-            ></path>
-          </svg>
           <hr style="margin-left: 0.3rem; margin-top: 1.7rem" />
         </div>
         <!-- 用户私聊列表 -->
@@ -282,6 +251,7 @@
           class="oneMessage"
           v-for="(message, idx) in messagesPage.data"
           key="idx"
+          @click="gotoWSChat(message)"
         >
           <div class="oneMessageSimpleUser">
             <img
@@ -407,24 +377,6 @@
           <span class="oneMessageCreatetime" v-html="message.createTime" />
           <span class="oneMessagePreContent">消息：</span
           ><span class="oneMessageContent" v-html="message.content" />
-          <svg
-            class="gotoTarget"
-            t="1677825944096"
-            viewBox="0 0 1024 1024"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            p-id="2693"
-            width="200"
-            height="200"
-            @click="gotoWSChat(message)"
-          >
-            <path
-              d="M425.344 879.36a43.690667 43.690667 0 0 1 6.698667-61.354667l381.482666-306.901333L433.92 206.08a43.690667 43.690667 0 0 1 54.698667-68.096l422.016 339.114667a43.733333 43.733333 0 0 1 0 68.096l-423.808 340.906666a43.818667 43.818667 0 0 1-61.482667-6.698666z m-330.026667 0a43.690667 43.690667 0 0 1 6.698667-61.354667l381.525333-306.901333L103.936 206.08a43.690667 43.690667 0 0 1 54.698667-68.096l421.973333 339.114667a43.733333 43.733333 0 0 1 0 68.096l-423.765333 340.906666a43.818667 43.818667 0 0 1-61.482667-6.698666z"
-              fill="#000000"
-              opacity=".65"
-              p-id="2694"
-            ></path>
-          </svg>
           <hr style="margin-left: 0.3rem" />
         </div>
       </div>
@@ -495,9 +447,15 @@ export default {
       document.querySelector(".topNav").style.height = `${
         (totalHeight * 4.5) / 100
       }px`;
+      document.querySelector(".noAnyMessage").style.height = `${
+        (totalHeight * 30) / 100
+      }px`;
       document.querySelector(".messageDiv").style.height = `${
         (totalHeight * 82) / 100
       }px`;
+      var publicIcon = document.querySelector(".publicIcon");
+      publicIcon.style.top = `${(totalHeight * -3) / 100}px`;
+      publicIcon.style.left = `${(totalHeight * 2) / 100}px`;
 
       props.shareData.homeStyle = "";
       props.shareData.messageStyle = "color: #1989fa";
@@ -508,7 +466,7 @@ export default {
 
     onBeforeRouteLeave(() => {
       // oldRouter
-      window.sessionStorage.setItem("oldRouter", "message");
+      window.sessionStorage.setItem("oldRouter", "/main/message");
     });
 
     watch(props.shareData.messageQueue4ChangingMessage, (newVal, oldVal) => {
@@ -765,7 +723,8 @@ export default {
 
     // gotoWSChat
     const gotoWSChat = async (message) => {
-      console.log("message", message)
+      event.stopPropagation();
+
       if (message.eventUser != null) {
         props.shareData.notReadCount -= message.unreadCount; // 计算unreadCount
         window.sessionStorage.setItem("wsChatTargetId", message.eventUser.id); // 获取对方id
@@ -1006,8 +965,10 @@ export default {
       .icon {
         position: absolute;
         width: 1rem;
-        bottom: 0.3rem;
-        left: 0.5rem;
+        // bottom: 0.3rem;
+        // left: 0.5rem;
+        left: 5%;
+        bottom: 0;
       }
       .lastMessage4PublicUnreadCount {
         position: absolute;

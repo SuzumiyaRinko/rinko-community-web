@@ -22,6 +22,11 @@
     <div style="color: red; margin-top: 0.1rem">
       ** 目前暂时不开放注册功能 **
     </div>
+    <div class="loginAnonymously">
+      <van-button color="grey" @click="loginAnonymouslyShow = true"
+        >匿名登录</van-button
+      >
+    </div>
     <div class="bottom">
       <span>
         SuzumiyaRinko<br />
@@ -149,6 +154,17 @@
         </van-cell-group>
       </van-form>
     </van-dialog>
+
+    <!-- 匿名登录 -->
+    <van-dialog
+      v-model:show="loginAnonymouslyShow"
+      title="是否匿名登录"
+      show-cancel-button
+      confirm-button-text="登录"
+      :before-close="onBeforeLoginAnonymouslyClose"
+    >
+    <span style="font-size: 0.3rem; color: red;">匿名登录用户在退出登录之后<br>无法再次登录该账号</span>
+    </van-dialog>
   </div>
 </template>
 
@@ -157,7 +173,12 @@ import { onMounted, reactive, ref } from "vue";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { useStore } from "vuex";
 import { showDialog, showNotify } from "vant";
-import { getVerifyCode, register, login } from "@/api/registerOrLogin.js";
+import {
+  getVerifyCode,
+  register,
+  login,
+  loginAnonymously,
+} from "@/api/registerOrLogin.js";
 import { getUserInfo } from "@/api/me.js";
 import { checkAuthority } from "@/util/utils.js";
 import { showToast } from "vant";
@@ -166,7 +187,7 @@ export default {
   setup() {
     onMounted(() => {
       var totalHeight = document.documentElement.clientHeight;
-      document.querySelector(".top").style.height = `${
+      document.querySelector(".logo").style.height = `${
         (totalHeight * 30) / 100
       }px`;
 
@@ -180,7 +201,7 @@ export default {
 
     onBeforeRouteLeave(() => {
       // oldRouter
-      window.sessionStorage.setItem("oldRouter", "registerOrLogin");
+      window.sessionStorage.setItem("oldRouter", "/");
     });
 
     // router
@@ -194,6 +215,7 @@ export default {
     // Dialog开关
     const registerShow = ref(false);
     const loginShow = ref(false);
+    const loginAnonymouslyShow = ref(false);
 
     // 弹出注册Dialog
     const readyToRegister = async () => {
@@ -334,12 +356,52 @@ export default {
       loginShow.value = false;
     };
 
+    // 匿名登录Dialog关闭前的判断
+    const onBeforeLoginAnonymouslyClose = async (action) => {
+      if (action === "confirm") {
+        // 登录
+        var baseResponse = (await loginAnonymously()).data;
+        if (baseResponse.code != 200) {
+          var exMessage = baseResponse.message;
+          showToast({
+            message: exMessage,
+            icon: "cross",
+          });
+          return;
+        }
+        // 保存Token到SessionStorage
+        window.sessionStorage.setItem("token", baseResponse.data);
+
+        // 加载用户信息
+        var baseResponse = (await getUserInfo()).data;
+        if (checkAuthority(baseResponse) == false) {
+          router.push("/");
+        }
+        var userInfo = baseResponse.data;
+        console.log("userInfo", userInfo);
+        // 把user信息放到SessionStorage中
+        window.sessionStorage.setItem("myUserId", userInfo.id);
+        window.sessionStorage.setItem("myUserInfo", JSON.stringify(userInfo));
+
+        // 跳转到主页
+        showDialog({
+          title: "登录成功",
+          message: "确认后将跳转到主页",
+          theme: "round-button",
+        }).then(() => {
+          router.push("/main");
+        });
+      }
+      loginAnonymouslyShow.value = false;
+    };
+
     return {
       router,
       store,
       logo,
       registerShow,
       loginShow,
+      loginAnonymouslyShow,
       readyToRegister,
       base64Code,
       reflushCode,
@@ -350,6 +412,7 @@ export default {
       formatter,
       onBeforeRegisterClose,
       onBeforeLoginClose,
+      onBeforeLoginAnonymouslyClose,
     };
   },
   components: {},
@@ -365,23 +428,29 @@ export default {
     .logo {
       margin: 0 auto;
       display: flex;
-      margin-top: 2rem;
+      margin-top: 1rem;
     }
     .title {
       text-align: center;
       font-size: 0.8rem;
       font-weight: 700;
       font-family: "Microsoft YaHei";
-      margin-bottom: 7rem;
+      margin-bottom: 1rem;
     }
   }
   .login {
-    margin-top: 3rem;
+    margin-top: 1rem;
     .van-button {
       width: 75%;
     }
   }
   .register {
+    margin-top: 0.5rem;
+    .van-button {
+      width: 75%;
+    }
+  }
+  .loginAnonymously {
     margin-top: 0.5rem;
     .van-button {
       width: 75%;
