@@ -453,13 +453,26 @@ export default {
       document.querySelector(".messageDiv").style.height = `${
         (totalHeight * 82) / 100
       }px`;
-      var publicIcon = document.querySelector(".publicIcon");
-      publicIcon.style.top = `${(totalHeight * -3) / 100}px`;
-      publicIcon.style.left = `${(totalHeight * 2) / 100}px`;
 
       props.shareData.homeStyle = "";
       props.shareData.messageStyle = "color: #1989fa";
       props.shareData.meStyle = "";
+
+      var publicIcon = document.querySelector(".publicIcon");
+      // ios
+      var u = navigator.userAgent;
+      var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+      if (isiOS) {
+        console.log("苹果")
+        publicIcon.style.top = "-0.5rem";
+      }
+      // android
+      var isAndroid = u.indexOf("Android") > -1 || u.indexOf("Adr") > -1; //android终端
+      if (isAndroid) {
+        console.log("安卓")
+        publicIcon.style.top = "-1.7rem";
+        publicIcon.style.left = "0.5rem";
+      }
 
       onMessageLoad();
     });
@@ -964,11 +977,11 @@ export default {
       position: relative;
       .icon {
         position: absolute;
-        width: 1rem;
-        // bottom: 0.3rem;
-        // left: 0.5rem;
         left: 5%;
         bottom: 0;
+        width: 1rem;
+        // margin-left: 0.5rem;
+        // margin-top: -0.5rem;
       }
       .lastMessage4PublicUnreadCount {
         position: absolute;
@@ -993,6 +1006,7 @@ export default {
       .lastMessage4PublicCreatetime {
         position: absolute;
         margin-left: 1.7rem;
+        // margin-left: 0.2rem;
         margin-top: 0.6rem;
         width: 70%;
         font-size: 0.4rem;
