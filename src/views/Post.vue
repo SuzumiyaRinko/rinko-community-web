@@ -26,42 +26,22 @@
         "
       >
         <!-- 置顶 -->
-        <svg
+        <van-icon
           v-if="currPost.isTop"
-          t="1678240024033"
-          class="isTop icon"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          p-id="2665"
-          width="200"
-          height="200"
-        >
-          <path
-            d="M128 128l768 0 0 89.6-768 0 0-89.6ZM732.288 496 555.7888 309.8624c-10.9504-11.2064-26.4128-18.4896-43.7888-18.4896s-32.832 7.2832-43.6032 18.6048L291.5264 495.8656c-9.2288 10.0224-15.1104 22.9696-15.1104 37.3248 0 30.816 26.3808 55.8016 58.8992 55.8016 0.4544 0 0.896-0.0576 1.344-0.0704l0 0.352L416 589.2736 416 896l192 0L608 589.2736l77.1904 0 0-0.448c1.1648 0.064 2.3104 0.1792 3.5008 0.1792 32.5248 0 58.8992-24.992 58.8992-55.8144C747.5904 518.8352 741.7024 505.8944 732.288 496z"
-            fill="#d81e06"
-            p-id="2666"
-          ></path>
-        </svg>
+          class="isTop"
+          color="red"
+          size="0.8rem"
+          name="back-top"
+        />
         <span v-if="currPost.isTop" class="isTopText">置顶</span>
         <!-- 加精 -->
-        <svg
+        <van-icon
           v-if="currPost.isWonderful"
-          t="1678240479749"
-          class="isWonderful icon"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          p-id="7298"
-          width="200"
-          height="200"
-        >
-          <path
-            d="M331.84 580.224c3.008 32 53.952 155.136 180.544 155.136 53.184 0 123.584 10.88 135.36 77.568 5.888 33.472-28.288 116.48-142.848 116.48-218.624 0-173.056-349.184-173.056-349.184z m311.936-110.4C549.76 469.76 473.6 346.24 473.6 193.92c0-16.256 1.728-35.136 5.248-56.576a64 64 0 0 0-103.488-60.096c-201.024 163.264-298.112 359.68-291.264 589.376 5.76 195.904 234.048 354.944 462.464 354.944 228.352 0 413.504-158.912 413.504-354.944 0-90.56-31.936-187.136-95.808-289.92a64 64 0 0 0-108.416-0.448c-39.488 62.336-76.8 93.568-112 93.568z"
-            fill="#d81e06"
-            p-id="7299"
-          ></path>
-        </svg>
+          class="isWonderful"
+          color="red"
+          size="0.8rem"
+          name="fire-o"
+        />
         <span v-if="currPost.isWonderful" class="isWonderfulText">热门</span>
         <div class="onePostSimpleUser">
           <img
@@ -369,11 +349,11 @@
           >
             <div class="item">
               <van-icon name="like-o" size="0.6rem" />
-              <span>{{ comment.likeCount }}</span>
+              <span>{{ statsStr(comment.likeCount) }}</span>
             </div>
             <div class="item">
               <van-icon name="comment-o" size="0.6rem" />
-              <span>{{ comment.commentCount }}</span>
+              <span>{{ statsStr(comment.commentCount) }}</span>
             </div>
           </div>
           <span class="commentCreateTime">{{ comment.createTime }}</span>
@@ -424,7 +404,9 @@
               <span v-if="recomment == null || recomment.length == 0"
                 >回复：[图片]</span
               >
-              <span v-if="recomment.length > 0">回复：{{ recomment }}</span>
+              <span v-if="recomment.length > 0" class="oneRecomment"
+                >回复：{{ recomment }}</span
+              >
             </div>
             <div class="seeMoreRecomment">（点击查看更多）</div>
           </div>
@@ -439,15 +421,15 @@
     <div class="bottomNav">
       <div class="item" @click="like()">
         <van-icon name="like-o" size="0.8rem" :color="likeColor" />
-        <span>点赞（{{ currPost.likeCount }}）</span>
+        <span>点赞（{{ statsStr(currPost.likeCount) }}）</span>
       </div>
       <div class="item" @click="commentShow = true">
         <van-icon name="comment-o" size="0.8rem" />
-        <span>评论（{{ currPost.commentCount }}）</span>
+        <span>评论（{{ statsStr(currPost.commentCount) }}）</span>
       </div>
       <div class="item" @click="collect()">
         <van-icon name="star-o" size="0.8rem" :color="collectionColor" />
-        <span>收藏（{{ currPost.collectionCount }}）</span>
+        <span>收藏（{{ statsStr(currPost.collectionCount) }}）</span>
       </div>
     </div>
 
@@ -514,6 +496,7 @@ import {
   checkAuthority,
   checkResource,
   sleep,
+  statsStr,
   saveEnter2Br4Web,
   saveEnter2Br4Save,
 } from "@/util/utils.js";
@@ -598,6 +581,9 @@ export default {
       }
       var history = baseResponse.data;
       console.log("history", history);
+      if (history.pageNum <= 0) {
+        history.pageNum = 1;
+      }
       commentLastView.value = history.lastView;
 
       while (commentSelectDTO.pageNum <= history.pageNum) {
@@ -611,6 +597,17 @@ export default {
 
     onBeforeRouteLeave(async (to, from, next) => {
       window.sessionStorage.setItem("oldRouter", "/main/post");
+
+      // 判断是否退回"/"
+      var token = window.sessionStorage.getItem("token");
+      if (token == null || token.length == 0) {
+        console.log("onBeforeRouteLeave push");
+        if (to.fullPath == "/") {
+          next();
+        } else {
+          next("/");
+        }
+      }
 
       // 存储历史
       var targetType = 2;
@@ -995,6 +992,7 @@ export default {
       hasCollect,
       collectionColor,
       collect,
+      statsStr,
     };
   },
   components: {},
@@ -1048,8 +1046,8 @@ export default {
     .isTop {
       position: absolute;
       width: 0.9rem;
-      top: -0.6rem;
-      right: 1.5rem;
+      top: 0.3rem;
+      right: 1.4rem;
       z-index: 5;
       opacity: 0.8;
     }
@@ -1066,7 +1064,7 @@ export default {
     .isWonderful {
       position: absolute;
       width: 0.7rem;
-      top: 0.2rem;
+      top: 1rem;
       right: 1.6rem;
       z-index: 5;
       opacity: 0.8;
@@ -1129,11 +1127,12 @@ export default {
     }
     .postTitle {
       display: block;
-      max-width: 78%;
       margin-top: 0.1rem;
       margin-left: 2.5rem;
       font-size: 0.5rem;
       font-weight: 700;
+      word-wrap: break-word // 换行
+;
     }
     .postContent {
       max-width: 100%;
@@ -1142,6 +1141,8 @@ export default {
       text-align: left;
       font-size: 0.5rem;
       font-weight: 500;
+      word-wrap: break-word // 换行
+;
     }
     .postPictures {
       margin-top: 0.1rem;
@@ -1231,6 +1232,8 @@ export default {
         margin-left: 1.8rem;
         font-size: 0.4rem;
         font-weight: 500;
+        word-wrap: break-word; // 换行
+        max-width: 80%;
       }
       .commentCreateTime {
         position: absolute;
@@ -1252,6 +1255,14 @@ export default {
         background-color: rgb(212, 212, 212);
         border: solid 1px black;
         box-shadow: 0 0 15px 1px #000000;
+        .oneRecomment {
+          // 最多显示1行
+          overflow: hidden;
+          display: -webkit-box;
+          text-overflow: ellipsis;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+        }
         .seeMoreRecomment {
           text-align: right;
           color: rgb(49, 50, 51);
@@ -1259,8 +1270,8 @@ export default {
       }
       .commentLastView {
         position: absolute;
-        top: -0.15rem;
-        right: 2rem;
+        top: 0.5rem;
+        right: 0rem;
         font-size: 0.4rem;
         font-weight: 700;
         color: rgb(226, 19, 19);
@@ -1295,7 +1306,7 @@ export default {
   // commentDialog
   .commentDialog .van-field__control {
     border: solid 1px black;
-    max-height: 16rem; // 让textarea能上下滚动
+    max-height: 8.5rem; // 让textarea能上下滚动
   }
 }
 </style>

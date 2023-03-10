@@ -463,13 +463,11 @@ export default {
       var u = navigator.userAgent;
       var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
       if (isiOS) {
-        console.log("苹果")
         publicIcon.style.top = "-0.5rem";
       }
       // android
       var isAndroid = u.indexOf("Android") > -1 || u.indexOf("Adr") > -1; //android终端
       if (isAndroid) {
-        console.log("安卓")
         publicIcon.style.top = "-1.7rem";
         publicIcon.style.left = "0.5rem";
       }
@@ -480,6 +478,17 @@ export default {
     onBeforeRouteLeave(() => {
       // oldRouter
       window.sessionStorage.setItem("oldRouter", "/main/message");
+
+      // 判断是否退回"/"
+      var token = window.sessionStorage.getItem("token");
+      if (token == null || token.length == 0) {
+        console.log("onBeforeRouteLeave push");
+        if (to.fullPath == "/") {
+          next();
+        } else {
+          next("/");
+        }
+      }
     });
 
     watch(props.shareData.messageQueue4ChangingMessage, (newVal, oldVal) => {
@@ -605,6 +614,7 @@ export default {
       var baseResponse = (await getMessages(messageSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
+        return;
       }
 
       var messageSelectVO = baseResponse.data;
@@ -672,6 +682,7 @@ export default {
       var baseResponse = (await setIsRead(messageSetIsReadDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
+        return;
       }
 
       if (
@@ -769,6 +780,7 @@ export default {
         var baseResponse = (await setIsRead(messageSetIsReadDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
+          return;
         }
 
         var endIndex = messagesPage.data.length - 1;
@@ -810,6 +822,7 @@ export default {
         var baseResponse = (await deleteMessage(messageDeleteDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           router.push("/");
+          return;
         }
 
         if (chatStyle.value != "") {

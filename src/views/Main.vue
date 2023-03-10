@@ -53,11 +53,22 @@ import {
 export default {
   setup() {
     onMounted(async () => {
-      var totalHeight = document.documentElement.clientHeight;
-      console.log("totalHeight", totalHeight);
-      document.querySelector(".bottomNav").style.height = `${
-        (totalHeight * 7.5) / 100
-      }px`;
+      // 加载用户信息
+      // var baseResponse = (await getUserInfo()).data;
+      // if (checkAuthority(baseResponse) == false) {
+      //   router.push("/");
+      // }
+      // var userInfo = baseResponse.data;
+      // console.log("userInfo", userInfo);
+      // 把user信息放到SessionStorage中
+      // window.sessionStorage.setItem("myUserId", userInfo.id);
+      // window.sessionStorage.setItem("myUserInfo", JSON.stringify(userInfo));
+
+      // var totalHeight = document.documentElement.clientHeight;
+      // console.log("totalHeight", totalHeight);
+      // document.querySelector(".bottomNav").style.height = `${
+      //   (totalHeight * 7.5) / 100
+      // }px`;
 
       // 默认push到/main/home页面
       // var oldRouter = window.sessionStorage.getItem("oldRouter");
@@ -65,7 +76,7 @@ export default {
       //   console.log("oldRouter", oldRouter)
       //   router.push(oldRouter);
       // } else {
-        router.push("/main/home");
+      router.push("/main/home");
       // }
 
       // 防止用户刷新导致某些removeItem没触发
@@ -128,6 +139,16 @@ export default {
 
     onBeforeRouteLeave((to, from, next) => {
       // 断开ws连接
+      var token = window.sessionStorage.getItem("token");
+      if (token == null || token.length == 0) {
+        console.log("onBeforeRouteLeave push");
+        if(to.fullPath == "/") {
+          next();
+        } else {
+          next("/")
+        }
+      }
+
       ws.close();
 
       next();

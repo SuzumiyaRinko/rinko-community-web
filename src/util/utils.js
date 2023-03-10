@@ -53,6 +53,19 @@ export function unreadCountStr(num) {
     }
 }
 
+// 展现点赞, 评论, 收藏数
+export function statsStr(num) {
+    if (num >= 1000 && num < 10000) {
+        var potIndex = (num / 1000).toString().indexOf(".")
+        return `${(num / 1000).toString().substring(0, potIndex+2)}k`
+    } else if (num >= 10000) {
+        var potIndex = (num / 10000).toString().indexOf(".")
+        return `${(num / 10000).toString().substring(0, potIndex+2)}w`
+    } else {
+        return num;
+    }
+}
+
 // 表情转码
 export function emojiToStr(str) {
     const patt = /[\ud800-\udbff][\udc00-\udfff]/g; // 检测utf16字符正则
@@ -100,6 +113,6 @@ export function strToEmoji(strObj) {
 };
 
 // 判断设备型号
-var u = navigator.userAgent; 
+var u = navigator.userAgent;
 var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1; //android终端 
 var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端 

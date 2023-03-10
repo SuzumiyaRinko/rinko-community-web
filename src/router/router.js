@@ -32,7 +32,19 @@ const routes = [
       { path: 'comment', component: Comment },
       { path: 'chat', component: Chat },
       { path: 'error', component: Error },
-    ]
+    ],
+    beforeEnter: (to, from, next) => {
+      // 没有token直接回登录页（比如我直接复制某个url到另一个窗口，就会触发这个）
+      var token = window.sessionStorage.getItem("token");
+      console.log("token", token)
+      if (token == null || token.length == 0) {
+        console.log("beforeEnter push");
+        next("/")
+        return;
+      }
+
+      next()
+    }
   },
 ]
 

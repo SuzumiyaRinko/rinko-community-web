@@ -378,11 +378,11 @@
     <div class="bottomNav">
       <div class="item" @click="like()">
         <van-icon name="like-o" size="0.8rem" :color="likeColor" />
-        <span>点赞（{{ currComment.likeCount }}）</span>
+        <span>点赞（{{ statsStr(currComment.likeCount) }}）</span>
       </div>
       <div class="item" @click="recommentShow = true">
         <van-icon name="comment-o" size="0.8rem" />
-        <span>评论（{{ currComment.commentCount }}）</span>
+        <span>评论（{{ statsStr(currComment.commentCount) }}）</span>
       </div>
     </div>
 
@@ -450,6 +450,7 @@ import {
   sleep,
   saveEnter2Br4Web,
   saveEnter2Br4Save,
+  statsStr,
 } from "@/util/utils.js";
 import moment from "moment";
 
@@ -517,6 +518,9 @@ export default {
         router.push("/");
       }
       var history = baseResponse.data;
+      if (history.pageNum <= 0) {
+        history.pageNum = 1;
+      }
       var commentPage = history.pageNum;
       var commentScroll = history.scrollTop;
       while (commentSelectDTO.pageNum <= commentPage) {
@@ -529,6 +533,17 @@ export default {
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
+      // 判断是否退回"/"
+      var token = window.sessionStorage.getItem("token");
+      if (token == null || token.length == 0) {
+        console.log("onBeforeRouteLeave push");
+        if (to.fullPath == "/") {
+          next();
+        } else {
+          next("/");
+        }
+      }
+
       // 存储历史
       var targetType = 3;
       var targetId = currComment.id;
@@ -873,6 +888,7 @@ export default {
       commentPictures,
       beforeRead,
       deletePicture,
+      statsStr,
     };
   },
   components: {},
@@ -976,12 +992,12 @@ export default {
       font-weight: 700;
     }
     .commentContent {
-      max-width: 100%;
       margin-top: 0.2rem;
       padding: 0.1rem;
       text-align: left;
       font-size: 0.5rem;
       font-weight: 500;
+      word-wrap: break-word; // 换行
     }
     .commentPictures {
       margin-top: 0.1rem;
@@ -1061,6 +1077,8 @@ export default {
         margin-left: 1.8rem;
         font-size: 0.4rem;
         font-weight: 500;
+        word-wrap: break-word; // 换行
+        max-width: 80%;
       }
       .recommentCreateTime {
         position: absolute;
@@ -1102,7 +1120,7 @@ export default {
   // commentDialog
   .commentDialog .van-field__control {
     border: solid 1px black;
-    max-height: 16rem;
+    max-height: 8.5rem;
   }
 }
 </style>

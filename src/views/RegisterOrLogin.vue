@@ -163,7 +163,9 @@
       confirm-button-text="登录"
       :before-close="onBeforeLoginAnonymouslyClose"
     >
-    <span style="font-size: 0.3rem; color: red;">匿名登录用户在退出登录之后<br>无法再次登录该账号</span>
+      <span style="font-size: 0.3rem; color: red"
+        >匿名登录用户在退出登录之后<br />无法再次登录该账号</span
+      >
     </van-dialog>
   </div>
 </template>
@@ -180,12 +182,12 @@ import {
   loginAnonymously,
 } from "@/api/registerOrLogin.js";
 import { getUserInfo } from "@/api/me.js";
-import { checkAuthority } from "@/util/utils.js";
+import { checkAuthority, sleep } from "@/util/utils.js";
 import { showToast } from "vant";
 
 export default {
   setup() {
-    onMounted(() => {
+    onMounted(async () => {
       var totalHeight = document.documentElement.clientHeight;
       document.querySelector(".logo").style.height = `${
         (totalHeight * 30) / 100
@@ -234,6 +236,7 @@ export default {
       var verifyCodeVO = baseResponse.data;
       userRegisterDTO.correctCode = verifyCodeVO.code;
       base64Code.value = verifyCodeVO.base64Img;
+      window.sessionStorage.setItem("uuid4Register", verifyCodeVO.uuid);
     };
 
     // 注册数据
@@ -243,6 +246,7 @@ export default {
       confirmPassword: "",
       code: "", // 用户输入的验证码
       correctCode: "", // 正确的验证码
+      uuid: "", // 用户的唯一标识
     });
 
     // 登录数据
@@ -288,7 +292,22 @@ export default {
           });
           return;
         }
-        var baseResponse = (await register(userRegisterDTO)).data;
+
+        var newUserRegisterDTO = {
+          username: "",
+          password: "",
+          confirmPassword: "",
+          code: "", // 用户输入的验证码
+          uuid: "", // 用户的唯一标识
+        };
+        newUserRegisterDTO.username = userRegisterDTO.username;
+        newUserRegisterDTO.password = userRegisterDTO.password;
+        newUserRegisterDTO.confirmPassword = userRegisterDTO.confirmPassword;
+        newUserRegisterDTO.code = userRegisterDTO.code;
+        newUserRegisterDTO.uuid =
+          window.sessionStorage.getItem("uuid4Register");
+
+        var baseResponse = (await register(newUserRegisterDTO)).data;
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
           showToast({

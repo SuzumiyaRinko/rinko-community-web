@@ -90,6 +90,17 @@ export default {
     onBeforeRouteLeave((to, from, next) => {
       window.sessionStorage.setItem("oldRouter", "/main/insertPost");
 
+      // 判断是否退回"/"
+      var token = window.sessionStorage.getItem("token");
+      if (token == null || token.length == 0) {
+        console.log("onBeforeRouteLeave push");
+        if (to.fullPath == "/") {
+          next();
+        } else {
+          next("/");
+        }
+      }
+
       // bottomNav
       if (
         to.path == "/main/home" ||
