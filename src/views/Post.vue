@@ -610,21 +610,24 @@ export default {
       // }
 
       // 存储历史
-      var targetType = 2;
-      var targetId = currPost.id;
-      var pageNum = commentSelectDTO.pageNum - 1;
-      var scrollTop = document.getElementById("scrollingPost").scrollTop;
-      var history = {
-        targetType,
-        targetId,
-        pageNum,
-        scrollTop,
-        lastView: commentLastView.value,
-      };
-      var baseResponse = (await saveHistory(history)).data;
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
-        return;
+      var token = window.sessionStorage.getItem("token");
+      if (token) {
+        var targetType = 2;
+        var targetId = currPost.id;
+        var pageNum = commentSelectDTO.pageNum - 1;
+        var scrollTop = document.getElementById("scrollingPost").scrollTop;
+        var history = {
+          targetType,
+          targetId,
+          pageNum,
+          scrollTop,
+          lastView: commentLastView.value,
+        };
+        var baseResponse = (await saveHistory(history)).data;
+        if (checkAuthority(baseResponse) == false) {
+          router.push("/");
+          return;
+        }
       }
 
       // bottomNav

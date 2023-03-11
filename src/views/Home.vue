@@ -321,7 +321,12 @@ import { useStore } from "vuex";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { showDialog, showNotify, showImagePreview, showToast } from "vant";
 import { postSearch, suggestionsSearch, feedsSearch } from "@/api/post.js";
-import { checkAuthority, sleep, statsStr } from "@/util/utils.js";
+import {
+  checkAuthority,
+  checkAuthorityTest,
+  sleep,
+  statsStr,
+} from "@/util/utils.js";
 
 export default {
   props: ["shareData"],
@@ -363,10 +368,10 @@ export default {
       );
 
       // 本次应该到达的页数
-      while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
+      // while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
         onPostLoad();
-        await sleep(80);
-      }
+        // await sleep(200);
+      // }
 
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
@@ -377,41 +382,39 @@ export default {
       // oldRouter
       window.sessionStorage.setItem("oldRouter", "/main/home");
 
-      // 判断是否退回"/"
-      // var token = window.sessionStorage.getItem("token");
-      // if (token == null || token.length == 0) {
-      //   console.log("onBeforeRouteLeave push");
-      //   if (to.fullPath == "/") {
-      //     next();
-      //   } else {
-      //     next("/");
-      //   }
-      // }
-
       // homePostHistory / homeInterestHistory
-      if (!searchFlag.value) {
-        if (homeStyle.value != "") {
-          var tmpHomePostHistory = JSON.parse(
-            window.sessionStorage.getItem("homePostHistory")
-          );
-          tmpHomePostHistory.pageNum = postSearchDTO.pageNum - 1;
-          tmpHomePostHistory.scrollTop =
-            document.getElementById("scrollingPost").scrollTop;
-          window.sessionStorage.setItem(
-            "homePostHistory",
-            JSON.stringify(tmpHomePostHistory)
-          );
+      var token = window.sessionStorage.getItem("token");
+      if (token) {
+        if (!searchFlag.value) {
+          if (homeStyle.value != "") {
+            var tmpHomePostHistory = JSON.parse(
+              window.sessionStorage.getItem("homePostHistory")
+            );
+            tmpHomePostHistory.pageNum = postSearchDTO.pageNum - 1;
+            tmpHomePostHistory.scrollTop =
+              document.getElementById("scrollingPost").scrollTop;
+            window.sessionStorage.setItem(
+              "homePostHistory",
+              JSON.stringify(tmpHomePostHistory)
+            );
+          } else {
+            var tmpHomeInterestHistory = JSON.parse(
+              window.sessionStorage.getItem("homeInterestHistory")
+            );
+            tmpHomeInterestHistory.pageNum = postSearchDTO.pageNum - 1;
+            tmpHomeInterestHistory.scrollTop =
+              document.getElementById("scrollingPost").scrollTop;
+            window.sessionStorage.setItem(
+              "homeInterestHistory",
+              JSON.stringify(tmpHomeInterestHistory)
+            );
+          }
+        }
+      } else {
+        if (to.fullPath == "/") {
+          next();
         } else {
-          var tmpHomeInterestHistory = JSON.parse(
-            window.sessionStorage.getItem("homeInterestHistory")
-          );
-          tmpHomeInterestHistory.pageNum = postSearchDTO.pageNum - 1;
-          tmpHomeInterestHistory.scrollTop =
-            document.getElementById("scrollingPost").scrollTop;
-          window.sessionStorage.setItem(
-            "homeInterestHistory",
-            JSON.stringify(tmpHomeInterestHistory)
-          );
+          next("/");
         }
       }
 
@@ -660,39 +663,55 @@ export default {
     const postFinished = ref(false);
     const onPostLoad = async () => {
       console.log("onLoad");
-
-      // 加载post
-      var baseResponse;
-      if (homeStyle.value != "") {
-        baseResponse = (await postSearch(postSearchDTO)).data;
-      } else {
-        baseResponse = (await feedsSearch(postSearchDTO.pageNum)).data;
-      }
-
-      if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+      var token = window.sessionStorage.getItem("token");
+      if (!token) {
+        postFinished.value = true;
         return;
       }
 
-      postSearchDTO.pageNum++; // 页数+1
-      var page = baseResponse.data;
-      postsPage.total = page.total;
+      setTimeout(async () => {
+        // 加载post
+        var baseResponse;
+        if (homeStyle.value != "") {
+          baseResponse = (await postSearch(postSearchDTO)).data;
+        } else {
+          baseResponse = (await feedsSearch(postSearchDTO.pageNum)).data;
+        }
 
-      // 防bug
-      if (
-        (page.data.length > 0 &&
-          postsPage.data.length > 0 &&
-          postsPage.data[0].id != page.data[0].id) ||
-        (page.data.length > 0 && postsPage.data.length == 0)
-      ) {
-        postsPage.data = postsPage.data.concat(page.data);
-      }
+        if (!checkAuthority(baseResponse)) {
+          // postsPage.data = [];
+          // postsPage.total = 0;
+          // postFinished.value = true;
+          // window.sessionStorage.removeItem("token");
+          // await sleep(50);
+          // window.location.reload();
+          router.push("/")
+          return;
+        }
 
-      postLoading.value = false;
-      // 已经没有更多数据了
-      if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
-        postFinished.value = true;
-      }
+        console.log("Home.onload.postSearchDTO", postSearchDTO)
+        postSearchDTO.pageNum++; // 页数+1
+        var page = baseResponse.data;
+        console.log("Home.onload.page", page)
+
+        postsPage.total = page.total;
+
+        // 防bug
+        if (
+          (page.data.length > 0 &&
+            postsPage.data.length > 0 &&
+            postsPage.data[0].id != page.data[0].id) ||
+          (page.data.length > 0 && postsPage.data.length == 0)
+        ) {
+          postsPage.data = postsPage.data.concat(page.data);
+        }
+
+        postLoading.value = false;
+        // 已经没有更多数据了
+        if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
+          postFinished.value = true;
+        }
+      }, 200);
     };
 
     // 查看图片

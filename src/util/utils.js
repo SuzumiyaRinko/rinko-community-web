@@ -6,6 +6,19 @@ const router = useRouter();
 // 判断是否有权限
 export function checkAuthority(baseResponse) {
     if (baseResponse.code == 401) {
+        window.sessionStorage.removeItem("token")
+        showToast({
+            message: "身份过期\n请重新登录",
+            icon: "cross",
+        });
+        return false;
+    }
+    return true
+}
+
+export function checkAuthorityTest(baseResponse, routerPath) {
+    if (baseResponse.code == 401) {
+        console.log("checkAuthority.routerPath", routerPath)
         showToast({
             message: "身份过期\n请重新登录",
             icon: "cross",
@@ -57,10 +70,10 @@ export function unreadCountStr(num) {
 export function statsStr(num) {
     if (num >= 1000 && num < 10000) {
         var potIndex = (num / 1000).toString().indexOf(".")
-        return `${(num / 1000).toString().substring(0, potIndex+2)}k`
+        return `${(num / 1000).toString().substring(0, potIndex + 2)}k`
     } else if (num >= 10000) {
         var potIndex = (num / 10000).toString().indexOf(".")
-        return `${(num / 10000).toString().substring(0, potIndex+2)}w`
+        return `${(num / 10000).toString().substring(0, potIndex + 2)}w`
     } else {
         return num;
     }

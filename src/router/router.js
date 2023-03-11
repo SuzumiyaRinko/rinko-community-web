@@ -39,6 +39,7 @@ const routes = [
       console.log("token", token)
       if (token == null || token.length == 0) {
         console.log("beforeEnter push");
+        window.sessionStorage.clear()
         next("/")
         return;
       }

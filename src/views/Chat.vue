@@ -681,12 +681,14 @@ export default {
 
       // 加载message
       messageSelectDTO.targetId = wsChatTargetId.value;
+      console.log("Chat.onMounted.messageSelectDTO", messageSelectDTO)
       var baseResponse = (await getMessages(messageSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         router.push("/");
       }
 
       var messageSelectVO = baseResponse.data;
+      console.log("Chat.onMounted.messageSelectVO", messageSelectVO)
       messageSelectDTO.lastId = messageSelectVO.lastId; // 记录lastId
 
       // 防bug
