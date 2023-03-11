@@ -479,17 +479,6 @@ export default {
     onBeforeRouteLeave(() => {
       // oldRouter
       window.sessionStorage.setItem("oldRouter", "/main/message");
-
-      // 判断是否退回"/"
-      // var token = window.sessionStorage.getItem("token");
-      // if (token == null || token.length == 0) {
-      //   console.log("onBeforeRouteLeave push");
-      //   if (to.fullPath == "/") {
-      //     next();
-      //   } else {
-      //     next("/");
-      //   }
-      // }
     });
 
     watch(props.shareData.messageQueue4ChangingMessage, (newVal, oldVal) => {
@@ -614,7 +603,7 @@ export default {
       // 加载message
       var baseResponse = (await getMessages(messageSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
         return;
       }
 
@@ -682,7 +671,8 @@ export default {
       // 标记为已读
       var baseResponse = (await setIsRead(messageSetIsReadDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
+
         return;
       }
 
@@ -697,7 +687,8 @@ export default {
         // currPost
         var baseResponse = (await getPostByPostId(targetId)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+          window.location.reload();
+
           return;
         }
         if (checkResource(baseResponse) == false) {
@@ -714,7 +705,8 @@ export default {
         // currComment
         var baseResponse = (await getCommentByCommentId(targetId)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+          window.location.reload();
+
           return;
         }
         if (checkResource(baseResponse) == false) {
@@ -781,7 +773,8 @@ export default {
 
         var baseResponse = (await setIsRead(messageSetIsReadDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+          window.location.reload();
+
           return;
         }
 
@@ -823,7 +816,8 @@ export default {
 
         var baseResponse = (await deleteMessage(messageDeleteDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+          window.location.reload();
+
           return;
         }
 

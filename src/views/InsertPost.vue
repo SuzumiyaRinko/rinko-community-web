@@ -90,17 +90,6 @@ export default {
     onBeforeRouteLeave((to, from, next) => {
       window.sessionStorage.setItem("oldRouter", "/main/insertPost");
 
-      // 判断是否退回"/"
-      // var token = window.sessionStorage.getItem("token");
-      // if (token == null || token.length == 0) {
-      //   console.log("onBeforeRouteLeave push");
-      //   if (to.fullPath == "/") {
-      //     next();
-      //   } else {
-      //     next("/");
-      //   }
-      // }
-
       // bottomNav
       if (
         to.path == "/main/home" ||
@@ -126,7 +115,8 @@ export default {
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       if (baseResponse.code != 200) {
         showToast({
@@ -178,7 +168,8 @@ export default {
       postInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
     };
 
@@ -212,7 +203,8 @@ export default {
 
         var baseResponse = (await insertPostAPI(postInsertDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+                  window.location.reload();
+
         }
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;

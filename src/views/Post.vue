@@ -548,8 +548,8 @@ export default {
       // 判断当前用户是否已点赞、收藏
       var baseResponse = (await hasLikeAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
-        return;
+                window.location.reload();
+
       }
       hasLike.value = baseResponse.data;
       if (hasLike.value) {
@@ -560,7 +560,8 @@ export default {
 
       var baseResponse = (await hasCollectAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
         return;
       }
       hasCollect.value = baseResponse.data;
@@ -577,7 +578,8 @@ export default {
       };
       var baseResponse = (await getHistory(historySearchDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       var history = baseResponse.data;
       console.log("history", history);
@@ -625,8 +627,7 @@ export default {
         };
         var baseResponse = (await saveHistory(history)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
-          return;
+        window.location.reload();
         }
       }
 
@@ -729,7 +730,8 @@ export default {
       commentSelectDTO.targetId = currPost.id;
       var baseResponse = (await commentSelect(commentSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       commentSelectDTO.pageNum++; // 页数+1
       var pageInfo = baseResponse.data;
@@ -781,7 +783,8 @@ export default {
       if (action === "confirm") {
         var baseResponse = (await deletePostAPI(currPost.id)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+                  window.location.reload();
+
         }
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
@@ -812,7 +815,8 @@ export default {
     const like = async () => {
       var baseResponse = (await likeAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       hasLike.value = !hasLike.value;
       if (hasLike.value) {
@@ -868,7 +872,8 @@ export default {
         commentInsertDTO.content = saveEnter2Br4Save(commentInsertDTO.content);
         var baseResponse = (await commentAPI(commentInsertDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+                  window.location.reload();
+
         }
         newComment4Show.id = baseResponse.data;
         commentPage.total++;
@@ -892,7 +897,8 @@ export default {
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+               window.location.reload();
+
       }
       if (baseResponse.code != 200) {
         showToast({
@@ -944,7 +950,8 @@ export default {
       commentInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
     };
 
@@ -954,7 +961,8 @@ export default {
     const collect = async () => {
       var baseResponse = (await collectAPI(currPost.id)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       hasCollect.value = !hasCollect.value;
       if (hasCollect.value) {

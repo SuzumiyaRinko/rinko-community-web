@@ -407,7 +407,8 @@ export default {
       var gotoUserId = window.sessionStorage.getItem("gotoUserId");
       var baseResponse = (await getUserInfo(gotoUserId)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       var userInfo = baseResponse.data;
       console.log(userInfo);
@@ -422,7 +423,8 @@ export default {
       // 判断是否已关注
       var baseResponse = (await hasFollowAPI(info.id)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       hasFollow.value = baseResponse.data;
 
@@ -432,17 +434,6 @@ export default {
 
     onBeforeRouteLeave((to, from, next) => {
       window.sessionStorage.setItem("oldRouter", "/main/user");
-
-      // 判断是否退回"/"
-      // var token = window.sessionStorage.getItem("token");
-      // if (token == null || token.length == 0) {
-      //   console.log("onBeforeRouteLeave push");
-      //   if (to.fullPath == "/") {
-      //     next();
-      //   } else {
-      //     next("/");
-      //   }
-      // }
 
       // bottomNav
       if (
@@ -486,7 +477,8 @@ export default {
     const follow = async (targetId) => {
       var baseResponse = (await followAPI(targetId)).data;
       if (!checkAuthority(baseResponse)) {
-        router.push("/");
+                window.location.reload();
+
       }
       hasFollow.value = !hasFollow.value;
 
@@ -522,7 +514,8 @@ export default {
       postSearchDTO.userId = info.id;
       var baseResponse = (await postSearch(postSearchDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       postSearchDTO.pageNum++; // 页数+1
       var page = baseResponse.data;

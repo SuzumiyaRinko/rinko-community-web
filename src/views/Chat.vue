@@ -655,7 +655,8 @@ export default {
       // myUserInfo
       var baseResponse = (await getUserInfo()).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       var userInfo = baseResponse.data;
       myUserInfo.id = userInfo.id;
@@ -668,7 +669,8 @@ export default {
       if (wsChatTargetId.value != 0) {
         var baseResponse = (await getUserInfo(wsChatTargetId.value)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+                  window.location.reload();
+
         }
         var userInfo = baseResponse.data;
         targetUserInfo.id = userInfo.id;
@@ -684,7 +686,8 @@ export default {
       console.log("Chat.onMounted.messageSelectDTO", messageSelectDTO)
       var baseResponse = (await getMessages(messageSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
 
       var messageSelectVO = baseResponse.data;
@@ -847,7 +850,8 @@ export default {
         messageSelectDTO.targetId = wsChatTargetId.value;
         var baseResponse = (await getMessages(messageSelectDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+                  window.location.reload();
+
         }
 
         var messageSelectVO = baseResponse.data;
@@ -983,7 +987,8 @@ export default {
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       if (baseResponse.code != 200) {
         showToast({
@@ -1035,7 +1040,8 @@ export default {
       messageInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
     };
 

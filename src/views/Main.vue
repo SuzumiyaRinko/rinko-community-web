@@ -53,19 +53,10 @@ import {
 export default {
   setup() {
     onMounted(async () => {
-        var token = window.sessionStorage.getItem("token")
-        if(token) {
-          router.push("/main/home");
-        } else {
-          router.push("/")
-          return;
-        }
-
-      // 防止用户刷新导致某些removeItem没触发
-      // window.sessionStorage.removeItem("oldRouter");
-      // window.sessionStorage.removeItem("gotoUserId");
-      // window.sessionStorage.removeItem("wsChatTargetId");
-      // window.sessionStorage.removeItem("backToSomeone");
+      var token = window.sessionStorage.getItem("token")
+      if(token) {
+        router.push("/main/home");
+      }
 
       // ws连接
       var token = window.sessionStorage.getItem("token");
@@ -105,7 +96,7 @@ export default {
       // 获取未读对话消息数量
       var baseResponse = (await notReadCountAPI()).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
       }
       shareData.notReadCount = baseResponse.data;
 
@@ -124,12 +115,6 @@ export default {
       var token = window.sessionStorage.getItem("token");
       if (token) {
         ws.close();
-      } else {
-        if(to.fullPath == "/") {
-          next()
-        } else {
-          next("/")
-        }
       }
 
       next();

@@ -323,7 +323,6 @@ import { showDialog, showNotify, showImagePreview, showToast } from "vant";
 import { postSearch, suggestionsSearch, feedsSearch } from "@/api/post.js";
 import {
   checkAuthority,
-  checkAuthorityTest,
   sleep,
   statsStr,
 } from "@/util/utils.js";
@@ -368,10 +367,10 @@ export default {
       );
 
       // 本次应该到达的页数
-      // while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
+      while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
         onPostLoad();
-        // await sleep(200);
-      // }
+        await sleep(200);
+      }
 
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
@@ -409,12 +408,6 @@ export default {
               JSON.stringify(tmpHomeInterestHistory)
             );
           }
-        }
-      } else {
-        if (to.fullPath == "/") {
-          next();
-        } else {
-          next("/");
         }
       }
 
@@ -620,8 +613,7 @@ export default {
           var baseResponse = (await suggestionsSearch(postSearchDTO.searchKey))
             .data;
           if (!checkAuthority(baseResponse)) {
-            router.push("/");
-            return;
+            window.location.reload();
           }
           suggestions.value = baseResponse.data;
           suggestionsShow.value = true;
@@ -679,20 +671,13 @@ export default {
         }
 
         if (!checkAuthority(baseResponse)) {
-          // postsPage.data = [];
-          // postsPage.total = 0;
-          // postFinished.value = true;
-          // window.sessionStorage.removeItem("token");
-          // await sleep(50);
-          // window.location.reload();
-          router.push("/")
-          return;
+          window.location.reload();
         }
 
-        console.log("Home.onload.postSearchDTO", postSearchDTO)
+        console.log("Home.onload.postSearchDTO", postSearchDTO);
         postSearchDTO.pageNum++; // 页数+1
         var page = baseResponse.data;
-        console.log("Home.onload.page", page)
+        console.log("Home.onload.page", page);
 
         postsPage.total = page.total;
 

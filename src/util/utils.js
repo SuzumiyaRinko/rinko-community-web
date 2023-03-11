@@ -16,18 +16,6 @@ export function checkAuthority(baseResponse) {
     return true
 }
 
-export function checkAuthorityTest(baseResponse, routerPath) {
-    if (baseResponse.code == 401) {
-        console.log("checkAuthority.routerPath", routerPath)
-        showToast({
-            message: "身份过期\n请重新登录",
-            icon: "cross",
-        });
-        return false;
-    }
-    return true
-}
-
 // 判断是否有资源
 export function checkResource(baseResponse) {
     if (baseResponse.code != 200) {

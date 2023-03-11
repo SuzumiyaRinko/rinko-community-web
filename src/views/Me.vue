@@ -500,7 +500,8 @@ export default {
       // 加载用户信息
       var baseResponse = (await getUserInfo()).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
         return;
       }
       var userInfo = baseResponse.data;
@@ -633,7 +634,8 @@ export default {
       data.append("file", file.file);
       var baseResponse = (await uploadAvatar(data)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
         return;
       }
       if (baseResponse.code != 200) {
@@ -700,7 +702,8 @@ export default {
         }
         var baseResponse = (await updateUserInfo(userUpdateDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+                  window.location.reload();
+
         }
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
@@ -908,7 +911,8 @@ export default {
         baseResponse = (await collectionsSearch(postSearchDTO.pageNum)).data;
       }
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+                window.location.reload();
+
       }
       postSearchDTO.pageNum++; // 页数+1
       var page = baseResponse.data;

@@ -499,7 +499,7 @@ export default {
       // 判断当前用户是否已点赞
       var baseResponse = (await hasLikeAPI(currComment.id)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
       }
       hasLike.value = baseResponse.data;
       if (hasLike.value) {
@@ -515,7 +515,7 @@ export default {
       };
       var baseResponse = (await getHistory(historySearchDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
       }
       var history = baseResponse.data;
       if (history.pageNum <= 0) {
@@ -557,8 +557,7 @@ export default {
       };
       var baseResponse = (await saveHistory(history)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
-        return;
+        window.location.reload();
       }
 
       // bottomNav
@@ -582,7 +581,7 @@ export default {
     const backToPost = async () => {
       var baseResponse = (await getPostByCommentId(currComment.id)).data;
       if (!checkAuthority(baseResponse)) {
-        router.push("/");
+        window.location.reload();
       }
 
       // currPost
@@ -650,7 +649,7 @@ export default {
       console.log("commentSelectDTO.targetId", commentSelectDTO.targetId);
       var baseResponse = (await commentSelect(commentSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
       }
       commentSelectDTO.pageNum++; // 页数+1
       var pageInfo = baseResponse.data;
@@ -703,7 +702,7 @@ export default {
       if (action === "confirm") {
         var baseResponse = (await deleteCommentAPI(currComment.id)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+          window.location.reload();
         }
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
@@ -731,7 +730,7 @@ export default {
     const like = async () => {
       var baseResponse = (await likeAPI(currComment.id)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
       }
       hasLike.value = !hasLike.value;
       if (hasLike.value) {
@@ -774,7 +773,7 @@ export default {
         commentInsertDTO.targetId = currComment.id;
         var baseResponse = (await commentAPI(commentInsertDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-          router.push("/");
+          window.location.reload();
         }
         // 立刻显示
         var now = moment().format("YYYY-MM-DD HH:mm:ss");
@@ -808,7 +807,7 @@ export default {
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
       }
       if (baseResponse.code != 200) {
         showToast({
@@ -860,7 +859,7 @@ export default {
       commentInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
       if (checkAuthority(baseResponse) == false) {
-        router.push("/");
+        window.location.reload();
       }
     };
 
