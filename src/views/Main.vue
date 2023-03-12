@@ -43,6 +43,7 @@ import { showDialog, showNotify, showToast, showImagePreview } from "vant";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { notReadCountAPI } from "@/api/message.js";
+import { getUserInfo } from "@/api/user.js";
 import {
   checkAuthority,
   sleep,
@@ -57,6 +58,13 @@ export default {
       if(token) {
         router.push("/main/home");
       }
+
+      var baseResponse = (await getUserInfo()).data;
+      if(!checkAuthority(baseResponse)) {
+        window.location.reload()
+      }
+
+      window.sessionStorage.setItem("myUserInfo", JSON.stringify(baseResponse.data))
 
       // ws连接
       var token = window.sessionStorage.getItem("token");

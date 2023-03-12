@@ -354,9 +354,11 @@ export default {
         homePostHistory.pageNum = tmpHomePostHistory.pageNum;
         homePostHistory.scrollTop = tmpHomePostHistory.scrollTop;
       }
-      if (homePostHistory.pageNum <= 0) {
-        homePostHistory.pageNum = 1;
+
+      if (homePostHistory.pageNum < 0) {
+        homePostHistory.pageNum = 0;
       }
+
       window.sessionStorage.setItem(
         "homePostHistory",
         JSON.stringify(homePostHistory)
@@ -364,8 +366,8 @@ export default {
 
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
-        onPostLoad();
-        await sleep(200);
+        await onPostLoad();
+        console.log("Home.onMounted.onLoad");
       }
 
       // 移动scrollingPost的滚动条
@@ -424,14 +426,14 @@ export default {
     // homePostHistory
     const homePostHistory = reactive({
       postLastView: -1,
-      pageNum: 1,
+      pageNum: 0,
       scrollTop: 0,
     });
 
     // homeInterestHistory
     const homeInterestHistory = reactive({
       postLastView: -1,
-      pageNum: 1,
+      pageNum: 0,
       scrollTop: 0,
     });
 
@@ -472,7 +474,7 @@ export default {
       // init
       homeStyle.value = "color: #1688f8;";
       interestStyle.value = "";
-      postSearchDTO.pageNum = 1;
+      postSearchDTO.pageNum = 0;
       postsPage.data = [];
       postFinished.value = false;
 
@@ -492,8 +494,7 @@ export default {
 
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= homePostHistory.pageNum) {
-        onPostLoad();
-        await sleep(80);
+        await onPostLoad();
       }
 
       // 移动scrollingPost的滚动条
@@ -535,7 +536,7 @@ export default {
       // init
       interestStyle.value = "color: #1688f8;";
       homeStyle.value = "";
-      postSearchDTO.pageNum = 1;
+      postSearchDTO.pageNum = 0;
       postsPage.data = [];
       postFinished.value = false;
 
@@ -555,8 +556,7 @@ export default {
 
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= homeInterestHistory.pageNum) {
-        onPostLoad();
-        await sleep(80);
+        await onPostLoad();
       }
 
       // 移动scrollingPost的滚动条
@@ -573,8 +573,8 @@ export default {
 
       searchFlag.value = true;
       postsPage.data = [];
-      postSearchDTO.pageNum = 1;
-      onPostLoad();
+      postSearchDTO.pageNum = 0;
+      await onPostLoad();
     };
     // 清除搜索框中的文本
     const onCancel = async () => {
@@ -644,58 +644,53 @@ export default {
       searchKey: "",
       isSearchMyself: false,
       sortType: 1,
-      pageNum: 1, // 下次查询的pageNum
+      pageNum: 0,
     });
     // post往下滚动
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      console.log("Home.vue onLoad");
+      console.log("Home.onLoad");
+      await sleep(200);
       var token = window.sessionStorage.getItem("token");
       if (!token) {
         postFinished.value = true;
         return;
       }
 
-      setTimeout(async () => {
-        // 加载post
-        var baseResponse;
-        if (homeStyle.value != "") {
-          baseResponse = (await postSearch(postSearchDTO)).data;
-        } else {
-          baseResponse = (await feedsSearch(postSearchDTO.pageNum)).data;
-        }
+      // 加载post
+      var baseResponse;
+      postSearchDTO.pageNum++;
+      if (homeStyle.value != "") {
+        baseResponse = (await postSearch(postSearchDTO)).data;
+      } else {
+        baseResponse = (await feedsSearch(postSearchDTO.pageNum)).data;
+      }
 
-        if (!checkAuthority(baseResponse)) {
-          window.location.reload();
-        }
+      if (!checkAuthority(baseResponse)) {
+        window.location.reload();
+      }
 
+      var page = baseResponse.data;
+      postsPage.total = page.total;
+      postLoading.value = false;
+
+      if (
+        postsPage.data.length < page.total &&
+        ((postsPage.data.length == 0 && page.data.length > 0) ||
+          (postsPage.data.length > 0 &&
+            page.data.length > 0 &&
+            postsPage.data[0].id != page.data[0].id))
+      ) {
         console.log("Home.onload.postSearchDTO", postSearchDTO);
-        var page = baseResponse.data;
-        if (page.data.length > 0) {
-          postSearchDTO.pageNum++; // 页数+1
-        }
         console.log("Home.onload.page", page);
+        postsPage.data = postsPage.data.concat(page.data);
+        console.log("Home.onload.postsPage", postsPage);
+      }
 
-        postsPage.total = page.total;
-
-        // 防bug
-        if (
-          (page.data.length > 0 &&
-            postsPage.data.length > 0 &&
-            postsPage.data[0].id != page.data[0].id) ||
-          (page.data.length > 0 && postsPage.data.length == 0)
-        ) {
-          postsPage.data = postsPage.data.concat(page.data);
-        }
-
-        postLoading.value = false;
-        
-        // 已经没有更多数据了
-        if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
-          postFinished.value = true;
-        }
-      }, 200);
+      if (postsPage.data.length >= page.total) {
+        postFinished.value = true;
+      }
     };
 
     // 查看图片
@@ -738,7 +733,7 @@ export default {
           window.sessionStorage.getItem("homePostHistory")
         );
         tmpHomePostHistory.postLastView = post.id;
-        tmpHomePostHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpHomePostHistory.pageNum = postSearchDTO.pageNum;
         tmpHomePostHistory.scrollTop =
           document.getElementById("scrollingPost").scrollTop;
         window.sessionStorage.setItem(
@@ -750,7 +745,7 @@ export default {
           window.sessionStorage.getItem("homeInterestHistory")
         );
         tmpHomeInterestHistory.postLastView = post.id;
-        tmpHomeInterestHistory.pageNum = postSearchDTO.pageNum - 1;
+        tmpHomeInterestHistory.pageNum = postSearchDTO.pageNum;
         tmpHomeInterestHistory.scrollTop =
           document.getElementById("scrollingPost").scrollTop;
         window.sessionStorage.setItem(

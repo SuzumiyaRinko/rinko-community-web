@@ -378,6 +378,9 @@
           <span class="oneMessageCreatetime" v-html="message.createTime" />
           <span class="oneMessagePreContent">消息：</span
           ><span class="oneMessageContent" v-html="message.content" />
+          <span v-if="message.content == null" class="oneMessageContent"
+            >[图片]</span
+          >
           <hr style="margin-left: 0.3rem" />
         </div>
       </div>
@@ -443,7 +446,7 @@ import {
 export default {
   props: ["shareData"],
   setup(props) {
-    onMounted(() => {
+    onMounted(async () => {
       var totalHeight = document.documentElement.clientHeight;
       document.querySelector(".topNav").style.height = `${
         (totalHeight * 4.5) / 100
@@ -473,7 +476,7 @@ export default {
         publicIcon.style.left = "0.5rem";
       }
 
-      onMessageLoad();
+      await onMessageLoad();
     });
 
     onBeforeRouteLeave(() => {

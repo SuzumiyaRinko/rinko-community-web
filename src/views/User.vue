@@ -426,7 +426,7 @@ export default {
       hasFollow.value = baseResponse.data;
 
       // 加载用户post
-      onPostLoad();
+      await onPostLoad();
     });
 
     onBeforeRouteLeave((to, from, next) => {
@@ -498,38 +498,41 @@ export default {
       isSearchMyself: false,
       userId: "",
       sortType: 3,
-      pageNum: 1, // 下次查询的pageNum
+      pageNum: 0, // 下次查询的pageNum
     });
     // post往下滚动
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      console.log("User.vue onload");
+      console.log("User.onload");
+      await sleep(200);
 
       // 加载用户post
       postSearchDTO.userId = info.id;
+      postSearchDTO.pageNum++; // 页数+1
       var baseResponse = (await postSearch(postSearchDTO)).data;
+      
       if (checkAuthority(baseResponse) == false) {
         window.location.reload();
       }
-      postSearchDTO.pageNum++; // 页数+1
+
       var page = baseResponse.data;
       postsPage.total = page.total;
 
-      // 防bug
       if (
-        (page.data.length > 0 &&
-          postsPage.data.length > 0 &&
-          postsPage.data[0].id != page.data[0].id) ||
-        (page.data.length > 0 && postsPage.data.length == 0)
+        postsPage.data.length < page.total &&
+        ((postsPage.data.length == 0 && page.data.length > 0) ||
+          (postsPage.data.length > 0 &&
+            page.data.length > 0 &&
+            postsPage.data[0].id != page.data[0].id))
       ) {
+        console.log("User.onload.postSearchDTO", postSearchDTO);
+        console.log("User.onload.page", page);
         postsPage.data = postsPage.data.concat(page.data);
+        console.log("User.onload.postsPage", postsPage);
       }
 
-      postLoading.value = false;
-
-      // 已经没有更多数据了
-      if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
+      if (postsPage.data.length >= page.total) {
         postFinished.value = true;
       }
     };

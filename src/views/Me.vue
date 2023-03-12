@@ -507,7 +507,7 @@ export default {
         window.location.reload();
         return;
       }
-      
+
       var userInfo = baseResponse.data;
       console.log(userInfo);
       info.id = userInfo.id;
@@ -527,9 +527,11 @@ export default {
         mePostHistory.pageNum = tmpMePostHistory.pageNum;
         mePostHistory.scrollTop = tmpMePostHistory.scrollTop;
       }
-      if (mePostHistory.pageNum <= 0) {
-        mePostHistory.pageNum = 1;
+
+      if(mePostHistory.pageNum < 0) {
+        mePostHistory.pageNum = 0;
       }
+
       window.sessionStorage.setItem(
         "mePostHistory",
         JSON.stringify(mePostHistory)
@@ -537,10 +539,10 @@ export default {
 
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= mePostHistory.pageNum) {
-        onPostLoad();
-        console.log("onMounted onLoad")
-        await sleep(80);
+        await onPostLoad();
+        console.log("Me.onMounted.onLoad");
       }
+
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
         mePostHistory.scrollTop;
@@ -587,14 +589,14 @@ export default {
     // mePostHistory
     const mePostHistory = reactive({
       postLastView: -1,
-      pageNum: 1,
+      pageNum: 0,
       scrollTop: 0,
     });
 
     // meCollectionHistory
     const meCollectionHistory = reactive({
       postLastView: -1,
-      pageNum: 1,
+      pageNum: 0,
       scrollTop: 0,
     });
 
@@ -650,10 +652,6 @@ export default {
         var myUserInfo = JSON.parse(myUserInfoJson);
         myUserInfo.avatar = baseResponse.data;
         window.sessionStorage.setItem("myUserInfo", JSON.stringify(myUserInfo));
-        // 更新userInfo数据
-        // info.avatarUrl = baseResponse.data;
-        // avatarUploadShow.value = false;
-        // avatarList.value = [];
 
         window.location.reload();
       });
@@ -722,8 +720,8 @@ export default {
             JSON.stringify(myUserInfo)
           );
           // 更新userInfo数据
-          // info.nickname = userUpdateDTO.nickname;
-          // info.gender = userUpdateDTO.gender;
+          info.nickname = userUpdateDTO.nickname;
+          info.gender = userUpdateDTO.gender;
           window.location.reload();
         });
       }
@@ -789,7 +787,7 @@ export default {
         "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;";
       collectionStyle.value = "";
       postsPage.data = [];
-      postSearchDTO.pageNum = 1;
+      postSearchDTO.pageNum = 0;
       postFinished.value = false;
 
       // mePostHistory
@@ -803,8 +801,7 @@ export default {
       }
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= mePostHistory.pageNum) {
-        onPostLoad();
-        await sleep(80);
+        await onPostLoad();
       }
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
@@ -843,7 +840,7 @@ export default {
       );
 
       // init
-      postSearchDTO.pageNum = 1;
+      postSearchDTO.pageNum = 0;
       collectionStyle.value =
         "box-shadow: 0 0 15px 3px #000000;background-color: #1f83d4;";
       postStyle.value = "";
@@ -865,8 +862,7 @@ export default {
       );
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= meCollectionHistory.pageNum) {
-        onPostLoad();
-        await sleep(80);
+        await onPostLoad();
       }
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
@@ -885,58 +881,56 @@ export default {
       isSearchMyself: true,
       userId: "",
       sortType: 3,
-      pageNum: 1, // 下次查询的pageNum
+      pageNum: 0,
     });
     // post往下滚动
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      console.log("Me.vue onLoad");
+      console.log("Me.onLoad");
+      await sleep(200);
       var token = window.sessionStorage.getItem("token");
       if (!token) {
         postFinished.value = true;
         return;
       }
 
-      setTimeout(async () => {
-        var baseResponse;
-        if (postStyle.value != "") {
-          // 加载用户post
-          postSearchDTO.isSearchMyself = true;
-          baseResponse = (await postSearch(postSearchDTO)).data;
-        } else {
-          // 加载用户collections
-          postSearchDTO.isSearchMyself = false;
-          baseResponse = (await collectionsSearch(postSearchDTO.pageNum)).data;
-        }
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+      var baseResponse;
+      postSearchDTO.pageNum++;
+      if (postStyle.value != "") {
+        // 加载用户post
+        postSearchDTO.isSearchMyself = true;
+        baseResponse = (await postSearch(postSearchDTO)).data;
+      } else {
+        // 加载用户collections
+        postSearchDTO.isSearchMyself = false;
+        baseResponse = (await collectionsSearch(postSearchDTO.pageNum)).data;
+      }
 
+      if (checkAuthority(baseResponse) == false) {
+        window.location.reload();
+      }
+
+      var page = baseResponse.data;
+      postsPage.total = page.total;
+      postLoading.value = false;
+
+      if (
+        postsPage.data.length < page.total &&
+        ((postsPage.data.length == 0 && page.data.length > 0) ||
+          (postsPage.data.length > 0 &&
+            page.data.length > 0 &&
+            postsPage.data[0].id != page.data[0].id))
+      ) {
         console.log("Me.onload.postSearchDTO", postSearchDTO);
-        var page = baseResponse.data;
-          postSearchDTO.pageNum++; // 页数+1
         console.log("Me.onload.page", page);
+        postsPage.data = postsPage.data.concat(page.data);
+        console.log("Me.onload.postsPage", postsPage);
+      }
 
-        postsPage.total = page.total;
-
-        // 防bug
-        if (
-          (page.data.length > 0 &&
-            postsPage.data.length > 0 &&
-            postsPage.data[0].id != page.data[0].id) ||
-          (page.data.length > 0 && postsPage.data.length == 0)
-        ) {
-          postsPage.data = postsPage.data.concat(page.data);
-        }
-
-        postLoading.value = false;
-
-        // 已经没有更多数据了
-        if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
-          postFinished.value = true;
-        }
-      }, 200);
+      if (postsPage.data.length >= page.total) {
+        postFinished.value = true;
+      }
     };
 
     // post下拉刷新

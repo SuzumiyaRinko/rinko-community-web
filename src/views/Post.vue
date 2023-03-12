@@ -580,14 +580,15 @@ export default {
         window.location.reload();
       }
       var history = baseResponse.data;
-      if (history.pageNum <= 0) {
-        history.pageNum = 1;
+
+      if (history.pageNum < 0) {
+        history.pageNum = 0;
       }
+
       commentLastView.value = history.lastView;
 
       while (commentSelectDTO.pageNum <= history.pageNum) {
-        onCommentLoad();
-        await sleep(80);
+        await onCommentLoad();
       }
 
       // 移动scrollingPost的滚动条
@@ -703,45 +704,43 @@ export default {
       targetType: 1,
       targetId: currPost.id,
       sortType: 1,
-      pageNum: 1, // 下次查询的pageNum
+      pageNum: 0, // 下次查询的pageNum
     });
 
     // comment下拉刷新
     const commentLoading = ref(false);
     const commentFinished = ref(false);
     const onCommentLoad = async () => {
-      console.log("Post.vue onLoad");
+      console.log("Post.onLoad");
+      await sleep(200);
 
       // 加载comment
       commentSelectDTO.targetId = currPost.id;
+      commentSelectDTO.pageNum++;
       var baseResponse = (await commentSelect(commentSelectDTO)).data;
+
       if (checkAuthority(baseResponse) == false) {
         window.location.reload();
       }
 
       var pageInfo = baseResponse.data;
-      if (pageInfo.list.length > 0) {
-        commentSelectDTO.pageNum++; // 页数+1
-      }
       commentPage.total = pageInfo.total;
-
-      // 防bug
-      if (
-        (pageInfo.list.length > 0 &&
-          commentPage.data.length > 0 &&
-          commentPage.data[0].id != pageInfo.list[0].id) ||
-        (pageInfo.list.length > 0 && commentPage.data.length == 0)
-      ) {
-        commentPage.data = commentPage.data.concat(pageInfo.list);
-      }
-
       commentLoading.value = false;
 
-      // 已经没有更多数据了
       if (
-        commentPage.data.length >= commentPage.total ||
-        pageInfo.list.length == 0
+        commentPage.data.length < pageInfo.total &&
+        ((commentPage.data.length == 0 && pageInfo.list.length > 0) ||
+          (commentPage.data.length > 0 &&
+            pageInfo.list.length > 0 &&
+            commentPage.data[0].id != pageInfo.list[0].id))
       ) {
+        console.log("Post.onload.commentSelectDTO", commentSelectDTO);
+        console.log("Post.onload.pageInfo", pageInfo);
+        commentPage.data = commentPage.data.concat(pageInfo.list);
+        console.log("Post.onload.commentPage", commentPage);
+      }
+
+      if (commentPage.data.length >= pageInfo.total) {
         commentFinished.value = true;
       }
     };

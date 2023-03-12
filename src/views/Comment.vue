@@ -518,14 +518,13 @@ export default {
         window.location.reload();
       }
       var history = baseResponse.data;
-      if (history.pageNum <= 0) {
-        history.pageNum = 1;
+      if (history.pageNum < 0) {
+        history.pageNum = 0;
       }
       var commentPage = history.pageNum;
       var commentScroll = history.scrollTop;
       while (commentSelectDTO.pageNum <= commentPage) {
-        onRecommentLoad();
-        await sleep(80);
+        await onRecommentLoad();
       }
 
       // 移动scrollingPost的滚动条
@@ -628,45 +627,43 @@ export default {
       targetType: 2,
       targetId: currComment.id,
       sortType: 1,
-      pageNum: 1, // 下次查询的pageNum
+      pageNum: 0, // 下次查询的pageNum
     });
 
     // recomment下拉刷新
     const recommentLoading = ref(false);
     const recommentFinished = ref(false);
     const onRecommentLoad = async () => {
-      console.log("Comment.vue onLoad");
+      console.log("Comment.onLoad");
+      await sleep(200);
 
       // 加载recomment
       commentSelectDTO.targetId = currComment.id;
+      commentSelectDTO.pageNum++;
       var baseResponse = (await commentSelect(commentSelectDTO)).data;
+
       if (checkAuthority(baseResponse) == false) {
         window.location.reload();
       }
 
       var pageInfo = baseResponse.data;
-      if (pageInfo.list.length > 0) {
-        commentSelectDTO.pageNum++; // 页数+1
-      }
       recommentPage.total = pageInfo.total;
-
-      // 防bug
-      if (
-        (pageInfo.list.length > 0 &&
-          recommentPage.data.length > 0 &&
-          recommentPage.data[0].id != pageInfo.list[0].id) ||
-        (pageInfo.list.length > 0 && recommentPage.data.length == 0)
-      ) {
-        recommentPage.data = recommentPage.data.concat(pageInfo.list);
-      }
-
       recommentLoading.value = false;
 
-      // 已经没有更多数据了
       if (
-        recommentPage.data.length >= recommentPage.total ||
-        pageInfo.list.length == 0
+        recommentPage.data.length < pageInfo.total &&
+        ((recommentPage.data.length == 0 && pageInfo.list.length > 0) ||
+          (recommentPage.data.length > 0 &&
+            pageInfo.list.length > 0 &&
+            recommentPage.data[0].id != pageInfo.list[0].id))
       ) {
+        console.log("Comment.onload.commentSelectDTO", commentSelectDTO);
+        console.log("Comment.onload.pageInfo", pageInfo);
+        recommentPage.data = recommentPage.data.concat(pageInfo.list);
+        console.log("Comment.onload.commentPage", recommentPage);
+      }
+
+      if (recommentPage.data.length >= pageInfo.total) {
         recommentFinished.value = true;
       }
     };
