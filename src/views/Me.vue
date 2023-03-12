@@ -367,8 +367,12 @@
             <span class="postCreateTime">{{ post.createTime }}</span
             ><br />
             <span class="postStatus">点赞：{{ statsStr(post.likeCount) }}</span>
-            <span class="postStatus">评论：{{ statsStr(post.commentCount) }}</span>
-            <span class="postStatus">收藏：{{ statsStr(post.collectionCount) }}</span>
+            <span class="postStatus"
+              >评论：{{ statsStr(post.commentCount) }}</span
+            >
+            <span class="postStatus"
+              >收藏：{{ statsStr(post.collectionCount) }}</span
+            >
             <div
               class="postLastView"
               v-if="postStyle != '' && mePostHistory.postLastView == post.id"
@@ -500,10 +504,10 @@ export default {
       // 加载用户信息
       var baseResponse = (await getUserInfo()).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
+        window.location.reload();
         return;
       }
+      
       var userInfo = baseResponse.data;
       console.log(userInfo);
       info.id = userInfo.id;
@@ -513,7 +517,6 @@ export default {
       info.followingsCount = userInfo.followingsCount;
       info.followersCount = userInfo.followersCount;
       info.roles = userInfo.roles;
-      console.log("info.roles", info.roles);
 
       // mePostHistory
       var tmpMePostHistory = JSON.parse(
@@ -531,9 +534,11 @@ export default {
         "mePostHistory",
         JSON.stringify(mePostHistory)
       );
+
       // 本次应该到达的页数
       while (postSearchDTO.pageNum <= mePostHistory.pageNum) {
         onPostLoad();
+        console.log("onMounted onLoad")
         await sleep(80);
       }
       // 移动scrollingPost的滚动条
@@ -545,20 +550,9 @@ export default {
       // oldRouter
       window.sessionStorage.setItem("oldRouter", "/main/me");
 
-      // 判断是否退回"/"
-      // var token = window.sessionStorage.getItem("token");
-      // if (token == null || token.length == 0) {
-      //   console.log("onBeforeRouteLeave push");
-      //   if (to.fullPath == "/") {
-      //     next();
-      //   } else {
-      //     next("/");
-      //   }
-      // }
-
       if (to.fullPath == "/") {
         window.sessionStorage.clear();
-        next()
+        next();
         return;
       }
 
@@ -634,7 +628,7 @@ export default {
       data.append("file", file.file);
       var baseResponse = (await uploadAvatar(data)).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
+        window.location.reload();
 
         return;
       }
@@ -702,8 +696,7 @@ export default {
         }
         var baseResponse = (await updateUserInfo(userUpdateDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-                  window.location.reload();
-
+          window.location.reload();
         }
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
@@ -898,42 +891,52 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      console.log("onLoad");
-
-      var baseResponse;
-      if (postStyle.value != "") {
-        // 加载用户post
-        postSearchDTO.isSearchMyself = true;
-        baseResponse = (await postSearch(postSearchDTO)).data;
-      } else {
-        // 加载用户collections
-        postSearchDTO.isSearchMyself = false;
-        baseResponse = (await collectionsSearch(postSearchDTO.pageNum)).data;
-      }
-      if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
-      }
-      postSearchDTO.pageNum++; // 页数+1
-      var page = baseResponse.data;
-      postsPage.total = page.total;
-
-      // 防bug
-      if (
-        (page.data.length > 0 &&
-          postsPage.data.length > 0 &&
-          postsPage.data[0].id != page.data[0].id) ||
-        (page.data.length > 0 && postsPage.data.length == 0)
-      ) {
-        postsPage.data = postsPage.data.concat(page.data);
-      }
-
-      postLoading.value = false;
-
-      // 已经没有更多数据了
-      if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
+      console.log("Me.vue onLoad");
+      var token = window.sessionStorage.getItem("token");
+      if (!token) {
         postFinished.value = true;
+        return;
       }
+
+      setTimeout(async () => {
+        var baseResponse;
+        if (postStyle.value != "") {
+          // 加载用户post
+          postSearchDTO.isSearchMyself = true;
+          baseResponse = (await postSearch(postSearchDTO)).data;
+        } else {
+          // 加载用户collections
+          postSearchDTO.isSearchMyself = false;
+          baseResponse = (await collectionsSearch(postSearchDTO.pageNum)).data;
+        }
+        if (checkAuthority(baseResponse) == false) {
+          window.location.reload();
+        }
+
+        console.log("Me.onload.postSearchDTO", postSearchDTO);
+        var page = baseResponse.data;
+          postSearchDTO.pageNum++; // 页数+1
+        console.log("Me.onload.page", page);
+
+        postsPage.total = page.total;
+
+        // 防bug
+        if (
+          (page.data.length > 0 &&
+            postsPage.data.length > 0 &&
+            postsPage.data[0].id != page.data[0].id) ||
+          (page.data.length > 0 && postsPage.data.length == 0)
+        ) {
+          postsPage.data = postsPage.data.concat(page.data);
+        }
+
+        postLoading.value = false;
+
+        // 已经没有更多数据了
+        if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
+          postFinished.value = true;
+        }
+      }, 200);
     };
 
     // post下拉刷新

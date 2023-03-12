@@ -655,8 +655,7 @@ export default {
       // myUserInfo
       var baseResponse = (await getUserInfo()).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
+        window.location.reload();
       }
       var userInfo = baseResponse.data;
       myUserInfo.id = userInfo.id;
@@ -669,8 +668,7 @@ export default {
       if (wsChatTargetId.value != 0) {
         var baseResponse = (await getUserInfo(wsChatTargetId.value)).data;
         if (checkAuthority(baseResponse) == false) {
-                  window.location.reload();
-
+          window.location.reload();
         }
         var userInfo = baseResponse.data;
         targetUserInfo.id = userInfo.id;
@@ -683,15 +681,14 @@ export default {
 
       // 加载message
       messageSelectDTO.targetId = wsChatTargetId.value;
-      console.log("Chat.onMounted.messageSelectDTO", messageSelectDTO)
+      console.log("Chat.onMounted.messageSelectDTO", messageSelectDTO);
       var baseResponse = (await getMessages(messageSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
+        window.location.reload();
       }
 
       var messageSelectVO = baseResponse.data;
-      console.log("Chat.onMounted.messageSelectVO", messageSelectVO)
+      console.log("Chat.onMounted.messageSelectVO", messageSelectVO);
       messageSelectDTO.lastId = messageSelectVO.lastId; // 记录lastId
 
       // 防bug
@@ -839,27 +836,23 @@ export default {
     const messageFinished = ref(false);
     const onMessageLoad = async () => {
       setTimeout(async () => {
-        console.log("onLoad");
+        console.log("Chat.vue onLoad");
 
         // 记录当前高度
         var lastScrollHeight =
           document.getElementById("scrollingContent").scrollHeight;
-        console.log("lastScrollHeight", lastScrollHeight);
 
         // 加载message
         messageSelectDTO.targetId = wsChatTargetId.value;
         var baseResponse = (await getMessages(messageSelectDTO)).data;
         if (checkAuthority(baseResponse) == false) {
-                  window.location.reload();
-
+          window.location.reload();
         }
 
         var messageSelectVO = baseResponse.data;
         messageSelectDTO.lastId = messageSelectVO.lastId; // 记录lastId
 
         // 防bug
-        console.log("messageSelectDTO", messageSelectDTO);
-        console.log("messageSelectVO", messageSelectVO);
         if (
           (messageSelectVO.messages != null &&
             messageSelectVO.messages.length > 0 &&
@@ -987,8 +980,7 @@ export default {
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
+        window.location.reload();
       }
       if (baseResponse.code != 200) {
         showToast({
@@ -1040,8 +1032,7 @@ export default {
       messageInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
+        window.location.reload();
       }
     };
 

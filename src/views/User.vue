@@ -407,11 +407,9 @@ export default {
       var gotoUserId = window.sessionStorage.getItem("gotoUserId");
       var baseResponse = (await getUserInfo(gotoUserId)).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
+        window.location.reload();
       }
       var userInfo = baseResponse.data;
-      console.log(userInfo);
       info.id = userInfo.id;
       info.nickname = userInfo.nickname;
       info.gender = userInfo.gender;
@@ -423,8 +421,7 @@ export default {
       // 判断是否已关注
       var baseResponse = (await hasFollowAPI(info.id)).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
+        window.location.reload();
       }
       hasFollow.value = baseResponse.data;
 
@@ -477,8 +474,7 @@ export default {
     const follow = async (targetId) => {
       var baseResponse = (await followAPI(targetId)).data;
       if (!checkAuthority(baseResponse)) {
-                window.location.reload();
-
+        window.location.reload();
       }
       hasFollow.value = !hasFollow.value;
 
@@ -508,14 +504,13 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      console.log("onload");
+      console.log("User.vue onload");
 
       // 加载用户post
       postSearchDTO.userId = info.id;
       var baseResponse = (await postSearch(postSearchDTO)).data;
       if (checkAuthority(baseResponse) == false) {
-                window.location.reload();
-
+        window.location.reload();
       }
       postSearchDTO.pageNum++; // 页数+1
       var page = baseResponse.data;

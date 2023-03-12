@@ -533,31 +533,22 @@ export default {
     });
 
     onBeforeRouteLeave(async (to, from, next) => {
-      // 判断是否退回"/"
-      // var token = window.sessionStorage.getItem("token");
-      // if (token == null || token.length == 0) {
-      //   console.log("onBeforeRouteLeave push");
-      //   if (to.fullPath == "/") {
-      //     next();
-      //   } else {
-      //     next("/");
-      //   }
-      // }
-
       // 存储历史
-      var targetType = 3;
-      var targetId = currComment.id;
-      var pageNum = commentSelectDTO.pageNum - 1;
-      var scrollTop = document.getElementById("scrollingComment").scrollTop;
-      var history = {
-        targetType,
-        targetId,
-        pageNum,
-        scrollTop,
-      };
-      var baseResponse = (await saveHistory(history)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
+      if (window.sessionStorage.getItem("token")) {
+        var targetType = 3;
+        var targetId = currComment.id;
+        var pageNum = commentSelectDTO.pageNum - 1;
+        var scrollTop = document.getElementById("scrollingComment").scrollTop;
+        var history = {
+          targetType,
+          targetId,
+          pageNum,
+          scrollTop,
+        };
+        var baseResponse = (await saveHistory(history)).data;
+        if (checkAuthority(baseResponse) == false) {
+          window.location.reload();
+        }
       }
 
       // bottomNav
@@ -644,16 +635,19 @@ export default {
     const recommentLoading = ref(false);
     const recommentFinished = ref(false);
     const onRecommentLoad = async () => {
+      console.log("Comment.vue onLoad");
+
       // 加载recomment
       commentSelectDTO.targetId = currComment.id;
-      console.log("commentSelectDTO.targetId", commentSelectDTO.targetId);
       var baseResponse = (await commentSelect(commentSelectDTO)).data;
       if (checkAuthority(baseResponse) == false) {
         window.location.reload();
       }
-      commentSelectDTO.pageNum++; // 页数+1
+
       var pageInfo = baseResponse.data;
-      console.log("pageInfo", pageInfo);
+      if (pageInfo.list.length > 0) {
+        commentSelectDTO.pageNum++; // 页数+1
+      }
       recommentPage.total = pageInfo.total;
 
       // 防bug

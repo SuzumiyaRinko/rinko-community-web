@@ -598,7 +598,7 @@ export default {
     const messageLoading = ref(false);
     const messageFinished = ref(false);
     const onMessageLoad = async () => {
-      console.log("onLoad");
+      console.log("Message.vue onLoad");
 
       // 加载message
       var baseResponse = (await getMessages(messageSelectDTO)).data;

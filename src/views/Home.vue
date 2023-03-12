@@ -321,11 +321,7 @@ import { useStore } from "vuex";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { showDialog, showNotify, showImagePreview, showToast } from "vant";
 import { postSearch, suggestionsSearch, feedsSearch } from "@/api/post.js";
-import {
-  checkAuthority,
-  sleep,
-  statsStr,
-} from "@/util/utils.js";
+import { checkAuthority, sleep, statsStr } from "@/util/utils.js";
 
 export default {
   props: ["shareData"],
@@ -654,7 +650,7 @@ export default {
     const postLoading = ref(false);
     const postFinished = ref(false);
     const onPostLoad = async () => {
-      console.log("onLoad");
+      console.log("Home.vue onLoad");
       var token = window.sessionStorage.getItem("token");
       if (!token) {
         postFinished.value = true;
@@ -675,8 +671,10 @@ export default {
         }
 
         console.log("Home.onload.postSearchDTO", postSearchDTO);
-        postSearchDTO.pageNum++; // 页数+1
         var page = baseResponse.data;
+        if (page.data.length > 0) {
+          postSearchDTO.pageNum++; // 页数+1
+        }
         console.log("Home.onload.page", page);
 
         postsPage.total = page.total;
@@ -692,6 +690,7 @@ export default {
         }
 
         postLoading.value = false;
+        
         // 已经没有更多数据了
         if (postsPage.data.length >= postsPage.total || page.data.length == 0) {
           postFinished.value = true;
