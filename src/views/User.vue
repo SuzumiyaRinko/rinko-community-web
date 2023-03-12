@@ -543,7 +543,7 @@ export default {
       await sleep(500);
       postSearchDTO.pageNum = 1;
       postsPage.data = [];
-      onPostLoad();
+      await onPostLoad();
       pullRefreshLoading.value = false;
     };
 

@@ -543,7 +543,7 @@ export default {
       messageSelectDTO.lastId = null;
 
       // 加载消息
-      onMessageLoad();
+      await onMessageLoad();
     };
 
     const gotoChat = async () => {

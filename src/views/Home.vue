@@ -584,14 +584,13 @@ export default {
       searchFlag.value = false;
       postSearchDTO.searchKey = "";
       postsPage.data = [];
-      postSearchDTO.pageNum = 1;
+      postSearchDTO.pageNum = 0;
       // 本次应该到达的页数
       var tmpHomePostHistory = JSON.parse(
         window.sessionStorage.getItem("homePostHistory")
       );
       while (postSearchDTO.pageNum <= tmpHomePostHistory.pageNum) {
-        onPostLoad();
-        await sleep(80);
+        await onPostLoad();
       }
       // 移动scrollingPost的滚动条
       document.getElementById("scrollingPost").scrollTop =
