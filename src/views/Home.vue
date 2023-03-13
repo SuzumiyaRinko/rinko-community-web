@@ -714,9 +714,9 @@ export default {
     const pullRefreshLoading = ref(false);
     const onPullRefresh = async () => {
       await sleep(500);
-      postSearchDTO.pageNum = 1;
+      postSearchDTO.pageNum = 0;
       postsPage.data = [];
-      onPostLoad();
+      await onPostLoad();
       pullRefreshLoading.value = false;
     };
 
