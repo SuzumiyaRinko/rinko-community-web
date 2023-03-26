@@ -406,9 +406,8 @@ export default {
       // 加载用户信息
       var gotoUserId = window.sessionStorage.getItem("gotoUserId");
       var baseResponse = (await getUserInfo(gotoUserId)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if(checkAuthorityAndPerm(baseResponse) == 403) return;
+
       var userInfo = baseResponse.data;
       info.id = userInfo.id;
       info.nickname = userInfo.nickname;
@@ -420,9 +419,8 @@ export default {
 
       // 判断是否已关注
       var baseResponse = (await hasFollowAPI(info.id)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if(checkAuthorityAndPerm(baseResponse) == 403) return;
+
       hasFollow.value = baseResponse.data;
 
       // 加载用户post
@@ -473,7 +471,7 @@ export default {
     // follow
     const follow = async (targetId) => {
       var baseResponse = (await followAPI(targetId)).data;
-      checkAuthorityAndPerm(baseResponse);
+      if(checkAuthorityAndPerm(baseResponse) == 403) return;
       console.log("followBaseResponse", baseResponse);
       hasFollow.value = !hasFollow.value;
 
@@ -511,9 +509,7 @@ export default {
       postSearchDTO.pageNum++; // 页数+1
       var baseResponse = (await postSearch(postSearchDTO)).data;
 
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if(checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var page = baseResponse.data;
       postsPage.total = page.total;

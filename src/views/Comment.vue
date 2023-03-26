@@ -446,7 +446,7 @@ import {
 import { saveHistory, getHistory } from "@/api/history.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
 import {
-  checkAuthority,
+  checkAuthorityAndPerm,
   sleep,
   saveEnter2Br4Web,
   saveEnter2Br4Save,
@@ -498,9 +498,8 @@ export default {
 
       // 判断当前用户是否已点赞
       var baseResponse = (await hasLikeAPI(currComment.id)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
       hasLike.value = baseResponse.data;
       if (hasLike.value) {
         likeColor.value = "red";
@@ -514,9 +513,8 @@ export default {
         targetId: currComment.id,
       };
       var baseResponse = (await getHistory(historySearchDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
       var history = baseResponse.data;
       if (history.pageNum < 0) {
         history.pageNum = 0;
@@ -545,9 +543,7 @@ export default {
           scrollTop,
         };
         var baseResponse = (await saveHistory(history)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
       }
 
       // bottomNav
@@ -570,9 +566,7 @@ export default {
 
     const backToPost = async () => {
       var baseResponse = (await getPostByCommentId(currComment.id)).data;
-      if (!checkAuthority(baseResponse)) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       // currPost
       var postJson = JSON.stringify(baseResponse.data);
@@ -642,9 +636,7 @@ export default {
       commentSelectDTO.pageNum++;
       var baseResponse = (await commentSelect(commentSelectDTO)).data;
 
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var pageInfo = baseResponse.data;
       recommentPage.total = pageInfo.total;
@@ -692,9 +684,8 @@ export default {
     const onBeforeDeleteClose = async (action) => {
       if (action === "confirm") {
         var baseResponse = (await deleteCommentAPI(currComment.id)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
           showToast({
@@ -720,9 +711,8 @@ export default {
     const likeColor = ref("black");
     const like = async () => {
       var baseResponse = (await likeAPI(currComment.id)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
       hasLike.value = !hasLike.value;
       if (hasLike.value) {
         likeColor.value = "red";
@@ -763,9 +753,8 @@ export default {
         commentInsertDTO.content = saveEnter2Br4Save(commentInsertDTO.content);
         commentInsertDTO.targetId = currComment.id;
         var baseResponse = (await commentAPI(commentInsertDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
         // 立刻显示
         var now = moment().format("YYYY-MM-DD HH:mm:ss");
         var newComment4Show = {
@@ -797,9 +786,8 @@ export default {
       var data = new FormData();
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
       if (baseResponse.code != 200) {
         showToast({
           message: "图片上传失败",
@@ -849,9 +837,7 @@ export default {
       var deletePicturePath = commentInsertDTO.picturesSplit[detail.index];
       commentInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
     };
 
     return {

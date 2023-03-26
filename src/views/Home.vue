@@ -321,7 +321,7 @@ import { useStore } from "vuex";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { showDialog, showNotify, showImagePreview, showToast } from "vant";
 import { postSearch, suggestionsSearch, feedsSearch } from "@/api/post.js";
-import { checkAuthority, sleep, statsStr } from "@/util/utils.js";
+import { checkAuthorityAndPerm, sleep, statsStr } from "@/util/utils.js";
 
 export default {
   props: ["shareData"],
@@ -607,9 +607,8 @@ export default {
         ) {
           var baseResponse = (await suggestionsSearch(postSearchDTO.searchKey))
             .data;
-          if (!checkAuthority(baseResponse)) {
-            window.location.reload();
-          }
+          if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
           suggestions.value = baseResponse.data;
           suggestionsShow.value = true;
           console.log("suggestions.value", suggestions.value);
@@ -666,9 +665,7 @@ export default {
         baseResponse = (await feedsSearch(postSearchDTO.pageNum)).data;
       }
 
-      if (!checkAuthority(baseResponse)) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var page = baseResponse.data;
       postsPage.total = page.total;

@@ -613,7 +613,7 @@ import { getUserInfo } from "@/api/user.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
 import { getMessages, setIsRead } from "@/api/message.js";
 import {
-  checkAuthority,
+  checkAuthorityAndPerm,
   checkResource,
   sleep,
   saveEnter2Br4Web,
@@ -654,9 +654,8 @@ export default {
       // 加载用户信息
       // myUserInfo
       var baseResponse = (await getUserInfo()).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if(checkAuthorityAndPerm(baseResponse) == 403) return;
+
       var userInfo = baseResponse.data;
       myUserInfo.id = userInfo.id;
       myUserInfo.nickname = userInfo.nickname;
@@ -667,9 +666,8 @@ export default {
       // targetUserInfo
       if (wsChatTargetId.value != 0) {
         var baseResponse = (await getUserInfo(wsChatTargetId.value)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if(checkAuthorityAndPerm(baseResponse) == 403) return;
+
         var userInfo = baseResponse.data;
         targetUserInfo.id = userInfo.id;
         targetUserInfo.nickname = userInfo.nickname;
@@ -683,9 +681,7 @@ export default {
       messageSelectDTO.targetId = wsChatTargetId.value;
       console.log("Chat.onMounted.messageSelectDTO", messageSelectDTO);
       var baseResponse = (await getMessages(messageSelectDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if(checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var messageSelectVO = baseResponse.data;
       console.log("Chat.onMounted.messageSelectVO", messageSelectVO);
@@ -845,9 +841,7 @@ export default {
         // 加载message
         messageSelectDTO.targetId = wsChatTargetId.value;
         var baseResponse = (await getMessages(messageSelectDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if(checkAuthorityAndPerm(baseResponse) == 403) return;
 
         var messageSelectVO = baseResponse.data;
         messageSelectDTO.lastId = messageSelectVO.lastId; // 记录lastId
@@ -979,9 +973,8 @@ export default {
       var data = new FormData();
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if(checkAuthorityAndPerm(baseResponse) == 403) return;
+
       if (baseResponse.code != 200) {
         showToast({
           message: "图片上传失败",
@@ -1031,9 +1024,7 @@ export default {
       var deletePicturePath = messageInsertDTO.picturesSplit[detail.index];
       messageInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if(checkAuthorityAndPerm(baseResponse) == 403) return;
     };
 
     // 查看图片

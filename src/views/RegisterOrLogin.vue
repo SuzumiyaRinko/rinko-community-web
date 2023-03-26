@@ -182,7 +182,7 @@ import {
   loginAnonymously,
 } from "@/api/registerOrLogin.js";
 import { getUserInfo } from "@/api/me.js";
-import { checkAuthority, sleep } from "@/util/utils.js";
+import { checkAuthorityAndPerm, sleep } from "@/util/utils.js";
 import { showToast } from "vant";
 
 export default {
@@ -354,9 +354,8 @@ export default {
 
         // 加载用户信息
         var baseResponse = (await getUserInfo()).data;
-        if (checkAuthority(baseResponse) == false) {
-          router.push("/");
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
         var userInfo = baseResponse.data;
         console.log("userInfo", userInfo);
         // 把user信息放到SessionStorage中
@@ -393,9 +392,8 @@ export default {
 
         // 加载用户信息
         var baseResponse = (await getUserInfo()).data;
-        if (checkAuthority(baseResponse) == false) {
-          router.push("/");
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
         var userInfo = baseResponse.data;
         console.log("userInfo", userInfo);
         // 把user信息放到SessionStorage中

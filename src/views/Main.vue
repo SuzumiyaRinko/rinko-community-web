@@ -45,7 +45,7 @@ import { useStore } from "vuex";
 import { notReadCountAPI } from "@/api/message.js";
 import { getUserInfo } from "@/api/user.js";
 import {
-  checkAuthority,
+  checkAuthorityAndPerm,
   sleep,
   saveEnter2Br,
   unreadCountStr,
@@ -54,17 +54,18 @@ import {
 export default {
   setup() {
     onMounted(async () => {
-      var token = window.sessionStorage.getItem("token")
-      if(token) {
+      var token = window.sessionStorage.getItem("token");
+      if (token) {
         router.push("/main/home");
       }
 
       var baseResponse = (await getUserInfo()).data;
-      if(!checkAuthority(baseResponse)) {
-        window.location.reload()
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
-      window.sessionStorage.setItem("myUserInfo", JSON.stringify(baseResponse.data))
+      window.sessionStorage.setItem(
+        "myUserInfo",
+        JSON.stringify(baseResponse.data)
+      );
 
       // ws连接
       var token = window.sessionStorage.getItem("token");
@@ -103,9 +104,8 @@ export default {
 
       // 获取未读对话消息数量
       var baseResponse = (await notReadCountAPI()).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
       shareData.notReadCount = baseResponse.data;
 
       // 在onMounted里面用，防止变量未初始化就被watch监听

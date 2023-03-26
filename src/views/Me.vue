@@ -479,7 +479,7 @@ import { showToast, showDialog, showImagePreview } from "vant";
 import { getUserInfo, updateUserInfo, uploadAvatar, logout } from "@/api/me.js";
 import { deleteFile } from "@/api/file.js";
 import { postSearch, collectionsSearch } from "@/api/post.js";
-import { checkAuthority, sleep, statsStr } from "@/util/utils.js";
+import { checkAuthorityAndPerm, sleep, statsStr } from "@/util/utils.js";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
 
 export default {
@@ -503,10 +503,7 @@ export default {
 
       // 加载用户信息
       var baseResponse = (await getUserInfo()).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-        return;
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var userInfo = baseResponse.data;
       console.log(userInfo);
@@ -528,7 +525,7 @@ export default {
         mePostHistory.scrollTop = tmpMePostHistory.scrollTop;
       }
 
-      if(mePostHistory.pageNum < 0) {
+      if (mePostHistory.pageNum < 0) {
         mePostHistory.pageNum = 0;
       }
 
@@ -629,11 +626,8 @@ export default {
       var data = new FormData();
       data.append("file", file.file);
       var baseResponse = (await uploadAvatar(data)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
-        return;
-      }
       if (baseResponse.code != 200) {
         showToast({
           message: "头像上传失败",
@@ -693,9 +687,8 @@ export default {
           userUpdateDTO.gender = 0;
         }
         var baseResponse = (await updateUserInfo(userUpdateDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
           showToast({
@@ -907,9 +900,7 @@ export default {
         baseResponse = (await collectionsSearch(postSearchDTO.pageNum)).data;
       }
 
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var page = baseResponse.data;
       postsPage.total = page.total;

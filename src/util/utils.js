@@ -3,8 +3,6 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-export function checkAuthority(baseResponse) {}
-
 // 判断登录凭证和用户权限
 export function checkAuthorityAndPerm(baseResponse) {
     if (baseResponse.code == 401) {
@@ -20,6 +18,7 @@ export function checkAuthorityAndPerm(baseResponse) {
             message: "该用户没有权限",
             icon: "cross",
         });
+        return 403
     }
 }
 

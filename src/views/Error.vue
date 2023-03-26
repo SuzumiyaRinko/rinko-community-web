@@ -24,7 +24,7 @@ import { onBeforeMount, onMounted, reactive, ref } from "vue";
 import { showDialog, showNotify, showToast, showImagePreview } from "vant";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { checkAuthority, sleep } from "@/util/utils.js";
+import { checkAuthorityAndPerm, sleep } from "@/util/utils.js";
 
 export default {
   props: ["shareData"],

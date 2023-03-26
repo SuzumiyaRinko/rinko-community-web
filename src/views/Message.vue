@@ -437,7 +437,7 @@ import { getPostByPostId } from "@/api/post.js";
 import { getCommentByCommentId } from "@/api/comment.js";
 import { getMessages, setIsRead, deleteMessage } from "@/api/message.js";
 import {
-  checkAuthority,
+  checkAuthorityAndPerm,
   checkResource,
   sleep,
   unreadCountStr,
@@ -605,10 +605,7 @@ export default {
 
       // 加载message
       var baseResponse = (await getMessages(messageSelectDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-        return;
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var messageSelectVO = baseResponse.data;
       messageSelectDTO.lastId = baseResponse.lastId; // 记录lastId
@@ -673,11 +670,7 @@ export default {
 
       // 标记为已读
       var baseResponse = (await setIsRead(messageSetIsReadDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-
-        return;
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       if (
         systemMsgType == 1 ||
@@ -689,11 +682,8 @@ export default {
         window.sessionStorage.setItem("backToSomeone", "/main/message");
         // currPost
         var baseResponse = (await getPostByPostId(targetId)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
-          return;
-        }
         if (checkResource(baseResponse) == false) {
           deleteMessage(messageDeleteDTO);
           router.push("/main/error");
@@ -707,11 +697,8 @@ export default {
         window.sessionStorage.setItem("backToSomeone", "/main/message");
         // currComment
         var baseResponse = (await getCommentByCommentId(targetId)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
-          return;
-        }
         if (checkResource(baseResponse) == false) {
           deleteMessage(messageDeleteDTO);
           router.push("/main/error");
@@ -775,11 +762,7 @@ export default {
         }
 
         var baseResponse = (await setIsRead(messageSetIsReadDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-
-          return;
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
         var endIndex = messagesPage.data.length - 1;
         if (systemStyle.value != "") {
@@ -818,11 +801,7 @@ export default {
         }
 
         var baseResponse = (await deleteMessage(messageDeleteDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-
-          return;
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
         if (chatStyle.value != "") {
           props.shareData.notReadCount = 0;

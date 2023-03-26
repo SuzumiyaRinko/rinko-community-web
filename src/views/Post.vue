@@ -502,7 +502,7 @@ import { commentSelect, commentAPI } from "@/api/comment.js";
 import { saveHistory, getHistory } from "@/api/history.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
 import {
-  checkAuthority,
+  checkAuthorityAndPerm,
   checkResource,
   sleep,
   statsStr,
@@ -556,9 +556,7 @@ export default {
 
       // 判断当前用户是否已点赞、收藏
       var baseResponse = (await hasLikeAPI(currPost.id)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
       hasLike.value = baseResponse.data;
       if (hasLike.value) {
         likeColor.value = "red";
@@ -567,11 +565,8 @@ export default {
       }
 
       var baseResponse = (await hasCollectAPI(currPost.id)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
-        return;
-      }
       hasCollect.value = baseResponse.data;
       if (hasCollect.value) {
         collectionColor.value = "#ffea00";
@@ -585,9 +580,7 @@ export default {
         targetId: currPost.id,
       };
       var baseResponse = (await getHistory(historySearchDTO)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
       var history = baseResponse.data;
 
       if (history.pageNum < 0) {
@@ -622,9 +615,7 @@ export default {
           lastView: commentLastView.value,
         };
         var baseResponse = (await saveHistory(history)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
       }
 
       // bottomNav
@@ -728,9 +719,7 @@ export default {
       commentSelectDTO.pageNum++;
       var baseResponse = (await commentSelect(commentSelectDTO)).data;
 
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var pageInfo = baseResponse.data;
       commentPage.total = pageInfo.total;
@@ -778,9 +767,8 @@ export default {
     const onBeforeDeleteClose = async (action) => {
       if (action === "confirm") {
         var baseResponse = (await deletePostAPI(currPost.id)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
           showToast({
@@ -809,9 +797,7 @@ export default {
     const likeColor = ref("black");
     const like = async () => {
       var baseResponse = (await likeAPI(currPost.id)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
       hasLike.value = !hasLike.value;
       if (hasLike.value) {
         likeColor.value = "red";
@@ -865,9 +851,8 @@ export default {
         commentInsertDTO.targetId = currPost.id;
         commentInsertDTO.content = saveEnter2Br4Save(commentInsertDTO.content);
         var baseResponse = (await commentAPI(commentInsertDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
         newComment4Show.id = baseResponse.data;
         commentPage.total++;
         commentPage.data.push(newComment4Show); // 立即展示
@@ -889,9 +874,7 @@ export default {
       var data = new FormData();
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
       if (baseResponse.code != 200) {
         showToast({
           message: "图片上传失败",
@@ -941,9 +924,7 @@ export default {
       var deletePicturePath = commentInsertDTO.picturesSplit[detail.index];
       commentInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
     };
 
     // 收藏
@@ -951,9 +932,7 @@ export default {
     const collectionColor = ref("black");
     const collect = async () => {
       var baseResponse = (await collectAPI(currPost.id)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
       hasCollect.value = !hasCollect.value;
       if (hasCollect.value) {
         collectionColor.value = "#ffea00";

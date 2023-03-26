@@ -68,7 +68,7 @@ import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { insertPostAPI } from "@/api/post.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
 import {
-  checkAuthority,
+  checkAuthorityAndPerm,
   sleep,
   saveEnter2Br4Web,
   saveEnter2Br4Save,
@@ -114,9 +114,8 @@ export default {
       var data = new FormData();
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
       if (baseResponse.code != 200) {
         showToast({
           message: "图片上传失败",
@@ -168,9 +167,7 @@ export default {
       var deletePicturePath = postInsertDTO.picturesSplit[detail.index];
       postInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
     };
 
     // 发表post确认Dialog
@@ -202,9 +199,8 @@ export default {
         postInsertDTO.content = saveEnter2Br4Save(postInsertDTO.content);
 
         var baseResponse = (await insertPostAPI(postInsertDTO)).data;
-        if (checkAuthority(baseResponse) == false) {
-          window.location.reload();
-        }
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
+
         if (baseResponse.code != 200) {
           var exMessage = baseResponse.message;
           showToast({
