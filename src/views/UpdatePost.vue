@@ -1,14 +1,14 @@
 <template>
-  <div class="insertPost">
+  <div class="updatePost">
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
       <span class="back" @click="router.go(-1)">返回</span>
-      <span class="title">发表POST</span>
+      <span class="title">编辑POST</span>
       <van-button
         class="commitButton"
         type="primary"
-        @click="insertPostShow = true"
+        @click="updatePostShow = true"
         >确认</van-button
       >
     </div>
@@ -18,7 +18,7 @@
       <!-- PostTitle -->
       <van-field
         class="postTitle"
-        v-model.trim="postInsertDTO.title"
+        v-model.trim="postUpdateDTO.title"
         required
         clearable
         maxlength="39"
@@ -28,7 +28,7 @@
       <!-- PostContent -->
       <van-field
         class="postContent"
-        v-model.trim="postInsertDTO.content"
+        v-model.trim="postUpdateDTO.content"
         rows="10"
         autosize
         type="textarea"
@@ -49,13 +49,13 @@
       />
     </div>
 
-    <!-- 发送POST Dialog -->
+    <!-- 更新POST Dialog -->
     <van-dialog
-      v-model:show="insertPostShow"
-      title="是否确认发表POST"
+      v-model:show="updatePostShow"
+      title="是否确认修改POST"
       show-cancel-button
       confirm-button-text="确认"
-      :before-close="onBeforeInsertPostClose"
+      :before-close="onBeforeUpdatePostClose"
     >
     </van-dialog>
   </div>
@@ -65,13 +65,15 @@
 import { onMounted, reactive, ref } from "vue";
 import { showDialog, showNotify, showToast } from "vant";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
-import { insertPostAPI } from "@/api/post.js";
+import { useStore } from "vuex";
+import { updatePostAPI } from "@/api/post.js";
 import { uploadFile, deleteFile } from "@/api/file.js";
 import {
   checkAuthority,
   sleep,
   saveEnter2Br4Web,
   saveEnter2Br4Save,
+  changeBr2Enter4Web,
 } from "@/util/utils.js";
 
 export default {
@@ -85,10 +87,25 @@ export default {
 
       // bottomNav
       props.shareData.bottomNavShow = false;
+
+      // 获取sessionStorage中的currPost
+      var currPost = JSON.parse(window.sessionStorage.getItem("currPost"));
+      postUpdateDTO.postId = currPost.id;
+      postUpdateDTO.title = currPost.title;
+      postUpdateDTO.content = changeBr2Enter4Web(currPost.content);
+      postUpdateDTO.picturesSplit = currPost.picturesSplit;
+      var _value = [];
+      var len = postUpdateDTO.picturesSplit.length;
+      for (var i = 0; i <= len - 1; i++) {
+        _value.push({
+          url: `${store.state.SystemConst.resourcesPrefix}${postUpdateDTO.picturesSplit[i]}`,
+        });
+      }
+      postPictures.value = _value;
     });
 
     onBeforeRouteLeave((to, from, next) => {
-      window.sessionStorage.setItem("oldRouter", "/main/insertPost");
+      window.sessionStorage.setItem("oldRouter", "/main/updatePost");
 
       // bottomNav
       if (
@@ -102,14 +119,16 @@ export default {
     });
 
     const router = useRouter();
+    const store = useStore();
 
-    const postInsertDTO = reactive({
+    const postUpdateDTO = reactive({
+      postId: -1,
       title: "",
       content: "",
       picturesSplit: [],
     });
 
-    // 上传头像
+    // 上传图片
     const uploadPicture = async (file) => {
       var data = new FormData();
       data.append("file", file.file);
@@ -126,9 +145,7 @@ export default {
       }
 
       // 记录返回的filePath
-      postInsertDTO.picturesSplit.push(baseResponse.data);
-
-      // console.log("postPictures", postPictures)
+      postUpdateDTO.picturesSplit.push(baseResponse.data);
     };
     const postPictures = ref([]);
 
@@ -165,43 +182,42 @@ export default {
     // 取消上传
     const deletePicture = async (file, detail) => {
       postPictures.value.splice(detail.index, 1);
-      var deletePicturePath = postInsertDTO.picturesSplit[detail.index];
-      postInsertDTO.picturesSplit.splice(detail.index, 1);
-      var baseResponse = (await deleteFile(deletePicturePath)).data;
-      if (checkAuthority(baseResponse) == false) {
-        window.location.reload();
-      }
+      postUpdateDTO.picturesSplit.splice(detail.index, 1);
     };
 
-    // 发表post确认Dialog
-    const insertPostShow = ref(false);
+    // 更新post确认Dialog
+    const updatePostShow = ref(false);
 
-    // onBeforeInsertPostClose
-    const onBeforeInsertPostClose = async (action) => {
+    // onBeforeUpdatePostClose
+    const onBeforeUpdatePostClose = async (action) => {
       if (action === "confirm") {
         // 判断
-        if (postInsertDTO.title.length < 5) {
+        if (postUpdateDTO.title.length < 5) {
           showToast({
             message: "标题不能少于5个字",
             icon: "cross",
           });
-          insertPostShow.value = false;
+          updatePostShow.value = false;
           return;
         }
-        if (postInsertDTO.content == "") {
+        if (postUpdateDTO.content == "") {
           showToast({
             message: "内容不能为空",
             icon: "cross",
           });
-          insertPostShow.value = false;
+          updatePostShow.value = false;
           return;
         }
 
         // 转换回车键
-        postInsertDTO.title = saveEnter2Br4Save(postInsertDTO.title);
-        postInsertDTO.content = saveEnter2Br4Save(postInsertDTO.content);
+        var newPostUpdateDTO = {
+          postId: postUpdateDTO.postId,
+          title: saveEnter2Br4Save(postUpdateDTO.title),
+          content: saveEnter2Br4Save(postUpdateDTO.content),
+          picturesSplit: postUpdateDTO.picturesSplit,
+        };
 
-        var baseResponse = (await insertPostAPI(postInsertDTO)).data;
+        var baseResponse = (await updatePostAPI(newPostUpdateDTO)).data;
         if (checkAuthority(baseResponse) == false) {
           window.location.reload();
         }
@@ -211,32 +227,36 @@ export default {
             message: exMessage,
             icon: "cross",
           });
-          insertPostShow.value = false;
+          updatePostShow.value = false;
         }
 
-        // 跳转到个人页
+        // 跳转回POST页
         showDialog({
-          title: "POST发表成功",
+          title: "POST更新成功",
           theme: "round-button",
         }).then(() => {
-          props.shareData.homeStyle = "";
-          props.shareData.messageStyle = "";
-          props.shareData.meStyle = "color: #1989fa";
-          router.push("/main/me");
+          // 修改sessionStorage中的currPost
+          var currPost = JSON.parse(window.sessionStorage.getItem("currPost"));
+          currPost.title = postUpdateDTO.title;
+          currPost.content = saveEnter2Br4Web(postUpdateDTO.content);
+          currPost.picturesSplit = postUpdateDTO.picturesSplit;
+          window.sessionStorage.setItem("currPost", JSON.stringify(currPost));
+
+          router.go(-1);
         });
       }
-      insertPostShow.value = false;
+      updatePostShow.value = false;
     };
 
     return {
       router,
-      postInsertDTO,
+      postUpdateDTO,
       uploadPicture,
       postPictures,
       beforeRead,
       deletePicture,
-      insertPostShow,
-      onBeforeInsertPostClose,
+      updatePostShow,
+      onBeforeUpdatePostClose,
     };
   },
   components: {},
@@ -244,7 +264,7 @@ export default {
 </script>
 
 <style lang="less">
-.insertPost {
+.updatePost {
   .top {
     margin: 0 0.2rem;
     padding: 0.2rem 0;

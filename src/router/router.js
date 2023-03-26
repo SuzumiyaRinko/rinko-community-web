@@ -8,6 +8,7 @@ import Message from "@/views/Message.vue"
 import Me from "@/views/Me.vue"
 import User from "@/views/User.vue"
 import Post from "@/views/Post.vue"
+import UpdatePost from "@/views/UpdatePost.vue"
 import Comment from "@/views/Comment.vue"
 import Chat from "@/views/Chat.vue"
 import Error from "@/views/Error.vue"
@@ -29,6 +30,7 @@ const routes = [
       { path: 'insertPost', component: InsertPost },
       { path: 'user', component: User },
       { path: 'post', component: Post },
+      { path: 'updatePost', component: UpdatePost },
       { path: 'comment', component: Comment },
       { path: 'chat', component: Chat },
       { path: 'error', component: Error },

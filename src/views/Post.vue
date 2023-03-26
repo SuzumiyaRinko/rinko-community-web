@@ -5,13 +5,22 @@
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
       <span class="back" @click="router.go(-1)">返回</span>
       <span class="title">POST</span>
-      <van-button
+      <van-icon
+        v-if="currPost.userId == myUserId"
+        class="updateButton"
+        name="edit"
+        size="0.8rem"
+        color="red"
+        @click="router.push('/main/updatePost')"
+      />
+      <van-icon
         v-if="currPost.userId == myUserId"
         class="deleteButton"
-        type="danger"
+        name="delete-o"
+        size="0.8rem"
+        color="red"
         @click="deletePostShow = true"
-        >删除</van-button
-      >
+      />
     </div>
 
     <!-- Content -->
@@ -1019,9 +1028,17 @@ export default {
       font-size: 0.5rem;
       font-weight: 700;
     }
+    .updateButton {
+      position: absolute;
+      top: 0.5rem;
+      right: 1.8rem;
+      font-size: 0.5rem;
+      font-weight: 700;
+      height: 0.6rem;
+    }
     .deleteButton {
       position: absolute;
-      top: 0.6rem;
+      top: 0.5rem;
       right: 0.8rem;
       font-size: 0.5rem;
       font-weight: 700;

@@ -59,6 +59,18 @@ export function getPostByPostId(postId) {
     })
 }
 
+// 更新
+export function updatePostAPI(postUpdateDTO) {
+    return service({
+        headers: {
+            "Authorization": window.sessionStorage.getItem("token"),
+        },
+        method: "PUT",
+        url: "/post/update",
+        data: postUpdateDTO,
+    })
+}
+
 // 删除
 export function deletePostAPI(postId) {
     return service({

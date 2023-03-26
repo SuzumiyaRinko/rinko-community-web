@@ -385,7 +385,7 @@ import { useRouter, onBeforeRouteLeave } from "vue-router";
 import { showToast, showDialog, showImagePreview } from "vant";
 import { getUserInfo, followAPI, hasFollowAPI } from "@/api/user.js";
 import { postSearch } from "@/api/post.js";
-import { checkAuthority, sleep } from "@/util/utils.js";
+import { checkAuthorityAndPerm, sleep } from "@/util/utils.js";
 
 export default {
   props: ["shareData"],
@@ -473,9 +473,8 @@ export default {
     // follow
     const follow = async (targetId) => {
       var baseResponse = (await followAPI(targetId)).data;
-      if (!checkAuthority(baseResponse)) {
-        window.location.reload();
-      }
+      checkAuthorityAndPerm(baseResponse);
+      console.log("followBaseResponse", baseResponse);
       hasFollow.value = !hasFollow.value;
 
       if (hasFollow.value == true) {
@@ -511,7 +510,7 @@ export default {
       postSearchDTO.userId = info.id;
       postSearchDTO.pageNum++; // 页数+1
       var baseResponse = (await postSearch(postSearchDTO)).data;
-      
+
       if (checkAuthority(baseResponse) == false) {
         window.location.reload();
       }

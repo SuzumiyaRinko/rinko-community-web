@@ -3,17 +3,24 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-// 判断是否有权限
-export function checkAuthority(baseResponse) {
+export function checkAuthority(baseResponse) {}
+
+// 判断登录凭证和用户权限
+export function checkAuthorityAndPerm(baseResponse) {
     if (baseResponse.code == 401) {
         window.sessionStorage.removeItem("token")
         showToast({
             message: "身份过期\n请重新登录",
             icon: "cross",
         });
-        return false;
+        window.location.reload();
     }
-    return true
+    else if(baseResponse.code == 403){
+        showToast({
+            message: "该用户没有权限",
+            icon: "cross",
+        });
+    }
 }
 
 // 判断是否有资源
@@ -41,6 +48,11 @@ export function saveEnter2Br4Web(str) {
 // 存储回车符（后台保存）
 export function saveEnter2Br4Save(str) {
     return str.replace(/\n|\r\n/g, "%%br%%")
+}
+
+// 存储回车符（前端展现）
+export function changeBr2Enter4Web(str) {
+    return str.replace(/<br>/g, "\n")
 }
 
 // 显示未读消息数
