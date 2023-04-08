@@ -182,8 +182,14 @@ import {
   loginAnonymously,
 } from "@/api/registerOrLogin.js";
 import { getUserInfo } from "@/api/me.js";
-import { checkAuthorityAndPerm, sleep } from "@/util/utils.js";
+import {
+  refreshAuthToken,
+  checkAuthorityAndPerm,
+  sleep,
+} from "@/util/utils.js";
 import { showToast } from "vant";
+
+import Cookies from "js-cookie";
 
 export default {
   setup() {
@@ -349,8 +355,8 @@ export default {
           });
           return;
         }
-        // 保存Token到SessionStorage
-        window.sessionStorage.setItem("token", baseResponse.data);
+        // 保存Token到Cookie
+        refreshAuthToken(baseResponse.data);
 
         // 加载用户信息
         var baseResponse = (await getUserInfo()).data;
@@ -358,17 +364,17 @@ export default {
 
         var userInfo = baseResponse.data;
         console.log("userInfo", userInfo);
-        // 把user信息放到SessionStorage中
-        window.sessionStorage.setItem("myUserId", userInfo.id);
-        window.sessionStorage.setItem("myUserInfo", JSON.stringify(userInfo));
+        // 把user信息放到Cookie中
+        Cookies.set("myUserInfo", userInfo)
 
-        // 跳转到主页
+        // 跳转到SSO_backTo
         showDialog({
           title: "登录成功",
           message: "确认后将跳转到主页",
           theme: "round-button",
         }).then(() => {
-          router.push("/main");
+          var SSO_backTo = Cookies.get("SSO_backTo");
+          window.location.href = SSO_backTo;
         });
       }
       loginShow.value = false;
@@ -387,8 +393,8 @@ export default {
           });
           return;
         }
-        // 保存Token到SessionStorage
-        window.sessionStorage.setItem("token", baseResponse.data);
+        // 保存Token到Cookie
+        refreshAuthToken(baseResponse.data);
 
         // 加载用户信息
         var baseResponse = (await getUserInfo()).data;
@@ -396,17 +402,17 @@ export default {
 
         var userInfo = baseResponse.data;
         console.log("userInfo", userInfo);
-        // 把user信息放到SessionStorage中
-        window.sessionStorage.setItem("myUserId", userInfo.id);
-        window.sessionStorage.setItem("myUserInfo", JSON.stringify(userInfo));
+        // 把user信息放到Cookie中
+        Cookies.set("myUserInfo", userInfo)
 
-        // 跳转到主页
+        // 跳转到SSO_backTo
         showDialog({
           title: "登录成功",
           message: "确认后将跳转到主页",
           theme: "round-button",
         }).then(() => {
-          router.push("/main");
+          var SSO_backTo = Cookies.get("SSO_backTo");
+          window.location.href = SSO_backTo;
         });
       }
       loginAnonymouslyShow.value = false;

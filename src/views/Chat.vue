@@ -619,7 +619,9 @@ import {
   saveEnter2Br4Web,
   saveEnter2Br4Save,
 } from "@/util/utils.js";
+
 import moment from "moment";
+import Cookies from "js-cookie";
 
 export default {
   props: ["shareData"],
@@ -629,7 +631,8 @@ export default {
       props.shareData.bottomNavShow = false;
 
       // myUserId
-      myUserId.value = window.sessionStorage.getItem("myUserId");
+      var myUserInfo = JSON.parse(Cookies.get("myUserInfo"))
+      myUserId.value = myUserInfo.id;
 
       // wsChatTargetId
       wsChatTargetId.value = window.sessionStorage.getItem("wsChatTargetId");
@@ -653,10 +656,7 @@ export default {
 
       // 加载用户信息
       // myUserInfo
-      var baseResponse = (await getUserInfo()).data;
-      if(checkAuthorityAndPerm(baseResponse) == 403) return;
-
-      var userInfo = baseResponse.data;
+      var userInfo = JSON.parse(Cookies.get("myUserInfo"))
       myUserInfo.id = userInfo.id;
       myUserInfo.nickname = userInfo.nickname;
       myUserInfo.gender = userInfo.gender;
@@ -706,17 +706,6 @@ export default {
     onBeforeRouteLeave(async (to, from, next) => {
       window.sessionStorage.setItem("oldRouter", "/main/chat");
 
-      // 判断是否退回"/"
-      // var token = window.sessionStorage.getItem("token");
-      // if (token == null || token.length == 0) {
-      //   console.log("onBeforeRouteLeave push");
-      //   if (to.fullPath == "/") {
-      //     next();
-      //   } else {
-      //     next("/");
-      //   }
-      // }
-
       // 设置"与当前聊天对象的未读"为0
       var messageSetIsReadDTO = {
         messageType: 2,
@@ -746,7 +735,7 @@ export default {
         if (
           (wsChatTargetId.value == 0 && newMessage.toUserId == 0) ||
           (wsChatTargetId.value != 0 &&
-            newMessage.fromUserId == wsChatTargetId.value)
+            newMessage.fromUserId == wsChatTargetId.value && newMessage.toUserId == myUserId.value)
         ) {
           // 尝试移动scroll (设置flag)
           var scrollingFlag = false;
@@ -799,8 +788,7 @@ export default {
     // gotoUser
     const gotoUser = (userId) => {
       event.stopPropagation(); // 阻止事件冒泡至外层div
-      var myUserId = window.sessionStorage.getItem("myUserId");
-      if (userId == myUserId) {
+      if (userId == myUserId.value) {
         props.shareData.homeStyle = "";
         props.shareData.messageStyle = "";
         props.shareData.meStyle = "color: #1989fa";
@@ -899,13 +887,13 @@ export default {
         }
 
         var newMessage4Show = {
-          fromUserId: myUserId,
+          fromUserId: myUserId.value,
           toUserId: wsChatTargetId.value,
           content: saveEnter2Br4Web(messageInsertDTO.content), // 转换回车键
           createTime: moment().format("YYYY-MM-DD HH:mm:ss"),
         };
         var newMessage4Save = {
-          fromUserId: myUserId,
+          fromUserId: myUserId.value,
           toUserId: wsChatTargetId.value,
           content: saveEnter2Br4Save(messageInsertDTO.content), // 转换回车键
           createTime: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -945,7 +933,7 @@ export default {
 
         // 发送图片
         var newMessage = {
-          fromUserId: myUserId,
+          fromUserId: myUserId.value,
           toUserId: wsChatTargetId.value,
           picturesSplit: messageInsertDTO.picturesSplit,
           createTime: moment().format("YYYY-MM-DD HH:mm:ss"),

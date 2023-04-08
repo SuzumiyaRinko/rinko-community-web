@@ -51,25 +51,30 @@ import {
   unreadCountStr,
 } from "@/util/utils.js";
 
+import Cookies from "js-cookie";
+
 export default {
   setup() {
     onMounted(async () => {
-      var token = window.sessionStorage.getItem("token");
-      if (token) {
-        router.push("/main/home");
-      }
+      // var token = window.sessionStorage.getItem("token");
+      // if (token) {
+      //   router.push("/main/home");
+      // }
 
       var baseResponse = (await getUserInfo()).data;
       if (checkAuthorityAndPerm(baseResponse) == 403) return;
+      Cookies.set("myUserInfo", JSON.stringify(baseResponse.data))
 
-      window.sessionStorage.setItem(
-        "myUserInfo",
-        JSON.stringify(baseResponse.data)
-      );
+      var myUserInfo = baseResponse.data;
+
+      // window.sessionStorage.setItem(
+      //   "myUserInfo",
+      //   JSON.stringify(baseResponse.data)
+      // );
 
       // ws连接
-      var token = window.sessionStorage.getItem("token");
-      var myUserId = window.sessionStorage.getItem("myUserId");
+      var token = Cookies.get("authToken");
+      var myUserId = myUserInfo.id;
       // 创建ws对象
       ws = new WebSocket(
         `${store.state.SystemConst.apiPrefix4ws}/wsChat/${myUserId}`,
@@ -95,8 +100,8 @@ export default {
           shareData.notReadCount++;
         }
       };
-      ws.onerror = () => {
-        // router.push("/");
+      ws.onerror = (err) => {
+        console.log(err)
       };
       ws.onclose = () => {
         console.log("ws.onclose()");
@@ -120,7 +125,7 @@ export default {
 
     onBeforeRouteLeave((to, from, next) => {
       // 断开ws连接
-      var token = window.sessionStorage.getItem("token");
+      var token = Cookies.get("token");
       if (token) {
         ws.close();
       }

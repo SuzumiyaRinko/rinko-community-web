@@ -1,5 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
+import Cookies from "js-cookie";
+
 import RegisterOrLogin from "@/views/RegisterOrLogin.vue"
 import Main from "@/views/Main.vue"
 import Home from "@/views/Home.vue"
@@ -36,17 +38,29 @@ const routes = [
       { path: 'error', component: Error },
     ],
     beforeEnter: (to, from, next) => {
-      if (!window.sessionStorage.getItem("token")) {
-        console.log("beforeEnter push")
-        window.sessionStorage.clear()
-        if (to.path == "/") {
-          next()
-        } else {
-          next("/")
-        }
+      var authToken = Cookies.get("authToken")
+      if (authToken == null) {
+        console.log("authToken == null")
+        Cookies.set("SSO_backTo", "http://localhost/Rinko-Community/#/main/home") // dev
+        // Cookies.set("SSO_backTo", "") // test
+        // Cookies.set("SSO_backTo", "") // prod
+        window.location.href = "http://localhost/Rinko-Community/" // SSO
       } else {
         next()
       }
+
+
+      //   if (!window.sessionStorage.getItem("token")) {
+      //     console.log("beforeEnter push")
+      //     window.sessionStorage.clear()
+      //     if (to.path == "/") {
+      //       next()
+      //     } else {
+      //       next("/")
+      //     }
+      //   } else {
+      //     next()
+      //   }
     }
   },
 ]

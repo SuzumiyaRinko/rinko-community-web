@@ -76,6 +76,9 @@ import {
   changeBr2Enter4Web,
 } from "@/util/utils.js";
 
+import moment from "moment";
+import Cookies from "js-cookie";
+
 export default {
   props: ["shareData"],
   setup(props) {

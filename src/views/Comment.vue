@@ -452,7 +452,9 @@ import {
   saveEnter2Br4Save,
   statsStr,
 } from "@/util/utils.js";
+
 import moment from "moment";
+import Cookies from "js-cookie";
 
 export default {
   props: ["shareData"],
@@ -462,7 +464,8 @@ export default {
       props.shareData.bottomNavShow = false;
 
       // myUserId
-      myUserId.value = window.sessionStorage.getItem("myUserId");
+      var myUserInfo = JSON.parse(Cookies.get("myUserInfo"));
+      myUserId.value = myUserInfo.id;
 
       // currComment
       var currCommentJson = window.sessionStorage.getItem("currComment");
@@ -581,8 +584,7 @@ export default {
     // gotoUser
     const gotoUser = (userId) => {
       event.stopPropagation(); // 阻止事件冒泡至外层div
-      var myUserId = window.sessionStorage.getItem("myUserId");
-      if (userId == myUserId) {
+      if (userId == myUserId.value) {
         props.shareData.homeStyle = "";
         props.shareData.messageStyle = "";
         props.shareData.meStyle = "color: #1989fa";
@@ -747,7 +749,7 @@ export default {
         }
 
         var myUserInfo = JSON.parse(
-          window.sessionStorage.getItem("myUserInfo")
+          Cookies.get("myUserInfo")
         );
         // 发送ajax
         commentInsertDTO.content = saveEnter2Br4Save(commentInsertDTO.content);

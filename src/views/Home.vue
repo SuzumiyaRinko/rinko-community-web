@@ -323,6 +323,8 @@ import { showDialog, showNotify, showImagePreview, showToast } from "vant";
 import { postSearch, suggestionsSearch, feedsSearch } from "@/api/post.js";
 import { checkAuthorityAndPerm, sleep, statsStr } from "@/util/utils.js";
 
+import Cookies from "js-cookie";
+
 export default {
   props: ["shareData"],
   setup(props) {
@@ -380,7 +382,7 @@ export default {
       window.sessionStorage.setItem("oldRouter", "/main/home");
 
       // homePostHistory / homeInterestHistory
-      var token = window.sessionStorage.getItem("token");
+      var token = Cookies.get("authToken");
       if (token) {
         if (!searchFlag.value) {
           if (homeStyle.value != "") {
@@ -650,11 +652,11 @@ export default {
     const onPostLoad = async () => {
       console.log("Home.onLoad");
       await sleep(200);
-      var token = window.sessionStorage.getItem("token");
-      if (!token) {
-        postFinished.value = true;
-        return;
-      }
+      // var token = window.sessionStorage.getItem("token");
+      // if (!token) {
+      //   postFinished.value = true;
+      //   return;
+      // }
 
       // 加载post
       var baseResponse;

@@ -387,6 +387,9 @@ import { getUserInfo, followAPI, hasFollowAPI } from "@/api/user.js";
 import { postSearch } from "@/api/post.js";
 import { checkAuthorityAndPerm, sleep } from "@/util/utils.js";
 
+import moment from "moment";
+import Cookies from "js-cookie";
+
 export default {
   props: ["shareData"],
   setup(props) {

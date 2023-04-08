@@ -482,6 +482,8 @@ import { postSearch, collectionsSearch } from "@/api/post.js";
 import { checkAuthorityAndPerm, sleep, statsStr } from "@/util/utils.js";
 import { useRouter, onBeforeRouteLeave } from "vue-router";
 
+import Cookies from "js-cookie";
+
 export default {
   props: ["shareData"],
   setup(props) {
@@ -502,11 +504,8 @@ export default {
       props.shareData.meStyle = "color: #1989fa";
 
       // 加载用户信息
-      var baseResponse = (await getUserInfo()).data;
-      if (checkAuthorityAndPerm(baseResponse) == 403) return;
-
-      var userInfo = baseResponse.data;
-      console.log(userInfo);
+      var userInfo = JSON.parse(Cookies.get("myUserInfo"));
+      console.log("userInfo", userInfo);
       info.id = userInfo.id;
       info.nickname = userInfo.nickname;
       info.gender = userInfo.gender;
@@ -549,35 +548,38 @@ export default {
       // oldRouter
       window.sessionStorage.setItem("oldRouter", "/main/me");
 
-      if (to.fullPath == "/") {
-        window.sessionStorage.clear();
-        next();
-        return;
-      }
+      // if (to.fullPath == "/") {
+      //   window.sessionStorage.clear();
+      //   next();
+      //   return;
+      // }
 
       // mePostHistory / meCollectionHistory
-      if (postStyle.value != "") {
-        var tmpMePostHistory = JSON.parse(
-          window.sessionStorage.getItem("mePostHistory")
-        );
-        tmpMePostHistory.pageNum = postSearchDTO.pageNum - 1;
-        tmpMePostHistory.scrollTop =
-          document.getElementById("scrollingPost").scrollTop;
-        window.sessionStorage.setItem(
-          "mePostHistory",
-          JSON.stringify(tmpMePostHistory)
-        );
-      } else {
-        var tmpMeCollectionHistory = JSON.parse(
-          window.sessionStorage.getItem("meCollectionHistory")
-        );
-        tmpMeCollectionHistory.pageNum = postSearchDTO.pageNum - 1;
-        tmpMeCollectionHistory.scrollTop =
-          document.getElementById("scrollingPost").scrollTop;
-        window.sessionStorage.setItem(
-          "meCollectionHistory",
-          JSON.stringify(tmpMeCollectionHistory)
-        );
+      var authToken = Cookies.get("authToken");
+      if (authToken) {
+        if (postStyle.value != "") {
+          var tmpMePostHistory = JSON.parse(
+            window.sessionStorage.getItem("mePostHistory")
+          );
+          tmpMePostHistory.pageNum = postSearchDTO.pageNum - 1;
+          tmpMePostHistory.scrollTop =
+            document.getElementById("scrollingPost").scrollTop;
+          window.sessionStorage.setItem(
+            "mePostHistory",
+            JSON.stringify(tmpMePostHistory)
+          );
+        } else {
+          var tmpMeCollectionHistory = JSON.parse(
+            window.sessionStorage.getItem("meCollectionHistory")
+          );
+          tmpMeCollectionHistory.pageNum = postSearchDTO.pageNum - 1;
+          tmpMeCollectionHistory.scrollTop =
+            document.getElementById("scrollingPost").scrollTop;
+          window.sessionStorage.setItem(
+            "meCollectionHistory",
+            JSON.stringify(tmpMeCollectionHistory)
+          );
+        }
       }
 
       next();
@@ -642,10 +644,9 @@ export default {
         theme: "round-button",
       }).then(() => {
         // 更新sessionStorage上的用户信息
-        var myUserInfoJson = window.sessionStorage.getItem("myUserInfo");
-        var myUserInfo = JSON.parse(myUserInfoJson);
+        var myUserInfo = JSON.parse(Cookies.get("myUserInfo"));
         myUserInfo.avatar = baseResponse.data;
-        window.sessionStorage.setItem("myUserInfo", JSON.stringify(myUserInfo));
+        Cookies.set("myUserInfo", JSON.stringify(myUserInfo));
 
         window.location.reload();
       });
@@ -704,14 +705,10 @@ export default {
           theme: "round-button",
         }).then(() => {
           // 更新sessionStorage上的用户信息
-          var myUserInfoJson = window.sessionStorage.getItem("myUserInfo");
-          var myUserInfo = JSON.parse(myUserInfoJson);
+          var myUserInfo = JSON.parse(Cookies.get("myUserInfo"));
           myUserInfo.nickname = userUpdateDTO.nickname;
           myUserInfo.gender = userUpdateDTO.gender;
-          window.sessionStorage.setItem(
-            "myUserInfo",
-            JSON.stringify(myUserInfo)
-          );
+          Cookies.set("myUserInfo", JSON.stringify(myUserInfo));
           // 更新userInfo数据
           info.nickname = userUpdateDTO.nickname;
           info.gender = userUpdateDTO.gender;
@@ -882,11 +879,11 @@ export default {
     const onPostLoad = async () => {
       console.log("Me.onLoad");
       await sleep(200);
-      var token = window.sessionStorage.getItem("token");
-      if (!token) {
-        postFinished.value = true;
-        return;
-      }
+      // var token = window.sessionStorage.getItem("token");
+      // if (!token) {
+      //   postFinished.value = true;
+      //   return;
+      // }
 
       var baseResponse;
       postSearchDTO.pageNum++;
@@ -959,7 +956,9 @@ export default {
       if (action === "confirm") {
         // 跳转到登录页面
         await logout();
-        router.push("/");
+        Cookies.remove("authToken");
+        Cookies.remove("myUserInfo");
+        window.location.reload()
       }
       logoutShow.value = false;
     };
@@ -1003,8 +1002,7 @@ export default {
     // gotoUser
     const gotoUser = (userId) => {
       event.stopPropagation(); // 阻止事件冒泡至外层div
-      var myUserId = window.sessionStorage.getItem("myUserId");
-      if (userId == myUserId) {
+      if (userId == info.id) {
         router.push("/main/me");
       } else {
         window.sessionStorage.setItem("gotoUserId", userId);

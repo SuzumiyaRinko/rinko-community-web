@@ -74,6 +74,8 @@ import {
   saveEnter2Br4Save,
 } from "@/util/utils.js";
 
+import Cookies from "js-cookie";
+
 export default {
   props: ["shareData"],
   setup(props) {

@@ -1,12 +1,19 @@
 import { showToast } from "vant";
-import { useRouter } from "vue-router";
+import Cookies from "js-cookie";
 
-const router = useRouter();
+// 刷新Cookie
+export function refreshAuthToken(authToken) {
+    Cookies.set("authToken", authToken, {
+        expires: new Date(new Date().getTime() + 30 * 60 * 1000), // 30mins
+        secure: true,
+      });
+}
 
 // 判断登录凭证和用户权限
 export function checkAuthorityAndPerm(baseResponse) {
     if (baseResponse.code == 401) {
-        window.sessionStorage.removeItem("token")
+        Cookies.remove("authToken")
+        Cookies.remove("myUserInfo")
         showToast({
             message: "身份过期\n请重新登录",
             icon: "cross",

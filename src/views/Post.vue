@@ -509,7 +509,9 @@ import {
   saveEnter2Br4Web,
   saveEnter2Br4Save,
 } from "@/util/utils.js";
+
 import moment from "moment";
+import Cookies from "js-cookie";
 
 export default {
   props: ["shareData"],
@@ -519,7 +521,8 @@ export default {
       props.shareData.bottomNavShow = false;
 
       // myUserId
-      myUserId.value = window.sessionStorage.getItem("myUserId");
+      var myUserInfo = JSON.parse(Cookies.get("myUserInfo"))
+      myUserId.value = myUserInfo.id;
 
       // currPost
       var currPostJson = window.sessionStorage.getItem("currPost");
@@ -601,7 +604,7 @@ export default {
       window.sessionStorage.setItem("oldRouter", "/main/post");
 
       // 存储历史
-      var token = window.sessionStorage.getItem("token");
+      var token = Cookies.get("authToken");
       if (token) {
         var targetType = 2;
         var targetId = currPost.id;
@@ -649,8 +652,7 @@ export default {
     // gotoUser
     const gotoUser = (userId) => {
       event.stopPropagation(); // 阻止事件冒泡至外层div
-      var myUserId = window.sessionStorage.getItem("myUserId");
-      if (userId == myUserId) {
+      if (userId == myUserId.value) {
         props.shareData.homeStyle = "";
         props.shareData.messageStyle = "";
         props.shareData.meStyle = "color: #1989fa";
@@ -833,7 +835,7 @@ export default {
 
         // 评论
         var myUserInfo = JSON.parse(
-          window.sessionStorage.getItem("myUserInfo")
+          Cookies.get("myUserInfo")
         );
         // 立刻显示
         var now = moment().format("YYYY-MM-DD HH:mm:ss");
