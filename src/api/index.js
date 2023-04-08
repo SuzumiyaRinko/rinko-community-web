@@ -3,6 +3,7 @@ import {
     checkAuthorityAndPerm,
 } from "@/util/utils.js";
 import Cookies from "js-cookie";
+import { refreshAuthToken } from "@/util/utils.js"
 
 let service = axios.create({
     baseURL: "http://localhost:8080/", // dev
@@ -21,10 +22,7 @@ service.interceptors.response.use((resp) => {
     // 判断authToken过期
     checkAuthorityAndPerm(resp.data)
     // 刷新token
-    Cookies.set("authToken", Cookies.get("authToken"), {
-        expires: new Date(new Date().getTime() + 30 * 60 * 1000), // 30mins
-        secure: true,
-    });
+    refreshAuthToken(Cookies.get("authToken"))
     return resp
 }, (error) => {
     console.log(error)

@@ -51,9 +51,6 @@ export function feedsSearch(pageNum) {
 // 根据postId查询post
 export function getPostByPostId(postId) {
     return service({
-        headers: {
-            "Authorization": window.sessionStorage.getItem("token"),
-        },
         method: "GET",
         url: `/post/${postId}`,
     })
@@ -62,9 +59,6 @@ export function getPostByPostId(postId) {
 // 更新
 export function updatePostAPI(postUpdateDTO) {
     return service({
-        headers: {
-            "Authorization": window.sessionStorage.getItem("token"),
-        },
         method: "PUT",
         url: "/post/update",
         data: postUpdateDTO,
@@ -74,9 +68,6 @@ export function updatePostAPI(postUpdateDTO) {
 // 删除
 export function deletePostAPI(postId) {
     return service({
-        headers: {
-            "Authorization": window.sessionStorage.getItem("token"),
-        },
         method: "DELETE",
         url: `/post/delete/${postId}`,
     })
@@ -85,9 +76,6 @@ export function deletePostAPI(postId) {
 // 点赞
 export function likeAPI(postId) {
     return service({
-        headers: {
-            "Authorization": window.sessionStorage.getItem("token"),
-        },
         method: "POST",
         url: `/post/like/${postId}`,
     })
@@ -96,9 +84,6 @@ export function likeAPI(postId) {
 // 收藏
 export function collectAPI(postId) {
     return service({
-        headers: {
-            "Authorization": window.sessionStorage.getItem("token"),
-        },
         method: "POST",
         url: `/post/collect/${postId}`,
     })
@@ -107,9 +92,6 @@ export function collectAPI(postId) {
 // 判断是否已点赞
 export function hasLikeAPI(postId) {
     return service({
-        headers: {
-            "Authorization": window.sessionStorage.getItem("token"),
-        },
         method: "GET",
         url: `/post/hasLike/${postId}`,
     })
@@ -118,9 +100,6 @@ export function hasLikeAPI(postId) {
 // 判断是否已收藏
 export function hasCollectAPI(postId) {
     return service({
-        headers: {
-            "Authorization": window.sessionStorage.getItem("token"),
-        },
         method: "GET",
         url: `/post/hasCollect/${postId}`,
     })
@@ -129,9 +108,6 @@ export function hasCollectAPI(postId) {
 // 发布post
 export function insertPostAPI(postInsertDTO) {
     return service({
-        headers: {
-            "Authorization": window.sessionStorage.getItem("token"),
-        },
         method: "POST",
         url: "/post/insert",
         data: postInsertDTO,
