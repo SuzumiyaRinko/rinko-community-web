@@ -974,7 +974,6 @@ export default {
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
       if(checkAuthorityAndPerm(baseResponse) == 403) return;
-
       if (baseResponse.code != 200) {
         showToast({
           message: "图片上传失败",
