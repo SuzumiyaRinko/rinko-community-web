@@ -10,7 +10,7 @@ export default createStore({
     // apiPrefix4ws: "ws://192.168.66.150/api-Rinko-Community", // test
     // apiPrefix4ws: "ws://175.178.244.172/api-Rinko-Community", // prod
 
-    resourcesPrefix: "http://192.168.66.150/Rinko-Community/resources", // dev&test
+    resourcesPrefix: "http://192.168.66.150/resources", // dev&test
     // resourcesPrefix: "http://175.178.244.172/Rinko-Community/resources", // prod
   },
   getters: {

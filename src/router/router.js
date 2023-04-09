@@ -17,11 +17,6 @@ import Error from "@/views/Error.vue"
 
 const routes = [
   {
-    path: '/',
-    name: 'registerOrLogin',
-    component: RegisterOrLogin,
-  },
-  {
     path: '/main',
     name: 'main',
     component: Main,
@@ -41,26 +36,19 @@ const routes = [
       var authToken = Cookies.get("authToken")
       if (authToken == null) {
         console.log("authToken == null")
+        
+        // SSO_backTo
         Cookies.set("SSO_backTo", "http://localhost/Rinko-Community/#/main/home") // dev
         // Cookies.set("SSO_backTo", "") // test
         // Cookies.set("SSO_backTo", "") // prod
-        window.location.href = "http://localhost/Rinko-Community/" // SSO
+
+        // SSO
+        window.location.href = "http://localhost:81/Rinko-SSO/" // dev
+        // window.location.href = "" // test
+        // window.location.href = "" // prod
       } else {
         next()
       }
-
-
-      //   if (!window.sessionStorage.getItem("token")) {
-      //     console.log("beforeEnter push")
-      //     window.sessionStorage.clear()
-      //     if (to.path == "/") {
-      //       next()
-      //     } else {
-      //       next("/")
-      //     }
-      //   } else {
-      //     next()
-      //   }
     }
   },
 ]

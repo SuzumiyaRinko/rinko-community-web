@@ -956,8 +956,6 @@ export default {
       if (action === "confirm") {
         // 跳转到登录页面
         await logout();
-        Cookies.remove("authToken");
-        Cookies.remove("myUserInfo");
         window.location.reload()
       }
       logoutShow.value = false;
