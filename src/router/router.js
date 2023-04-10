@@ -38,14 +38,14 @@ const routes = [
         console.log("authToken == null")
         
         // SSO_backTo
-        Cookies.set("SSO_backTo", "http://localhost/Rinko-Community/#/main/home") // dev
+        // Cookies.set("SSO_backTo", "http://localhost/Rinko-Community/#/main/home") // dev
         // Cookies.set("SSO_backTo", "") // test
-        // Cookies.set("SSO_backTo", "") // prod
+        Cookies.set("SSO_backTo", "http://175.178.244.172/Rinko-Community/#/main/home") // prod
 
         // SSO
-        window.location.href = "http://localhost:81/Rinko-SSO/" // dev
+        // window.location.href = "http://localhost:81/Rinko-SSO/" // dev
         // window.location.href = "" // test
-        // window.location.href = "" // prod
+        window.location.href = "http://175.178.244.172/Rinko-SSO/" // prod
       } else {
         next()
       }
