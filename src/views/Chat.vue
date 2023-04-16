@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
-      <span class="back" @click="router.go(-1)">返回</span>
+      <span class="back" @click="goBack()">返回</span>
       <span v-if="wsChatTargetId != 0" class="chatTitle">{{
         targetUserInfo.nickname
       }}</span>
@@ -631,7 +631,7 @@ export default {
       props.shareData.bottomNavShow = false;
 
       // myUserId
-      var myUserInfo = JSON.parse(Cookies.get("myUserInfo"))
+      var myUserInfo = JSON.parse(Cookies.get("myUserInfo"));
       myUserId.value = myUserInfo.id;
 
       // wsChatTargetId
@@ -656,7 +656,7 @@ export default {
 
       // 加载用户信息
       // myUserInfo
-      var userInfo = JSON.parse(Cookies.get("myUserInfo"))
+      var userInfo = JSON.parse(Cookies.get("myUserInfo"));
       myUserInfo.id = userInfo.id;
       myUserInfo.nickname = userInfo.nickname;
       myUserInfo.gender = userInfo.gender;
@@ -666,7 +666,7 @@ export default {
       // targetUserInfo
       if (wsChatTargetId.value != 0) {
         var baseResponse = (await getUserInfo(wsChatTargetId.value)).data;
-        if(checkAuthorityAndPerm(baseResponse) == 403) return;
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
         var userInfo = baseResponse.data;
         targetUserInfo.id = userInfo.id;
@@ -681,7 +681,7 @@ export default {
       messageSelectDTO.targetId = wsChatTargetId.value;
       console.log("Chat.onMounted.messageSelectDTO", messageSelectDTO);
       var baseResponse = (await getMessages(messageSelectDTO)).data;
-      if(checkAuthorityAndPerm(baseResponse) == 403) return;
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
       var messageSelectVO = baseResponse.data;
       console.log("Chat.onMounted.messageSelectVO", messageSelectVO);
@@ -735,7 +735,8 @@ export default {
         if (
           (wsChatTargetId.value == 0 && newMessage.toUserId == 0) ||
           (wsChatTargetId.value != 0 &&
-            newMessage.fromUserId == wsChatTargetId.value && newMessage.toUserId == myUserId.value)
+            newMessage.fromUserId == wsChatTargetId.value &&
+            newMessage.toUserId == myUserId.value)
         ) {
           // 尝试移动scroll (设置flag)
           var scrollingFlag = false;
@@ -785,6 +786,10 @@ export default {
       roles: [],
     });
 
+    const goBack = () => {
+      window.history.state.back ? router.go(-1) : router.push("/main/home");
+    };
+
     // gotoUser
     const gotoUser = (userId) => {
       event.stopPropagation(); // 阻止事件冒泡至外层div
@@ -829,7 +834,7 @@ export default {
         // 加载message
         messageSelectDTO.targetId = wsChatTargetId.value;
         var baseResponse = (await getMessages(messageSelectDTO)).data;
-        if(checkAuthorityAndPerm(baseResponse) == 403) return;
+        if (checkAuthorityAndPerm(baseResponse) == 403) return;
 
         var messageSelectVO = baseResponse.data;
         messageSelectDTO.lastId = messageSelectVO.lastId; // 记录lastId
@@ -961,7 +966,7 @@ export default {
       var data = new FormData();
       data.append("file", file.file);
       var baseResponse = (await uploadFile(data)).data;
-      if(checkAuthorityAndPerm(baseResponse) == 403) return;
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
       if (baseResponse.code != 200) {
         showToast({
           message: "图片上传失败",
@@ -1011,7 +1016,7 @@ export default {
       var deletePicturePath = messageInsertDTO.picturesSplit[detail.index];
       messageInsertDTO.picturesSplit.splice(detail.index, 1);
       var baseResponse = (await deleteFile(deletePicturePath)).data;
-      if(checkAuthorityAndPerm(baseResponse) == 403) return;
+      if (checkAuthorityAndPerm(baseResponse) == 403) return;
     };
 
     // 查看图片
@@ -1039,6 +1044,7 @@ export default {
       wsChatTargetId,
       myUserInfo,
       targetUserInfo,
+      goBack,
       gotoUser,
       noAnyMessage,
       messageSelectDTO,

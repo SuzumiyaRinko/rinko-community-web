@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
-      <span class="back" @click="router.go(-1)">返回</span>
+      <span class="back" @click="goBack()">返回</span>
       <span class="title">编辑POST</span>
       <van-button
         class="commitButton"
@@ -131,6 +131,10 @@ export default {
       picturesSplit: [],
     });
 
+    const goBack = () => {
+      window.history.state.back ? router.go(-1) : router.push("/main/home");
+    };
+
     // 上传图片
     const uploadPicture = async (file) => {
       var data = new FormData();
@@ -250,6 +254,7 @@ export default {
     return {
       router,
       postUpdateDTO,
+      goBack,
       uploadPicture,
       postPictures,
       beforeRead,

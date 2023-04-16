@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
-      <span class="back" @click="router.go(-1)">返回</span>
+      <span class="back" @click="goBack()">返回</span>
       <span class="title">COMMENT</span>
       <van-button
         v-if="currComment.commentUser.id == myUserId"
@@ -581,6 +581,10 @@ export default {
     // myUserId
     const myUserId = ref("");
 
+    const goBack = () => {
+      window.history.state.back ? router.go(-1) : router.push("/main/home");
+    };
+
     // gotoUser
     const gotoUser = (userId) => {
       event.stopPropagation(); // 阻止事件冒泡至外层div
@@ -848,6 +852,7 @@ export default {
       backToPost,
       myUserId,
       gotoUser,
+      goBack,
       noAnyRecomment,
       currComment,
       recommentPage,

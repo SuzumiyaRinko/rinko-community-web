@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="top">
       <van-icon name="arrow-left" color="#1776d2" size="0.6rem" />
-      <span class="back" @click="backToSomeone()">返回</span>
+      <span class="back" @click="goBack()">返回</span>
       <span class="title">ERROR</span>
     </div>
 
@@ -67,9 +67,8 @@ export default {
     // noResource
     const noResource = ref("/logo.png");
 
-    // backToSomeone
-    const backToSomeone = () => {
-      router.push(window.sessionStorage.getItem("backToSomeone"));
+    const goBack = () => {
+      window.history.state.back ? router.go(-1) : router.push("/main/home");
     };
 
     return {
@@ -77,6 +76,7 @@ export default {
       store,
       noResource,
       backToSomeone,
+      goBack,
     };
   },
   components: {},
